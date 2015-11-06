@@ -41,7 +41,7 @@ sp_parallel_run = function(sp_nm) {
   sink(file(txt_nm, open = "wt"))
 
   # print list start date of processing
-  cat('\n', 'Started on ', date(), '\n') 
+  cat('\n Started on ', date(), '\n') 
   # list initial processing time 
   ptm0 <- proc.time()
   
@@ -112,7 +112,7 @@ sp_parallel_run = function(sp_nm) {
     head(mySpeciesOcc)
     
     # sign posting for pseudo-absence handling to define points
-    cat('\n', 'defining candidate PA points...') #sign-posting
+    cat('\n defining candidate PA points...') #sign-posting
     
     # create raster layer based on environmental response variable cells
     mySREresp<-reclassify(subset(predictors, 1, drop = TRUE), c(-Inf, Inf, 0))
@@ -146,7 +146,7 @@ sp_parallel_run = function(sp_nm) {
     format(Sys.time(), "%a %b %d %Y %X")
     
     # sign-posting for extraction of environmental data at point locations
-    cat('\n','extracting env vars to points...')
+    cat('\n extracting env vars to points...')
     
     # create matrix with cell numbers of real data from selected bioclim variables
     bioclimData<-extract(predictors, mySpeciesData[, 1:2], cellnumbers = TRUE) 
@@ -340,7 +340,7 @@ sp_parallel_run = function(sp_nm) {
     cat('\n It took ', p_time, "minutes to model", sp_nm)
   }else{
     # sign-posting if file for variable importance has already been created 
-    cat('\n fitting for ', sp_nm,'already done...') 
+    cat('\n fitting for', sp_nm, 'already done...') 
     # indicates that this species has already been run 
   }    
   # reset sink to console output

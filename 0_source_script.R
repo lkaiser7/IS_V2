@@ -55,6 +55,11 @@ project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
 dir.create(project_path, showWarnings = FALSE)
 
+# location to save any extra or more specific outputs
+outDir<-paste0(project_path, "outputs/")
+# create output folder in project path
+dir.create(outDir, showWarnings = FALSE)
+
 # list all species names to be analyzed
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora', 
