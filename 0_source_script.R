@@ -5,51 +5,17 @@
 # clear the environment and all other variables
 rm(list = ls())
 
-################################
-##### SET SOURCE LOCATIONs #####
-################################
+##########################################
+##### SET SOURCE LOCATIONS AND PATHS #####
+##########################################
 
 # set root path to source files
 rootDir<-"Y:/PICCC_analysis/IS_analysis/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
-# create necessary paths to folders from root
-# location of scripts and code
-codeDir<-"C:/Users/Lauren/Dropbox/GitHub/IS_V2/"
-
-# location of all data
-dataDir<-paste0(rootDir, "data/")
-# global GBIF data
-gbifDir<-paste0(dataDir, "gbif_data/")
-# regional BISON data
-bisonDir<-paste0(dataDir, "bison_data/")
-# local Hawaii data
-localDir<-paste0(dataDir, "local_data/")
-# select current data to use for project run
-dataRun<-gbifDir
-
-# location of bioclimatic variables
-bioclims<-paste0(dataDir, "bioclim_vars/")
-# current (2000) bioclimatic variables @ 30 arc-sec
-fitting_bios<-paste0(bioclims, "current_10km/")
-# current(2000) bioclimatic variables @ 10 arc-min
-current_bios<-paste0(bioclims, "current_18.5km/")
-# future (2100) bioclimatic variables @ 10 arc-min
-future_bios<-paste0(bioclims, "future_18.5km/")
-
-##################################
-##### GENERAL CONFIGURATIONS #####
-##################################
-
-# load necessary packages for this script
-library("tools")
-library("raster")
-library("rworldmap")
-library("rworldxtra")
-
 # select name for project and create directory
-project_run<-"global_test_run2"
+project_run<-"all_hi_full_run"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -60,72 +26,160 @@ outDir<-paste0(project_path, "outputs/")
 # create output folder in project path
 dir.create(outDir, showWarnings = FALSE)
 
+# location of scripts and code
+codeDir<-"C:/Users/lkaiser/Dropbox/GitHub/IS_V2/"
+
+# location of all data
+dataDir<-paste0(rootDir, "data/")
+
+# global GBIF data
+gbifDir<-paste0(dataDir, "raw_data/gbif_data/")
+# regional BISON data
+bisonDir<-paste0(dataDir, "raw_data/bison_data/")
+# local Hawaii data
+localDir<-paste0(dataDir, "raw_data/local_data/")
+
+# all species data
+allDir<-paste0(dataDir, "all_data/")
+# Hawaii species data
+hiDir<-paste0(dataDir, "hi_data/")
+# excluding Hawaii species data
+nohiDir<-paste0(dataDir, "no_hi_data/")
+
+# location of map data and shapefiles
+mapDir<-paste0(dataDir, "map_data/")
+
+# location of bioclimatic variables
+bioclims<-paste0(dataDir, "bioclim_vars/")
+
+# downloaded from worldclim.org (2015)
+# current (2000) bioclimatic variables @ 30 arc-sec
+fitting_bios<-paste0(bioclims, "all_baseline/current_10km/")
+# current(2000) bioclimatic variables @ 10 arc-min
+current_bios<-paste0(bioclims, "all_baseline/current_18.5km/")
+# future (2100) bioclimatic variables @ 10 arc-min
+future_bios<-paste0(bioclims, "all_future/future_18.5km/")
+
+# updated HRCM bios ***FOR HAWAII ONLY*** (2015)
+# current updated bioclimatic variabels @ 125 m
+fitting_2015_bios<-paste0(bioclims, "all_HRCM/current_125m/")
+# current updated bioclimatic variables @ 500 m
+current_2015_bios<-paste0(bioclims, "all_HRCM/current_500m/")
+# future updated bioclimatic variables @ 500 m 
+future_2015_bios<-paste0(bioclims, "all_HRCM/future_500m/")
+
+# select current data and bioclims to use for model approach
+baseData<-hiDir                # baseline species data (scripts 1 & 2)
+futureData<-hiDir              # future species data (scripts 3 & 5)
+biofitRun<-fitting_2015_bios         # for model fitting
+biobaseRun<-current_2015_bios        # for baseline projections
+biofutureRun<-future_2015_bios       # for future projections
+
+##################################
+##### GENERAL CONFIGURATIONS #####
+##################################
+
+# load necessary packages for this script
+library("tools")
+library("raster")
+library("rworldmap")
+library("rworldxtra")
+library("maptools")
+
+# set all_sp_nm = 'Clidemia_hirta' for testing and debugging
 # list all species names to be analyzed
-all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
+all_sp_nm = c('Setaria_palmifolia', 'Psidium_cattleianum',
+              'Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora', 
               'Miconia_calvescens', 'Morella_faya', 'Panicum_maximum', 
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum', 
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius', 
               'Cyathea_cooperi', 'Ulex_europaeus')
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
+# NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
-# set projection for all mapping **NEEDS WORK**
-coordSys<-'+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0'
 # load map data for global extent
 world_map<-getMap(resolution = "high")
+# load shapefile for Hawaii extent
+hawaii_map<-readShapeSpatial(paste0(mapDir, "Main_Hawaiian_Islands_simple3.shp"))
+
+# set projection to be the same for all mapping
+coordSys<-'+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0'
+# add coordinate reference system for projections to be same 
+projection(world_map)<-coordSys
+projection(hawaii_map)<-coordSys
+
+# set map and scale (Hawaii or Global) to use for project run
+map_scale<-"Hawaii"
+map_to_use<-hawaii_map
+
 # list global extent from world_map
-all_ext<-extent(-180, 180, -90, 90)
+all_ext<-extent(world_map)
 # create local extent for Hawaii
-hi_ext<-extent(-160, -155, 15, 25)
+hi_ext<-extent(hawaii_map)
 # set crop extent for project run
-crop_ext<-all_ext
+crop_ext<-hi_ext
 
 #############################
 ##### MODELLING OPTIONS #####
 #############################
 
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
-models_to_run = c("GBM")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
+models_to_run = c("GBM", "RF")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
 # select model evaluation methods (KAPPA, ROC, TSS)
-eval_stats = c("ROC") 
+eval_stats = c("ROC", "TSS") 
 # select environmental variables for models
 env_var_files = c("bio1.tif", "bio7.tif", "bio12.tif", "bio15.tif") 
-# create vector with bioclimatic variable names without the file extension (.grd)
+# create vector with bioclimatic variable names without the file extension (.tif)
 var_names<-unlist(file_path_sans_ext(env_var_files))
 
 # choose whether to plot graphs (T) or not (F)
-plot_graphs = FALSE
+plot_graphs = TRUE
 # apply fixes for large (T) or small (F) models to solve memory issues
 apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
-# turn on (T) or off (F) parallel multi-instance computing 
-paralelize = FALSE
 # select number of computer cores for processing (max = 32)
 cpucores = 20
 
-# to run model fitting (T) or not(F)
-EM_fit = TRUE
-# to run ensemble modelling (T) or not (F)
+### MAIN SCRIPTS ###
+
+# RUN 'T' FOR BOTH BASELINE AND FUTURE
+# script 1: to run model fitting (T) or not (F)
+EM_fitting = TRUE
+# script 2: to run ensemble modeling (T) or not (F)
 EM_ensemble = TRUE
-# to project model resutls (T) or not (F) 
+# script 3: to project model results (T) or not (F)
 EM_project = TRUE
 
-# NA? optional scripts (options below)
-merge_all_var_importance_and_model_eval = F
-model_eval_graph = F
-var_importance_graph = F
-create_response_curves = F
-create_analog_climate_map = T
-raster_output_creation = T #additional/ overridding configurations within files
-distribution_shift_calculations = T 
-spp_ensemble_maps = T
+### AUXILIARY SCRIPTS ###
 
-#################################
-##### SCRIPT CONFIGURATIONS #####
-#################################
+# RUN 'T' FOR BASELINE, 'F' FOR FUTURE
+# script 1a: to get variable importance and evaluation score (T) or not (F)
+merge_var_imp_and_mod_eval = T
+# script 1b: to graph evaluation scores/variable importance (T) or not(F)
+model_fit_graphs = T
+# script 2a: to graphy variable importance (T) or not (F)
+create_response_curves = T
 
-# number of ensemble modelling evaluation runs
+# RUN 'T' FOR BOTH BASELINE AND FUTURE
+# script 4: to create raster files (T) or not (F)
+raster_output_creation = F 
+
+# RUN 'F' FOR BASELINE, 'T' FOR FUTURE
+# script 5: to map analog climates (T) or not (F)
+create_analog_climate_map = F
+# script 6: to calculate distribution shifts (T) or not (F)
+calculate_distribution_shifts = F
+# script 7: to create ensemble maps (T) or not (F)
+species_ensemble_maps = F
+
+##########################################
+##### SPECIFIC SCRIPT CONFIGURATIONS #####
+##########################################
+
+### EM_fitting (script 1)
+# number of ensemble modeling evaluation runs
 NbRunEval = 4
 # consider PAs outside of a species climate envelope (T) or not (F)
 PseudoAbs_outside_CE = FALSE
@@ -146,21 +200,19 @@ PA.dist.min = 200*equiv_100m
 # to run the full models (T) or not (F)
 do.full.models = TRUE
 
+### EM_ensemble (script 2)
 # sets the minimum scores to exclude models when building ensembles
 eval.metric.threshold = rep(0.5, length(eval_stats)) 
 
-# configure projections by island (T) or archipelago (F) to avoid memory issues
-proj_by_island = FALSE 
+### EM_project (script 3)
 # select baseline (1) or future (4) projections
-baseline_or_future = 4
+baseline_or_future = 1
 # choose to save clamping mask (T) or not (F)
 clampingMask = FALSE
 # to keep clamping Mask = T saved to hard drive (T) or not (F)
 memory = TRUE 
 
-#create_analog_climate_map configurations for baseline (1) or future(4)
-toCompareWithCurrentClimate = 4
-
+### raster_output_creation (script 4)
 #raster_output_creation configurations for multiple species maps
 spp_ensemble_type = "wmean" 
 # for raster creation and shifted calculations for mapping
@@ -170,15 +222,15 @@ comp_projects = c('baseline', 'future')
 # for raster creation 
 plot_spp_ensemble_CV = TRUE 
 # for raster creation
-masked_spp_ensemble_map = FALSE 
+masked_spp_ensemble_map = FALSE
+
+### create_analog_climate_map (script 5)
+#create_analog_climate_map configurations for baseline (1) or future(4)
+toCompareWithCurrentClimate = 4 
+
+### calculate_distribution_shifts (script 6)
 # km resolution for shifted calculations
 model_resolution = 0.5
-# for shifted calculations
-exclude_areas_beyond_primary_habitat = FALSE
-# for multiple species maps
-habitat_overlay = FALSE
-# overlay of prehistorical habitat for multiple species maps (landfire BPS)
-BPS = FALSE
 
 ###########################
 ##### RUNNING SCRIPTS #####
@@ -189,9 +241,9 @@ useRasterDef = TRUE
 interpolateDef = FALSE
 
 # temporary folder for files during processing to avoid memory errors
-dir_for_temp_files<-paste0(rootDir, 'temp/', project_run, "/", baseline_or_future, "/") 
+dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
 
-# conditions if applying fixes to BIOMOD2
+# conditions if applying fixes to BIOMOD2 (script 3)
 if (apply_biomod2_fixes) {
   # name model run based on scenario 
   maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
@@ -201,79 +253,83 @@ if (apply_biomod2_fixes) {
 
 # assign projected climate data set for baseline scenario
 if (baseline_or_future == 1) {
-  clim_data = current_bios
+  clim_data = biobaseRun
   proj_nm = 'baseline'}
 # assign projected climate data set for future scenario
 if (baseline_or_future == 4) {
-  clim_data = future_bios 
+  clim_data = biofutureRun 
   proj_nm = 'future'}
 
+# create log for data input for initial run
+if (baseline_or_future == 1) {
+  # create a text file name for specific ongoing processing session
+  txt_nm = paste0(project_path, "data_input_log.txt")
+  # write log file in species directory and sink console outputs to log
+  sink(file(txt_nm, open = "wt"))
+  # print sign posting for ongoing project run processing
+  cat('\n', project_run, 'started on ', date(), '\n') 
+  
+  # list data used to keep record of inputs per run
+  cat('\n Inputs used:', '\n')
+  cat('species:'); print(all_sp_nm)
+  cat('species baseline data:', baseData, '\n')
+  cat('species future data:', futureData, '\n')
+  cat('bioclimatic variables:', var_names, '\n')
+  cat('fitting bioclim data:', biofitRun, '\n')
+  cat('baseline bioclim data:', biobaseRun, '\n')
+  cat('future bioclim data:', biofutureRun, '\n')
+  cat('map and crop extent:', map_scale, '\n')
+  cat('selected models:', models_to_run, '\n')
+  cat('selected evaluation statistics:', eval_stats, '\n')
+  
+  # add any additional notes for project run if needed
+  cat('\n', 'additional notes: ')
+  
+  # reset sink from text file to console output
+  sink(NULL)
+}
+
 # start the clock to calculate processing time
-ptmStart <- proc.time()
+ptmStart<-proc.time()
 
 # run model fitting, ensemble models, and projections based on settings above
-if (EM_fit){  # runs fitting code
-  source(paste0(codeDir,"1_BM2_FB_SDM_fitting_LK.r")) 
+if (EM_fitting){  # 1 - run fitting code
+  source(paste0(codeDir,"1_model_fitting.R")) 
 }
-if (EM_ensemble){  # runs ensemble code
-  source(paste0(codeDir,"2_BM2_FB_SDM_EM_creation_LK.r")) 
+if (EM_ensemble){  # 2 - run ensemble code
+  source(paste0(codeDir,"2_mod_ensembles.R")) 
 }
-if (EM_project){  #runs projection code
-  source(paste0(codeDir,"3_BM2_FB_SDM_EM_projection_byIsland_LK.r"))   
+if (EM_project){  # 3 - run projection code
+  source(paste0(codeDir,"3_em_projection.R"))   
 }
 
 # auxiliary scripts based on settings above
-if (merge_all_var_importance_and_model_eval) {
-  source(paste0(codeDir,"1opt_merge_all_var_importance_and_model_eval.R"))}
-if (model_eval_graph) {
-  source(paste0(codeDir,"1opt_model_eval_graph.R"))}
-if (var_importance_graph) {
-  source(paste0(codeDir,"1opt_var_importance_graph.R"))}
-if (create_response_curves) {
-  source(paste0(codeDir,"2opt_BM2_FB_SDM_response_curves.r"))}
-if (create_analog_climate_map) {
-  source(paste0(codeDir,"4opt_create_analog_climate_map_LK.R"))}
-if (raster_output_creation) {
-  source(paste0(codeDir,"4_SDM_raster_output_creation_newBiomVer.R"))}
-if (distribution_shift_calculations) {
-  source(paste0(codeDir,"6_distribution_shift_calculations_newbiomod2.r"))}
-if (spp_ensemble_maps) {
-  source(paste0(codeDir,"7_spp_ensemble_maps.r"))}
+if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
+  source(paste0(codeDir, "1a_mfit_tables.R"))}
+if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
+  source(paste0(codeDir, "1b_mfit_graphs.R"))}
+if (create_response_curves) { # 2a - response curves
+  source(paste0(codeDir, "2a_resp_curves.r"))}
 
+if (raster_output_creation) { # 4 - create output rasters
+  source(paste0(codeDir,"4_raster_output.R"))}
+if (create_analog_climate_map) { # 5 - map analog climates
+  source(paste0(codeDir,"5_analog_climate.R"))}
+if (calculate_distribution_shifts) { # 6 - calcuate distribution shift
+  source(paste0(codeDir,"6_range_shifts.R"))}
+if (species_ensemble_maps) { # 7 - map species ensembles
+  source(paste0(codeDir,"7_ensemble_maps.R"))}
 
 # stop the clock and calculate processing time to run all scripts and code
 ptmEnd = proc.time() - ptmStart 
 # store elapsed time per species 
-p_time = as.numeric(ptmEnd[3])/length(spp_nm) 
+p_time = as.numeric(ptmEnd[3])/length(all_sp_nm) 
 # convert seconds into minutes
 p_time = p_time/60 
 # report processing time and show finished processing
 cat('\n','It took ', p_time, "minutes (on average) to model each species with",
     length(models_to_run), "model types") 
 
-
-
-
-
-
-##### PREVIOUS WORK #####
-### CHANGING SCRIPT CONFIGURATIONS ###
-
-### SCRIPT 1 ###
-# global datasets
-source(paste0(codeDir, "1_gbif_data.r"))
-### SCRIPT 2 ###
-# local datasets
-source(paste0(codeDir, "2_local_data.r"))
-### SCRIPT 3 ###
-# bioclimatic variables
-source(paste0(codeDir, "3_bioclim_vars.r"))
-### SCRIPT 4 ###
-# presence and absence data
-source(paste0(codeDir, "4_pres_abs.r"))
-### SCRIPT 5 ###
-# biomod2 modeling 
-source(paste0(codeDir, "5_biomod_sdm.r"))
-### SCRIPT 6 ###
-# modeling outputs
-source(paste0(codeDir, "6_model_outputs.r"))
+#########################
+### END SOURCE SCRIPT ###
+#########################
