@@ -69,11 +69,11 @@ Process_raster_data_BadtoGood = function(raster_var, out_nm, min_lim = NULL,
   # set color ramp palette
   col5<-colorRampPalette(c('red', 'gray96', 'darkgreen')) 
   # plot raster
-  plot(raster_var, col = col5(n=99), breaks = seq(min_lim,max_lim,length.out=100), 
+  plot(raster_var, col = col5(n = 99), breaks = seq(min_lim, max_lim, length.out = 100), 
        axes = FALSE, box = FALSE, legend = TRUE, legend.width = 1, legend.shrink = 0.75,
        legend.args = list(text = "", side = 4, font = 2, line = 2.5, cex = 0.8),
-       axis.args = list(at = seq(min_lim,max_lim, (max_lim-min_lim)/10),
-                      labels = seq(min_lim,max_lim, (max_lim-min_lim)/10)))
+       axis.args = list(at = seq(min_lim, max_lim, (max_lim-min_lim)/10),
+                      labels = seq(min_lim, max_lim, (max_lim-min_lim)/10)))
   
   # check if mask data is NULL 
   if (!is.null(mask_data)){
@@ -120,7 +120,7 @@ Process_raster_data_NeutraltoGood = function(raster_var, out_nm, min_lim = NULL,
   # check if mask data is NULL 
   if (!is.null(mask_data)){
     # add mask to plot
-    plot(mask_data,add = TRUE)    
+    plot(mask_data, add = TRUE)    
   }
   # save jpeg image file
   dev.off()  
@@ -223,7 +223,7 @@ for (eval_stat in spp_ensemble_eval_stats){
       # reset i counter to 1
       i = 1
       # loop through 2
-      for (i in c(1,2)){
+      for (i in projections_to_run){
         # store individual project name
         proj_nm = comp_projects[i]
         # store individual raster name
@@ -301,87 +301,167 @@ for (eval_stat in spp_ensemble_eval_stats){
       Process_raster_data_NeutraltoGood(masked_suitability1, out_nm,min_lim = 0, 
                                         max_lim = 1, mask_data = mask_layer)
       
-      # masked species ensemble map suitability 2
-      masked_suitability2 = EM_BIN2*EM_suitability2
-      # create clipped suitability map for each evaluation statistic
-      out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_", "clipped_suitability_", 
-                      comp_projects[2], "_", eval_stat, "_", spp_ensemble_type)
-      # run function from above to save raster image
-      # save_raster_fx(masked_suitability2, out_nm)
-      # run function from above
-      Process_raster_data_NeutraltoGood(masked_suitability2, out_nm, min_lim = 0, 
-                                        max_lim = 1, mask_data = mask_layer)
-      
-      ### FIX ###
-      # change in masked species ensemble suitability maps - DIFFERENT RESOLUTIONS???
-      suitability_change = EM_suitability2-EM_suitability1
-      # create change in suitability map
-      out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_", "suitability_change_", 
-                      eval_stat, "_", spp_ensemble_type)
-      # run function from above to save raster image
-      # save_raster_fx(suitability_change, out_nm)
-      # run function from above
-      Process_raster_data_BadtoGood(suitability_change, out_nm, min_lim = -1, 
-                                    max_lim = 1, mask_data = mask_layer)
-      
-      # create temporary vector for ensemble bins
-      jnk = EM_BIN2*10
-      # calculate sum of ensemble bins
-      BIN_dif = EM_BIN1+jnk
-      # create vector 
-      m = c(9.9, 10.1, 3, 10.9, 11.1, 2)
-      # create matrix
-      rclmat = matrix(m,  ncol = 3,  byrow = TRUE)
-      # reclassify response zones based on bins
-      resp_zone = reclassify(BIN_dif,  rclmat)
-      
-      # create color palette
-      mypalette_numbers = c(0, 1, 2, 3)
-      # select colors for palettes
-      mypalette = c("Grey", "Red", "Green", "Yellow")
-      # create vector of response zone names
-      resp_zone_names0 = c("Lost", "Overlap", "Gained")
-            
-      # run if true in source script
-      if (masked_spp_ensemble_map){
-        # set current baseline mask
-        current_mask = EM_suitability1 > minValue(EM_suitability1) 
-        # store future analog climates raster
-        analog_cc_loc = paste0(sp_nm0, "_analog_climates2100.tif")
-        # load analog climates raster
-        analog_cc = raster(analog_cc_loc)
+      # skip following if only creating baseline rasters 
+      if (projections_to_run == 2){
+        # masked species ensemble map suitability 2
+        masked_suitability2 = EM_BIN2*EM_suitability2
+        # create clipped suitability map for each evaluation statistic
+        out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_", "clipped_suitability_", 
+                        comp_projects[2], "_", eval_stat, "_", spp_ensemble_type)
+        # run function from above to save raster image
+        # save_raster_fx(masked_suitability2, out_nm)
+        # run function from above
+        Process_raster_data_NeutraltoGood(masked_suitability2, out_nm, min_lim = 0, 
+                                          max_lim = 1, mask_data = mask_layer)
         
-        # combine into one mask
-        all_mask = analog_cc*2 + current_mask*4 
-        #1 cur, 2 ang, 4 hab, 3 cur/ang, 6 ang/hab, 7 cur/ang/hab
-        # calculate cumulative mask
-        multi_mask = current_mask*analog_cc
-        # create mask of response zones
-        masked_resp_zone = resp_zone*multi_mask
+        ### FIX ###
+        # change in masked species ensemble suitability maps - DIFFERENT RESOLUTIONS???
+        suitability_change = EM_suitability2-EM_suitability1
+        # create change in suitability map
+        out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_", "suitability_change_", 
+                        eval_stat, "_", spp_ensemble_type)
+        # run function from above to save raster image
+        # save_raster_fx(suitability_change, out_nm)
+        # run function from above
+        Process_raster_data_BadtoGood(suitability_change, out_nm, min_lim = -1, 
+                                      max_lim = 1, mask_data = mask_layer)
         
-        # print sign posting of created masks for species
-        cat('\n created mask for', sp_nm)
+        # create temporary vector for ensemble bins
+        jnk = EM_BIN2*10
+        # calculate sum of ensemble bins
+        BIN_dif = EM_BIN1+jnk
+        # create vector 
+        m = c(9.9, 10.1, 3, 10.9, 11.1, 2)
+        # create matrix
+        rclmat = matrix(m,  ncol = 3,  byrow = TRUE)
+        # reclassify response zones based on bins
+        resp_zone = reclassify(BIN_dif,  rclmat)
         
-        # save name of jpeg file for mask 
-        jpeg_name = paste0(project_run, '/output_rasters/main/', sp_nm0, "_mask.jpg")
-        # create blank jpeg file
-        jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
-             width = 10, height = 8, quality = 90, bg = "white")
-        # plot mask
-        plot(all_mask)
-        # save tiff file
-        dev.off()
+        # create color palette
+        mypalette_numbers = c(0, 1, 2, 3)
+        # select colors for palettes
+        mypalette = c("Grey", "Red", "Green", "Yellow")
+        # create vector of response zone names
+        resp_zone_names0 = c("Lost", "Overlap", "Gained")
         
-        # masked bin comparison rasters
-        out_nm = paste0(project_run, '/output_rasters/main/', sp_nm0, "_response_zones_masked_",
+        # run if true in source script
+        if (masked_spp_ensemble_map){
+          # set current baseline mask
+          current_mask = EM_suitability1 > minValue(EM_suitability1) 
+          # store future analog climates raster
+          analog_cc_loc = paste0(sp_nm0, "_analog_climates2100.tif")
+          # load analog climates raster
+          analog_cc = raster(analog_cc_loc)
+          
+          # combine into one mask
+          all_mask = analog_cc*2 + current_mask*4 
+          #1 cur, 2 ang, 4 hab, 3 cur/ang, 6 ang/hab, 7 cur/ang/hab
+          # calculate cumulative mask
+          multi_mask = current_mask*analog_cc
+          # create mask of response zones
+          masked_resp_zone = resp_zone*multi_mask
+          
+          # print sign posting of created masks for species
+          cat('\n created mask for', sp_nm)
+          
+          # save name of jpeg file for mask 
+          jpeg_name = paste0(project_run, '/output_rasters/main/', sp_nm0, "_mask.jpg")
+          # create blank jpeg file
+          jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
+               width = 10, height = 8, quality = 90, bg = "white")
+          # plot mask
+          plot(all_mask)
+          # save tiff file
+          dev.off()
+          
+          # masked bin comparison rasters
+          out_nm = paste0(project_run, '/output_rasters/main/', sp_nm0, "_response_zones_masked_",
+                          eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
+          # save name of jpeg file
+          jpeg_name = paste0(out_nm, ".jpg")
+          # save name of raster file to be created
+          out_raster_name = paste0(out_nm, ".tif")
+          
+          # create temporary object of response zones from mask
+          jnk = unique(masked_resp_zone)
+          # create palette of colors
+          graph_palette = mypalette_numbers
+          # select minimum range for present zone
+          zones_present = jnk[jnk > 0]
+          # select ,aximum range for present zone
+          zones_present = zones_present[zones_present <= 3]
+          # assign palette colors to zones
+          resp_zone_colors = mypalette[zones_present + 1]
+          # assign names to zones
+          resp_zone_names = resp_zone_names0[zones_present]
+          # select unique zone numbers for palette from temporary object
+          mypalette_numbers_selected = mypalette[jnk + 1]
+          
+          # create blank jpeg file
+          jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
+               width = 10, height = 8, quality = 90, bg = "white")
+          # plot masked response zone raster
+          plot(masked_resp_zone, col = mypalette_numbers_selected, legend = FALSE)
+          # add legend
+          legend("bottomleft", legend = resp_zone_names, col = resp_zone_colors, pch = 16)
+          # save raster image file
+          dev.off()  
+          # save raster data file
+          writeRaster(masked_resp_zone, out_raster_name, format = "GTiff", overwrite = TRUE)
+          
+          # combine with cumulative mask
+          future_bin_with_mask = multi_mask*EM_BIN2
+          # add suitability mask
+          future_suitability_with_mask = multi_mask*EM_suitability2
+          
+          # create output suitability rasters for each image
+          out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_suitability_future_masked_", 
+                          eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
+          # save name of jpeg file
+          jpeg_name = paste0(out_nm, ".jpg")
+          # save name of raster file to be created
+          out_raster_name = paste0(out_nm, ".tif")
+          # create blank jpeg file
+          jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
+               width = 10, height = 8, quality = 90, bg = "white")
+          # plot future suitability mask
+          plot(future_suitability_with_mask)
+          # save raster image file
+          dev.off()
+          # save raster data file        
+          writeRaster(future_suitability_with_mask, out_raster_name, 
+                      format = "GTiff", overwrite = TRUE)
+          
+          # masked binary maps per evaluation statistic
+          out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_BIN_future_masked_", 
+                          eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
+          # save name of jpeg file
+          jpeg_name = paste0(out_nm, ".jpg")
+          # save name of raster file to be created
+          out_raster_name = paste0(out_nm, ".tif")
+          # create blank jpeg file
+          jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
+               width = 10, height = 8, quality = 90, bg = "white")
+          # plot binary map with mask
+          plot(future_bin_with_mask)
+          # save raster image file
+          dev.off()
+          # save raster data file
+          writeRaster(future_bin_with_mask, out_raster_name,  
+                      format = "GTiff", overwrite = TRUE)
+        }
+        
+        
+        # response zones comarison rasters per evaluation statistic
+        out_nm = paste0(project_run, '/output_rasters/main/', sp_nm0, "_response_zones_",
                         eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
         # save name of jpeg file
         jpeg_name = paste0(out_nm, ".jpg")
         # save name of raster file to be created
-        out_raster_name = paste0(out_nm, ".tif")
+        out_raster_name00 = paste0(out_nm, ".tif")
         
-        # create temporary object of response zones from mask
-        jnk = unique(masked_resp_zone)
+        # create temporary object of response zones
+        jnk = unique(resp_zone)
         # create palette of colors
         graph_palette = mypalette_numbers
         # select minimum range for present zone
@@ -393,99 +473,22 @@ for (eval_stat in spp_ensemble_eval_stats){
         # assign names to zones
         resp_zone_names = resp_zone_names0[zones_present]
         # select unique zone numbers for palette from temporary object
-        mypalette_numbers_selected = mypalette[jnk + 1]
+        mypalette_numbers_selected = mypalette[jnk + 1]    
         
         # create blank jpeg file
         jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
              width = 10, height = 8, quality = 90, bg = "white")
-        # plot masked response zone raster
-        plot(masked_resp_zone, col = mypalette_numbers_selected, legend = FALSE)
+        # plot response zones raster
+        plot(resp_zone,  main = sp_nm0, col = mypalette_numbers_selected, legend = FALSE)
         # add legend
         legend("bottomleft", legend = resp_zone_names, col = resp_zone_colors, pch = 16)
         # save raster image file
-        dev.off()  
-        # save raster data file
-        writeRaster(masked_resp_zone, out_raster_name, format = "GTiff", overwrite = TRUE)
-        
-        # combine with cumulative mask
-        future_bin_with_mask = multi_mask*EM_BIN2
-        # add suitability mask
-        future_suitability_with_mask = multi_mask*EM_suitability2
-        
-        # create output suitability rasters for each image
-        out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_suitability_future_masked_", 
-                        eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
-        # save name of jpeg file
-        jpeg_name = paste0(out_nm, ".jpg")
-        # save name of raster file to be created
-        out_raster_name = paste0(out_nm, ".tif")
-        # create blank jpeg file
-        jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
-             width = 10, height = 8, quality = 90, bg = "white")
-        # plot future suitability mask
-        plot(future_suitability_with_mask)
-        # save raster image file
         dev.off()
-        # save raster data file        
-        writeRaster(future_suitability_with_mask, out_raster_name, 
-                    format = "GTiff", overwrite = TRUE)
-        
-        # masked binary maps per evaluation statistic
-        out_nm = paste0(project_run, '/output_rasters/', sp_nm0, "_BIN_future_masked_", 
-                        eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
-        # save name of jpeg file
-        jpeg_name = paste0(out_nm, ".jpg")
-        # save name of raster file to be created
-        out_raster_name = paste0(out_nm, ".tif")
-        # create blank jpeg file
-        jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
-             width = 10, height = 8, quality = 90, bg = "white")
-        # plot binary map with mask
-        plot(future_bin_with_mask)
-        # save raster image file
-        dev.off()
-        # save raster data file
-        writeRaster(future_bin_with_mask, out_raster_name,  
-                    format = "GTiff", overwrite = TRUE)
+        # save raster data file 
+        writeRaster(resp_zone, out_raster_name00, format = "GTiff", overwrite = TRUE)
       }
-      
-      
-      # response zones comarison rasters per evaluation statistic
-      out_nm = paste0(project_run, '/output_rasters/main/', sp_nm0, "_response_zones_",
-                      eval_stat, "_", spp_ensemble_type, "_", comp_projects[2])
-      # save name of jpeg file
-      jpeg_name = paste0(out_nm, ".jpg")
-      # save name of raster file to be created
-      out_raster_name00 = paste0(out_nm, ".tif")
-      
-      # create temporary object of response zones
-      jnk=unique(resp_zone)
-      # create palette of colors
-      graph_palette = mypalette_numbers
-      # select minimum range for present zone
-      zones_present = jnk[jnk > 0]
-      # select ,aximum range for present zone
-      zones_present = zones_present[zones_present <= 3]
-      # assign palette colors to zones
-      resp_zone_colors = mypalette[zones_present + 1]
-      # assign names to zones
-      resp_zone_names = resp_zone_names0[zones_present]
-      # select unique zone numbers for palette from temporary object
-      mypalette_numbers_selected = mypalette[jnk + 1]    
-      
-      # create blank jpeg file
-      jpeg(jpeg_name, res = 300, units = "in", pointsize = 12, 
-           width = 10, height = 8, quality = 90, bg = "white")
-      # plot response zones raster
-      plot(resp_zone,  col = mypalette_numbers_selected, legend = FALSE)
-      # add legend
-      legend("bottomleft", legend = resp_zone_names, col = resp_zone_colors, pch = 16)
-      # save raster image file
-      dev.off()
-      # save raster data file 
-      writeRaster(resp_zone, out_raster_name00, format = "GTiff", overwrite = TRUE)
-      
-      # otherwise if raster outputs are already done
+    
+    # otherwise if raster outputs are already done
     }else{
       # then print sign posting of completed per species
       cat('\n', sp_nm, 'already calculated')

@@ -22,7 +22,7 @@ if (toCompareWithCurrentClimate == 4){
   proj_nm0 = 'future'}
 
 # create empty vector for variable names
-var_name=c()
+var_name = c()
 # loop through all variable file names
 for (env_var_file  in env_var_files){
   # remove file extension
@@ -42,22 +42,15 @@ dir.create("output_rasters/analog_clim/", showWarnings = F)
 ##### CREATE ANALOG CLIMATE MAP #####
 #####################################
 
-# set species name to first species
-sp_nm = all_sp_nm[1]
-# convert species name to character
-sp_nm = as.character(sp_nm)  
-# replace species naming convention of "_" with " " 
-sp_nm0 = paste0(str_replace_all(sp_nm,"_", " "))
-
 # create empty vector for number of absences to be removed
 n_abs_removed = c()
 
 # print sign posting of ongoing climate envelope mapping
-cat('\n', sp_nm0, 'analog climate mapping...')
+cat('\n future analog climate mapping...')
 
 # store file output name for raster
 raster_name = paste0("output_rasters/analog_clim/", 
-                     sp_nm, "_", comp_projects[2], "_analog_climate")
+                     comp_projects[2], "_analog_climate")
 # store file output name for tiff image
 tiff_name = paste0(raster_name, ".tif")
 # store file output name for jpeg image
@@ -115,10 +108,10 @@ if (file.exists(tiff_name)==F | overwrite==1){
        pointsize = 12, quality = 90, bg = "white", res = 300)
   # plot future analog climates
   plot(analog_climates2100, legend = FALSE, 
-       main = paste0(sp_nm0, " Climate Envelop"),
+       main = "Climate Envelop",
        xlab = "", ylab = "", xaxt = 'n', yaxt = 'n')
   plot(map_to_use, add = TRUE, border = "slategray")
-  legend("bottomleft", legend = "Current Analog Climates",
+  legend("bottomleft", legend = "Analog Climates",
          pch = 15, col = "darkgreen")    
   # save image file
   dev.off()
@@ -128,10 +121,10 @@ if (file.exists(tiff_name)==F | overwrite==1){
        width = 10, height = 10, compression = "lzw")
   # plot future analog climates
   plot(analog_climates2100, legend = FALSE, 
-       main = paste0(sp_nm0, " Climate Envelop"),
+       main = "Climate Envelop",
        xlab = "", ylab = "", xaxt = 'n', yaxt = 'n')
   plot(map_to_use, add = TRUE, border = "slategray")
-  legend("bottomleft", legend = "Current Analog Climates",
+  legend("bottomleft", legend = "Analog Climates",
          pch = 15, col = "darkgreen")  
   # save image file
   dev.off() 
@@ -141,7 +134,7 @@ if (file.exists(tiff_name)==F | overwrite==1){
               format = "GTiff", overwrite = TRUE)
   
   # print sign posting of completed climate envelope mapping
-  cat('\n',sp_nm,'analog climate raster created.')
+  cat('\n future analog climate raster created.')
 }  
 
 ######################################

@@ -2,7 +2,7 @@
 ### scripts to build and run biomod2 sdms ###
 ### master code to use in sdm IS_analysis ###
 
-# clear the environment and all other variables
+# clear the environment, temp files, and all other variables
 rm(list = ls())
 
 ##########################################
@@ -11,11 +11,12 @@ rm(list = ls())
 
 # set root path to source files
 rootDir<-"Y:/PICCC_analysis/IS_analysis/"
+rootDir<-"F:/LK_IS_analysis/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"all_hi_full_run"
+project_run<-"global_to_local_WEIGHTED3"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -53,12 +54,12 @@ mapDir<-paste0(dataDir, "map_data/")
 bioclims<-paste0(dataDir, "bioclim_vars/")
 
 # global bioclim variables downloaded from worldclim.org (2015)
-# current (2000) bioclimatic variables @ 30 arc-sec
-fitting_bios<-paste0(bioclims, "all_baseline/current_10km/")
+# current (2000) bioclimatic variables @ 2.5 arc-min
+fitting_bios<-paste0(bioclims, "all_baseline/current_2min/")
 # current(2000) bioclimatic variables @ 10 arc-min
-current_bios<-paste0(bioclims, "all_baseline/current_18.5km/")
+current_bios<-paste0(bioclims, "all_baseline/current_10min/")
 # future (2100) bioclimatic variables @ 10 arc-min
-future_bios<-paste0(bioclims, "all_future/future_18.5km/")
+future_bios<-paste0(bioclims, "all_future/future_10min/")
 
 # updated HRCM bioclims ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
@@ -71,9 +72,9 @@ future_2015_bios<-paste0(bioclims, "all_HRCM/future_500m/")
 # select current data and bioclims to use for model approach
 baseData<-hiDir                # baseline species data (scripts 1 & 2)
 futureData<-hiDir              # future species data (scripts 3 & 5)
-biofitRun<-fitting_2015_bios         # for model fitting
-biobaseRun<-current_2015_bios        # for baseline projections
-biofutureRun<-future_2015_bios       # for future projections
+biofitRun<-fitting_2015_bios     # for model fitting
+biobaseRun<-current_2015_bios    # for baseline projections
+biofutureRun<-future_2015_bios   # for future projections
 
 ##################################
 ##### GENERAL CONFIGURATIONS #####
@@ -88,8 +89,7 @@ library("maptools")
 
 # set all_sp_nm = 'Clidemia_hirta' for testing and debugging
 # list all species names to be analyzed
-all_sp_nm = c('Setaria_palmifolia', 'Psidium_cattleianum',
-              'Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
+all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora', 
               'Miconia_calvescens', 'Morella_faya', 'Panicum_maximum', 
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum', 
@@ -97,6 +97,10 @@ all_sp_nm = c('Setaria_palmifolia', 'Psidium_cattleianum',
               'Cyathea_cooperi', 'Ulex_europaeus')
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
+
+# create a subset of species to run if needed
+sp_sub<-c('Falcataria_moluccana', 'Morella_faya', 'Psidium_cattleianum')
+all_sp_nm<-sp_sub
 
 # load map data for global extent
 world_map<-getMap(resolution = "high")
@@ -110,7 +114,7 @@ projection(world_map)<-coordSys
 projection(hawaii_map)<-coordSys
 
 # set map and scale (Hawaii or Global) to use for project run
-map_scale<-"Hawaii"
+map_scale<-"Local"
 map_to_use<-hawaii_map
 
 # list global extent from world_map
@@ -135,12 +139,15 @@ var_names<-unlist(file_path_sans_ext(env_var_files))
 
 # choose whether to plot graphs (T) or not (F)
 plot_graphs = TRUE
-# apply fixes for large (T) or small (F) models to solve memory issues
+# plotting options depending on if server or not
+useRasterDef = TRUE
+interpolateDef = FALSE
+# apply fixes for large (T) or small (F) models to solve memory issues (script 3b)
 apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 20
+cpucores = 9
 
 ### MAIN SCRIPTS ###
 
@@ -162,9 +169,11 @@ model_fit_graphs = T
 # script 2a: to graphy variable importance (T) or not (F)
 create_response_curves = T
 
-# RUN 'F' FOR BASELINE, 'T' FOR FUTURE
+# RUN 'T' FOR BOTH BASELINE AND FUTURE
 # script 4: to create raster files (T) or not (F)
-raster_output_creation = F 
+raster_output_creation = T 
+
+# RUN 'F' FOR BASELINE, 'T' FOR FUTURE
 # script 5: to map analog climates (T) or not (F)
 create_analog_climate_map = F
 # script 6: to calculate distribution shifts (T) or not (F)
@@ -178,15 +187,17 @@ species_ensemble_maps = F
 
 ### EM_fitting (script 1)
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
-NbRunEval = 5
+NbRunEval = 2
+# if the models should use response points weights or not
+useYweights = TRUE 
 # consider PAs outside of a species climate envelope (T) or not (F)
 PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 5
+PA.nb.rep = 2
 # select number of PAs to determine point density
-PA.nb.absences = 10000 
+PA.nb.absences = 1000 
 # candidate points to use only if PAs_outside_CE = F, if == 0, will use PA.nb.absences   
 candidatePAperPA = 200  # overridden if PseudoAbs_outside_CE = T
 # strategy for selecting PAs (disk, random, sre, user.defined)
@@ -209,13 +220,32 @@ baseline_or_future = 1
 clampingMask = FALSE
 # to keep clamping Mask = T saved to hard drive (T) or not (F)
 memory = TRUE 
+# assign projected climate data set for baseline scenario
+if (baseline_or_future == 1) {
+  clim_data = biobaseRun
+  proj_nm = 'baseline'}
+# assign projected climate data set for future scenario
+if (baseline_or_future == 4) {
+  clim_data = biofutureRun 
+  proj_nm = 'future'}
+# temporary folder for files during processing to avoid memory errors
+dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
+# conditions if applying fixes to BIOMOD2 (script 3b)
+if (apply_biomod2_fixes) {
+  # name model run based on scenario 
+  maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
+  # create temporary directory file
+  dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
+}
 
 ### raster_output_creation (script 4)
-#raster_output_creation configurations for multiple species maps
+# number of projections to create raster - 1 for baseline, 2 for both
+projections_to_run = 1 
+# type of ensemble configurations for multiple species maps
 spp_ensemble_type = "wmean" 
 # for raster creation and shifted calculations for mapping
 spp_ensemble_eval_stats = c('ROC')
-# for raster creation adn shifted calculations
+# for raster creation and shifted calculations
 comp_projects = c('baseline', 'future')
 # for raster creation 
 plot_spp_ensemble_CV = TRUE 
@@ -233,30 +263,6 @@ model_resolution = 0.5
 ###########################
 ##### RUNNING SCRIPTS #####
 ###########################
-
-# plotting options depending on if server or not
-useRasterDef = TRUE
-interpolateDef = FALSE
-
-# temporary folder for files during processing to avoid memory errors
-dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
-
-# conditions if applying fixes to BIOMOD2 (script 3)
-if (apply_biomod2_fixes) {
-  # name model run based on scenario 
-  maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
-  # create temporary directory file
-  dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
-}
-
-# assign projected climate data set for baseline scenario
-if (baseline_or_future == 1) {
-  clim_data = biobaseRun
-  proj_nm = 'baseline'}
-# assign projected climate data set for future scenario
-if (baseline_or_future == 4) {
-  clim_data = biofutureRun 
-  proj_nm = 'future'}
 
 # create log for data input for initial run
 if (baseline_or_future == 1) {
@@ -279,6 +285,8 @@ if (baseline_or_future == 1) {
   cat('map and crop extent:', map_scale, '\n')
   cat('selected models:', models_to_run, '\n')
   cat('selected evaluation statistics:', eval_stats, '\n')
+  cat('number of evalutations and repetitions:', NbRunEval, '&', PA.nb.rep, '\n')
+  cat('response points (Y)weights used?', useYweights, '\n')
   
   # add any additional notes for project run if needed
   cat('\n', 'additional notes: ')
@@ -311,6 +319,7 @@ if (create_response_curves) { # 2a - response curves
 
 if (raster_output_creation) { # 4 - create output rasters
   source(paste0(codeDir,"4_raster_output.R"))}
+
 if (create_analog_climate_map) { # 5 - map analog climates
   source(paste0(codeDir,"5_analog_climate.R"))}
 if (calculate_distribution_shifts) { # 6 - calcuate distribution shift

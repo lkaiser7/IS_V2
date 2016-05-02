@@ -8,7 +8,6 @@
 # load necessary packages
 library(biomod2)
 library(stringr)
-
 library(ggplot2)
 library(reshape2)
 library(plyr)
@@ -20,8 +19,10 @@ last_model = models_to_run[length(models_to_run)]
 for (sp_nm in all_sp_nm){
   # convert species names to characters
   sp_nm = as.character(sp_nm)  
+  # replace species naming convention of "_" with "." 
+  sp_dir = paste0(str_replace_all(sp_nm, "_", "."), "/")
   
-  cat('\n',sp_nm,'modeling...')
+  cat('\n plotting response curves for', sp_nm)
   
   # set species name
   sp_nm0 = sp_nm
@@ -33,27 +34,25 @@ for (sp_nm in all_sp_nm){
     # load R enviromment from model results   
     load(workspace_name)    
   }else{
-    
-    #####???#####
-    workspace_name = paste0(sp_nm0,"_FB_run.RData") 
-    # load R enviromment from ????? 
-    load(workspace_name)   
-    
+    cat('\n workspace for', sp_nm, 'does not exist.')
   }
-  
-  # replace any "_" with "." in the species name
-  sp_nm = str_replace_all(sp_nm,"_", ".") 
   
   ########################
   ### INITIALIZE PLOTS ###
   ########################
+  # change working directory to project path to save model outputs
+  setwd(project_path)
+  
+  # create folder in output directory for response curve plots
+  rc_fold<-paste0(outDir, "response_curves/")
+  dir.create(rc_fold, showWarnings = FALSE) 
   
   # select first model from runs
   model = models_to_run[1]
   # loop through all models run
   for (model in models_to_run){
     # name output image file
-    tiff_name=paste0(outDir, sp_nm, "_response_curve_", model, "all_vars.tif")
+    tiff_name=paste0(rc_fold, sp_nm, "_response_curve_", model, "all_vars.tif")
     # create blank image file
     tiff(tiff_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
@@ -102,7 +101,7 @@ for (sp_nm in all_sp_nm){
         var_name = names(myRespPlot2D)[bioclim_cnt]
         
         # name output image file
-        tiff_name=paste0(outDir, sp_nm, "_response_curve_", model, "_" var_name, ".tif")
+        tiff_name=paste0(rc_fold, sp_nm, "_response_curve_", model, "_", var_name, ".tif")
         # create blank image file for each bioclimatic variable
         tiff(tiff_name, res = 300, units = "in", pointsize = 12,
              width = 10, height = 10, compression = "lzw")
@@ -142,7 +141,7 @@ for (sp_nm in all_sp_nm){
       ###################
       
       # name output image file
-      tiff_name=paste0(outDir, sp_nm, "_response_curve_", model, "_all_vars.tif")
+      tiff_name=paste0(rc_fold, sp_nm, "_response_curve_", model, "_all_vars.tif")
       # create blank image file for each bioclimatic variable
       tiff(tiff_name, res = 300, units = "in", pointsize = 12,
            width = 10, height = 10, compression = "lzw")
@@ -174,7 +173,7 @@ for (sp_nm in all_sp_nm){
                  xlim = c(xmin_lim, xmax_lim), ylim = c(ymin_lim,ymax_lim), 
                  xlab = var_name, ylab = "Response")
           } else {
-            lines(var, pred, type = "l",, col = "grey", 
+            lines(var, pred, type = "l", col = "grey", 
                   xlim = c(xmin_lim, xmax_lim), ylim = c(ymin_lim,ymax_lim))
           }
         }
@@ -198,6 +197,9 @@ for (sp_nm in all_sp_nm){
     }      
   }
 }
+
+# reset working directory to root 
+setwd(rootDir)
 
 ####################################
 ##### END RESPONSE CURVE PLOTS #####

@@ -11,7 +11,7 @@ library(biomod2)
 library(stringr)
 
 # create directory for tables in project folder 
-dir.create(paste0(project_path, "tables/"), showWarnings=F)
+dir.create(paste0(outDir, "tables/"), showWarnings = F)
 
 # set climate data directory to baseline bioclims
 clim_data_dir = biobaseRun 
@@ -62,7 +62,7 @@ for (eval_stat in spp_ensemble_eval_stats){
     # create temporary raster of all species range area
     jnk = response_raster > 0
     # compute zonal statistics 
-    jnk = zonal(jnk, response_raster, sum, na.rm = TRUE)
+    jnk = zonal(jnk, response_raster, fun = sum, na.rm = TRUE)
     # store zonal statistics as a matrix
     jnk = matrix(jnk[jnk[, 1] > 0,], ncol = 2)
     # multiple zonal statistics value by pixel area

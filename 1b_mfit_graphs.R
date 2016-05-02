@@ -22,7 +22,7 @@ model = models_to_run[1]
 # loop through all evaluation statistics for box plots
 for (eval_stat in eval_stats){
   # open evaluation statistic file created in script 1a
-  evalMat0 = read.csv(paste0(project_path, 'all_eval_mat_', eval_stat, '.csv'))
+  evalMat0 = read.csv(paste0(outDir, 'all_eval_mat_', eval_stat, '.csv'))
   # loop through all models 
   for (model in models_to_run){
     # select evaluation statistic values per model
@@ -30,7 +30,7 @@ for (eval_stat in eval_stats){
     # transpose data data frame
     evalMat = as.data.frame(t(evalMat))
     # rename for species runs
-    names(evalMat) = evalMat0[evalMat0[,2]==model,1]
+    names(evalMat) = evalMat0[evalMat0[,2] == model,1]
     # create two columns of species name and statistic values
     long = melt(evalMat)
     # rename new columns
@@ -42,10 +42,10 @@ for (eval_stat in eval_stats){
     # sort long data using species as factor levels
     long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
     
-    # name output image file
-    tiff_name = paste0(outDir ,eval_stat, "_", model, "_variable_importance_box_plot.tif")
+    # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
+    t_name = paste0(outDir, eval_stat, "_", model, "_variable_importance_box_plot.tiff")
     # create blank image file
-    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+    tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
     # store basic qplot boxplot
     a = qplot(Species, Value, data = long, geom = c("boxplot"), fill = Species, main = "",
@@ -54,7 +54,7 @@ for (eval_stat in eval_stats){
     # remove legend to plot
     a = a + theme(legend.position = "none")
     # save image file output
-    ggsave(filename = tiff_name, plot = a)    
+    ggsave(filename = t_name, plot = a)    
     
     # sign-posting of completed box plot for each evaluation statistic and model
     cat('done with', eval_stat, model, 'variable importance box plot \n')
@@ -70,14 +70,14 @@ for (eval_stat in eval_stats){
     names(evalMat)=evalMat0[evalMat0[,2]==model,1]
     long=melt(evalMat)
     names(long)=c("Species", "Value")
-    long=long[long[,1] %in% spp_nm,]
+    long=long[long[,1] %in% all_sp_nm,]
     long=long[order(long[,1]),]
     long$Species <- factor(long$Species, levels = sort(levels(long$Species)))
     
     # name output image file
-    tiff_name = paste0(outDir ,eval_stat, "_", model, "_variable_importance_violin_plot.tif")
+    t_name = paste0(outDir ,eval_stat, "_", model, "_variable_importance_violin_plot.tiff")
     # create blank image file
-    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+    tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
     # store violin qplot
     a = qplot(Species, Value, data = long, geom = c("violin"), fill = Species, main="",
@@ -96,7 +96,7 @@ for (eval_stat in eval_stats){
     # plot final graph with all previously stored adjustments
     a
     # save image file output
-    ggsave(filename = tiff_name, plot = a)    
+    ggsave(filename = t_name, plot = a)    
     
     # sign-posting of completed violin plot for each evaluation statistic and model
     cat('done with', eval_stat, model, 'variable importance box plot \n')
@@ -143,15 +143,15 @@ for (sp_nm in all_sp_nm){
     names(long)=c("Predictor", "Value")
     
     # name output image file
-    tiff_name=paste0(outDir, sp_nm, "_",model, "_variable_importance_box_plot.tif")
+    t_name=paste0(outDir, sp_nm, "_",model, "_variable_importance_box_plot.tiff")
     # create blank image file
-    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+    tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
     # store basic qplot boxplot
     a = qplot(Predictor, Value, data = long, geom = c("boxplot", "jitter"), 
             fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
     # save image file output
-    ggsave(filename = tiff_name, plot = a)    
+    ggsave(filename = t_name, plot = a)    
     
     # sign-posting of completed box plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance box plot \n')
@@ -159,7 +159,7 @@ for (sp_nm in all_sp_nm){
 }
 
 # load and format data in loop as done previously done above for violin plot
-for (sp_nm in spp_nm){
+for (sp_nm in all_sp_nm){
   for (model in models_to_run){
     model_n = which(models_to_run==model)
     varImp = varImp0[varImp0[,1]==sp_nm,model_cols[[model_n]]]
@@ -169,9 +169,9 @@ for (sp_nm in spp_nm){
     names(long) = c("Predictor", "Value")
     
     # name output image file
-    tiff_name=paste0(outDir, sp_nm, "_", model, "_variable_importance_violin_plot.tif")
+    t_name=paste0(outDir, sp_nm, "_", model, "_variable_importance_violin_plot.tiff")
     # create blank image file
-    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+    tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
     # store violin qplot
     a = qplot(Predictor, Value, data = long, geom = c("violin"),
@@ -181,7 +181,7 @@ for (sp_nm in spp_nm){
     # remove axis elements 
     a = a+theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
     # save image file output
-    ggsave(filename = tiff_name, plot = a) 
+    ggsave(filename = t_name, plot = a) 
 
     # sign-posting of completed violin plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance violin plot \n')

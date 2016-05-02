@@ -49,7 +49,7 @@ sp_parallel_run = function(sp_nm){
   ptm0<-proc.time()
   
   # record time and date prior to model projections
-  format(Sys.time(), "%a %b %d %Y %X")
+  cat(format(Sys.time(), "%a %b %d %Y %X"))
   # print sign posting of ongoing model projections
   cat('\n', sp_nm, 'MODEL PROJECTION:') 
   

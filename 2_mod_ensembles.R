@@ -18,7 +18,11 @@ library(stringr)
 sp_nm = all_sp_nm[1] 
 
 # initialize snowfall parallel computing function
-sp_parallel_run=function(sp_nm){  
+sp_parallel_run = function(sp_nm){  
+  # load necessary packages
+  library(biomod2)
+  library(stringr)
+  require(snowfall)
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
@@ -30,17 +34,17 @@ sp_parallel_run=function(sp_nm){
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
   # create a text file name for specific ongoing processing session
-  txt_nm = paste0(project_path, sp_dir, "ensemble_model_log_", worker, ".txt")
+  txt_nm = paste0(project_path, sp_dir, proj_nm, "_ensemble_model_log_", worker, ".txt")
   # write log file in species directory and sink console outputs to log
   sink(file(txt_nm, open = "wt"))
   
   # print list start date of processing
   cat('\n', 'Started on ', date(), '\n') 
   # list initial processing time 
-  ptm0 <- proc.time()
+  ptm0<-proc.time()
   
   # record time and date prior to model fitting
-  format(Sys.time(), "%a %b %d %Y %X")
+  cat(format(Sys.time(), "%a %b %d %Y %X"))
   # print sign posting of ongoing model fitting
   cat('\n', sp_nm, 'ENSEMBLE CREATION:') 
 
@@ -77,6 +81,9 @@ sp_parallel_run=function(sp_nm){
     ### ENSEMBLE MODELING ###
     #########################
     
+    # change working directory to project path to save model outputs
+    setwd(project_path)
+    
     # combine models and make ensemble predictions built from 1_model_fitting 
     myBiomodEM<-BIOMOD_EnsembleModeling( 
       modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
@@ -93,10 +100,13 @@ sp_parallel_run=function(sp_nm){
       prob.mean.weight = TRUE,  #estimate weighted sums
       prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
 
+    # reset working directory to root 
+    setwd(rootDir)
+    
     # sign-posting of completed ensemble model creation
     cat('\n', sp_nm, 'ensemble complete.') 
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     ########################
     ### ENSEMBLE OUTPUTS ###
@@ -112,7 +122,7 @@ sp_parallel_run=function(sp_nm){
     # sign-posting of completed ensemble modeling
     cat('\n all ensemble modeling complete.')
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     #Stop the clock
     # calculate total processing time

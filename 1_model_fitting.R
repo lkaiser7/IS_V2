@@ -10,8 +10,11 @@
 require(snowfall)
 require(tools)
 
-# set species name to Miconia_calvescens for debugging (all_sp_nm[7])
-# sp_nm<-"Miconia_calvescens"
+# copy maxent jar and batch files to project path for processing
+file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
+          project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+
+# set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
@@ -32,21 +35,30 @@ sp_parallel_run = function(sp_nm) {
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
   # create new folder with species name
   dir.create(paste0(project_path, sp_dir), showWarnings = FALSE) 
+  
+  # create temporary directory per species to be deleted
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/")
+  dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
+  # set temporary directory to created temp file
+  rasterOptions(tmpdir = temp_sp_files_to_delete)
+  
+  # print posting of temporary file location
+  cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
  
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
   # create a text file name for specific ongoing processing session
-  txt_nm = paste0(project_path, sp_dir, "fitting_log_", worker, ".txt")
+  txt_nm = paste0(project_path, sp_dir, proj_nm, "_fitting_log_", worker, ".txt")
   # write log file in species directory and sink console outputs to log
   sink(file(txt_nm, open = "wt"))
 
   # print list start date of processing
   cat('\n Started on ', date(), '\n') 
   # list initial processing time 
-  ptm0 <- proc.time()
+  ptm0<-proc.time()
   
   # record time and date prior to model fitting
-  format(Sys.time(), "%a %b %d %Y %X")
+  cat(format(Sys.time(), "%a %b %d %Y %X"))
   # print sign posting of ongoing model fitting
   cat('\n', sp_nm, 'MODEL FITTING:') 
   
@@ -65,14 +77,14 @@ sp_parallel_run = function(sp_nm) {
     # print posting of loading spatial raster data
     cat('\n loading rasters...')
     
-    # establish bioclim variable as mask as predictor variable **USE FITTING_BIOS***
-    predictors = raster(paste0(fitting_bios, env_var_files[1])) 
+    # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
+    predictors = raster(paste0(biofitRun, env_var_files[1])) 
     # crop predictor to selected extent 
     predictors = crop(predictors, crop_ext, projection = coordSys) 
     
     # creates raster stack all bioclimate variables to use
     for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
-      temp = raster(paste0(fitting_bios, env_var_files[j]))
+      temp = raster(paste0(biofitRun, env_var_files[j]))
       temp = crop(temp, crop_ext, projection = coordSys)
       predictors = addLayer(predictors, temp)
     } 
@@ -91,17 +103,19 @@ sp_parallel_run = function(sp_nm) {
          useRaster = useRasterDef, axes = TRUE, addfun = NULL)  
     # save image file
     dev.off() 
+    # print posting of .tif image saved
+    cat('\n .tif image file of environmental variables used', tiff_name, 'saved. \n')
     
     # print posting of rasters loaded and saved
-    cat('\n bioclimatic variables loaded as rasters and saved.')
+    cat('\n bioclimatic variables rasters loaded and saved. (Line 110)')
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     # print posting of loading species point data
     cat('\n loading species data...') 
     
     # load species occurrence (presence) data 
-    mySpecies<-read.csv(paste0(dataRun, sp_nm, ".csv"), header = TRUE)
+    mySpecies<-read.csv(paste0(baseData, sp_nm, ".csv"), header = TRUE)
     # presence data handling to retain only X and Y columns
     mySpeciesOcc<-data.frame(mySpecies$decimalLongitude, mySpecies$decimalLatitude)
     # add column for presence (1) values
@@ -112,7 +126,8 @@ sp_parallel_run = function(sp_nm) {
     head(mySpeciesOcc)
     
     # sign posting for pseudo-absence handling to define points
-    cat('\n defining candidate PA points...') #sign-posting
+    cat('\n defining candidate PA points... (Line 129)')
+    cat('\n begin selecting points from bioclimatic predictors:')
     
     # create raster layer based on environmental response variable cells
     mySREresp<-reclassify(subset(predictors, 1, drop = TRUE), c(-Inf, Inf, 0))
@@ -141,65 +156,123 @@ sp_parallel_run = function(sp_nm) {
     # merge real species occurrence data with created candidate pseudo-absence points
     mySpeciesData<-data.frame(rbind(mySpeciesOcc, true_potential_PAs))
     # print posting of completed species data loading
-    cat('\n species presence and absence data loaded and saved.') 
+    cat('\n species presence and absence data loaded and saved. (Line 159)') 
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     # sign-posting for extraction of environmental data at point locations
     cat('\n extracting env vars to points...')
     
     # create matrix with cell numbers of real data from selected bioclim variables
     bioclimData<-extract(predictors, mySpeciesData[, 1:2], cellnumbers = TRUE) 
-    # create data frame with bioclim data points and species pres&abs data
-    Species_bioclimData<-data.frame(cbind(mySpeciesData, bioclimData)) 
-    # remove any NAs or rows with missing data
-    Species_bioclimData<-Species_bioclimData[complete.cases(Species_bioclimData), ]
-    # check header of new species bioclim data formatting
-    head(Species_bioclimData)  
-    
-    # create temporary vector with unique values of PA column (1 - pres, 0 - abs, NA - PA)
-    jnk = c(1, 0, NA)
-    # sort data so PAs are removed before any true data
-    data_sort<-Species_bioclimData[order(match(Species_bioclimData$PA, jnk)),] 
-    # remove temporary vector
-    rm(jnk)    
-    # identify duplicates within the cell column
-    dup_data<-duplicated(data_sort$cells) 
-    # calculate number of duplicate entries
-    n_dups = length(dup_data[dup_data == TRUE]) 
-
-    # create new data frame without duplicate cells and drop cell column  
-    SP_BC_data<-data_sort[!dup_data, -4] 
-    # check header of final bioclim data formatting
-    head(SP_BC_data)
-    # check number of presences, absences, and pseudo-absences
-    table(SP_BC_data$PA, useNA = "ifany")
-    # save output as .csv file
-    write.csv(SP_BC_data, file = paste0(project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
+     
+    if(useYweights) {
+      # location of suitability scores based on data points
+      suitscores<-paste0(dataDir, "suitability_scores/")
+      # load suitability score raster for species from global models 
+      sp_scores<-raster(paste0(suitscores, sp_nm, "_suitability_baseline_ROC_wmean.tif"))
+      # take the inverse of suitability scores to give weight to absences
+      inverse_scores<-1-sp_scores
+      # create matrix with extracted suitability scores to use as weights
+      suitability_scores<-extract(inverse_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
+            
+      # create data frame with species PAs, suitability scores, and bioclim points  
+      SP_bioclim_suitData<-data.frame(cbind(mySpeciesData, suitability_scores, bioclimData))
+      # remove any NAs or rows with missing data
+      SP_bioclim_suitData<-SP_bioclim_suitData[complete.cases(SP_bioclim_suitData), ]
+      # rename column headers
+      names(SP_bioclim_suitData)[4:6] = c('suit_cells', 'suit_scores', 'cells')
+      # set presence ponits suitability to 1 for all occurrence points
+      for(score in 1:length(SP_bioclim_suitData$suit_scores)){
+        # find where species occurs (PA = 1)
+        if(SP_bioclim_suitData[score, 3] == 1){
+          # set corresponding suitability score to 1
+          SP_bioclim_suitData[score, 5]<-1
+        }
+      }
+      # check header of new species bioclim data formatting  
+      head(SP_bioclim_suitData)
       
+      # create temporary vector with unique values of PA column (1 - pres, 0 - abs, NA - PA)
+      jnk = c(1, 0, NA)
+      # sort data so PAs are removed before any true data
+      data_sort<-SP_bioclim_suitData[order(match(SP_bioclim_suitData$PA, jnk)),] 
+      # remove temporary vector
+      rm(jnk)    
+      # identify duplicates within the cell column
+      dup_data<-duplicated(data_sort$cells) 
+      # calculate number of duplicate entries
+      n_dups = length(dup_data[dup_data == TRUE]) 
+      
+      # create new data frame without duplicate cells and drop cell columns  
+      SP_ALL_data<-data_sort[!dup_data, c(-4,-6)]
+    } else {
+      # create data frame with bioclim data points and species pres&abs data
+      Species_bioclimData<-data.frame(cbind(mySpeciesData, bioclimData)) 
+      # remove any NAs or rows with missing data
+      Species_bioclimData<-Species_bioclimData[complete.cases(Species_bioclimData), ]
+      # check header of new species bioclim data formatting
+      head(Species_bioclimData)
+      
+      # create temporary vector with unique values of PA column (1 - pres, 0 - abs, NA - PA)
+      jnk = c(1, 0, NA)
+      # sort data so PAs are removed before any true data
+      data_sort<-Species_bioclimData[order(match(Species_bioclimData$PA, jnk)),] 
+      # remove temporary vector
+      rm(jnk)    
+      # identify duplicates within the cell column
+      dup_data<-duplicated(data_sort$cells) 
+      # calculate number of duplicate entries
+      n_dups = length(dup_data[dup_data == TRUE]) 
+      
+      # create new data frame without duplicate cells and drop cell column  
+      SP_ALL_data<-data_sort[!dup_data, -4] 
+    }
+      
+    # print posting of primary processing of species' location predictor values
+    cat('\n extration of bioclimatic predictor values per species data done. (Line 233)')
+
+    # check header of final bioclim data formatting
+    head(SP_ALL_data)
+    tail(SP_ALL_data)
+    # check number of presences, absences, and pseudo-absences
+    table(SP_ALL_data$PA, useNA = "ifany")
+    # save output as .csv file (DO NOT RUN: takes a long time and lots of memory due to size)
+    # write.csv(SP_ALL_data, file = paste0(project_path, sp_dir, sp_nm, 
+    #                                      "_bioclim_suit_points.csv"))
+      
+    # print posting of completed building of species location data and predictor values 
+    cat('\n species bioclimatic data selection and duplication removal complete. (Line 245)')
+    
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_pres_pas.tif") 
     # create blank image file in working directory
     tiff(tiff_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
     # plot world map background
-    plot(world_map, main = paste0(sp_nm, " Presence & Pseudo-Absence Points"))  
+    plot(map_to_use, main = paste0(sp_nm, " Presence & Pseudo-Absence Points"))  
     # add absence points
-    points(subset(SP_BC_data, PA == "NA"), col = "blue", pch = 20)
+    points(subset(SP_ALL_data, PA == "NA"), col = "blue", pch = 20)
     # add presence points
-    points(subset(SP_BC_data, PA == 1), col = "red", pch = 19)
+    points(subset(SP_ALL_data, PA == 1), col = "red", pch = 19)
     # add legend to map
     legend("bottomleft", c ('presence', 'pseudo-absence'), 
            pch = 16, col = c("red", "blue"))
     # save image file
     dev.off() 
     
+    # print posting of saved .tif image file of PA points 
+    cat('\n .tif image file of presence/absence points', tiff_name, 'saved. (Line 265) \n')
+    
     # sign-posting indicating number of duplicate entries removed
     cat('\n Of', length(dup_data), 'points,', 
         n_dups, 'were within the same raster cell and removed for', sp_nm,
-        'and all bioclimatic point data was extracted, mapped, and saved.')
+        'and all bioclimatic point data was extracted, mapped, and [saved].')
+    if(useYweights){
+      cat('\n suitability scores were also extracted and to use for model fitting.')
+    }
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     #############################################
     ##### BIOMOD DATA FORMATING AND FITTING #####
@@ -209,13 +282,25 @@ sp_parallel_run = function(sp_nm) {
     cat('\n biomod model configuration...') 
     
     # new data frame of XY coordinates only
-    myRespXY = SP_BC_data[, 1:2]
+    myRespXY = SP_ALL_data[, 1:2]
     # new data frame for presences (1), absences (0), or PAs (NA)
-    myResp<-data.frame(SP_BC_data[, 3])
-    # re-assign all 'NA' pseudo-absences to real <NA> for formating
-    myResp[myResp == 'NA'] <- NA
-    # new data frame with bioclimatic point data only
-    myExpl<-SP_BC_data[, 4:dim(SP_BC_data)[2]]
+    myResp<-data.frame(SP_ALL_data[, 3])
+    # new data frames in biomod data input format
+    if(useYweights) {
+      # re-assign all 'NA' pseudo-absences to real <0> absences for weighting 
+      myResp[myResp == 'NA'] <- 0
+      # new data frame with bioclimatic point data only
+      myExpl<-SP_ALL_data[, 5:dim(SP_ALL_data)[2]]
+      # new data frame with suitability scores only for weights 
+      myYweights = SP_ALL_data[, 4]
+    } else {
+      # re-assign all 'NA' pseudo-absences to real <NA> for formating
+      myResp[myResp == 'NA'] <- NA
+      # new data frame with bioclimatic point data only
+      myExpl<-SP_ALL_data[, 4:dim(SP_ALL_data)[2]]
+      # set response weights to NULL if not considering weighted model 
+      myYweights = NULL 
+    }
     
     # load BIOMOD2 data for formatting
     myBiomodData<-BIOMOD_FormatingData(
@@ -229,26 +314,26 @@ sp_parallel_run = function(sp_nm) {
       PA.dist.min = PA.dist.min)  #minimum distance to presences
 
     # sign-posting of completed biomod data formating
-    cat('\n biomod data formatting complete.') 
+    cat('\n biomod data formatting complete. (Line 313)') 
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
     
     # set different options for selected modeling techniques from source script
     myBiomodOption<-BIOMOD_ModelingOptions(
-      # GBM                                             
+      # GBM: Generalized Boosted Regression                                            
       GBM = list(distribution = 'bernoulli', interaction.depth = 7,  shrinkage = 0.001, 
-                 bag.fraction = 0.5, train.fraction = 1, n.trees = 100, cv.folds = 10))
-      # MARS
-      #MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),
-      # RF
-      #RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
-      #          max.nodes = 10, corr.bias = TRUE), 
-      # MAXENT
-      #MAXENT = list(maximumiterations = 100, visible = FALSE, linear = TRUE, 
-      #              quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
-      #              lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
-      #              beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
-      #              beta_hinge = -1, defaultprevalence = 0.5))
+                 bag.fraction = 0.5, train.fraction = 1, n.trees = 100, cv.folds = 10),
+      # MARS: Multivariate Adaptive Regression Splines
+      MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),
+      # RF: Random Forest Classification and Regression
+      RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
+                max.nodes = 10, corr.bias = TRUE), 
+      # MAXENT: Maximum Entropy
+      MAXENT = list(maximumiterations = 100, visible = FALSE, linear = TRUE, 
+                    quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
+                    lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
+                    beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
+                    beta_hinge = -1, defaultprevalence = 0.5))
     
     # change working directory to project path to save model outputs
     setwd(project_path)
@@ -256,16 +341,16 @@ sp_parallel_run = function(sp_nm) {
     # sign-posting for ensemble model fitting
     cat('\n model fitting...')
     
-    #CREATING ENSEMBLE MODEL
+    # create ensemble model from formatting data and modeling options
     myBiomodModelOut<-BIOMOD_Modeling(
-      myBiomodData,  #formated biomod data
+      myBiomodData,  #formatted biomod data
       models = models_to_run,  #select models to run
       models.options = myBiomodOption,  #biomod options object
       NbRunEval = NbRunEval,  #number of evaluation runs*** 10
       DataSplit = 80,  #amount of data to use for training
-      Yweights = NULL,  #response points weights
+      Yweights = myYweights,  #response points weights
       VarImport = 4,  #permuations to estimate variable importance*** 10
-      do.full.models = do.full.models,  #calibrate and evaluate to data
+      do.full.models = do.full.models,  #calibrate and evaluate to all data
       models.eval.meth = eval_stats,  #evaluation metrics
       SaveObj = TRUE,  #save output object
       rescal.all.models = TRUE)  #scale to binomial GLM
@@ -276,7 +361,12 @@ sp_parallel_run = function(sp_nm) {
     # return summary output of biomod model runs
     myBiomodModelOut
         
-    # return output model results and evaluation metrics
+    # sign-posting of completed biomod modeling 
+    cat('\n biomod data modeling complete. (Line 360)') 
+    # record time and date stamp
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
+    
+    # return output model evaluation metrics results
     myBiomodModelEval<-get_evaluations(myBiomodModelOut) 
     # return names of model evaluations
     dimnames(myBiomodModelEval) 
@@ -324,13 +414,11 @@ sp_parallel_run = function(sp_nm) {
     
     # save BIOMOD modeling output from workspace
     save("myBiomodModelOut", file = workspace_name)   
-    # save R environment workspace
-    save.image(paste0(project_path, "modelfitting_env.RData"))
   
-    # sign-posting of completed model fitting
-    cat('\n all model fitting and evaluation complete.')
+    # sign-posting of completed biomod fitting for species 
+    cat('\n all model fitting, modeling, and evaluation complete. (Line 415')
     # record time and date stamp
-    format(Sys.time(), "%a %b %d %Y %X")
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
 
     # calculate total processing time
     ptm1 = proc.time() - ptm0 
@@ -343,6 +431,9 @@ sp_parallel_run = function(sp_nm) {
     cat('\n fitting for', sp_nm, 'already done...') 
     # indicates that this species has already been run 
   }    
+  # delete select temporary files per species once processing is finished
+  unlink(temp_sp_files_to_delete, recursive = TRUE)
+  
   # reset sink to console output
   sink(NULL)
 }
