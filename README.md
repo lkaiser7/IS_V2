@@ -1,7 +1,7 @@
 # IS_V2
 Invasive Species Distribution Modeling in Hawaii
 
-A series of scripts to model global, regional, and local distributions of species using the R Statistcal Programming Software with the purpose to identify areas in Hawaii most vulnerable to invasive speces (see HOWTO_DIY file for instructions to use scripts)
+A series of scripts to model global, regional, and local distributions of species using the R Statistcal Programming Software with the purpose to identify areas in Hawaii most vulnerable to invasive speces (see HOWTO_DIY file for instructions)
 
 ABOUT THE SCRIPTS:
 ### 0_source_script_MASTER ###
@@ -34,7 +34,7 @@ creation of rasters (tiff) files and images of mapped species distributions
 ### 5_analog_climate ###
 map creation of climate envelop showing areas with same climatic conditions
 
-### 6_range_shifts ### 
+### 6_range_shifts ###
 calculation of species range shifts from baseline to future runs
 
 ### 7_ensemble_maps ###
