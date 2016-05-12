@@ -10,6 +10,10 @@ library(ggplot2)
 library(reshape2)
 library(plyr)
 
+# create folder in output directory for response curve plots
+vi_fold<-paste0(outDir, "VarImp_plots/")
+dir.create(vi_fold, showWarnings = FALSE) 
+
 #################################
 ##### EVALUATION STATISTICS #####
 #################################
@@ -43,7 +47,7 @@ for (eval_stat in eval_stats){
     long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
     
     # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
-    t_name = paste0(outDir, eval_stat, "_", model, "_variable_importance_box_plot.tiff")
+    t_name = paste0(vi_fold, eval_stat, "_", model, "_variable_importance_box_plot.tiff")
     # create blank image file
     tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
@@ -63,7 +67,7 @@ for (eval_stat in eval_stats){
 
 # load and format data in loop as done previously done above for violin plots
 for (eval_stat in eval_stats){
-  evalMat0=read.csv(paste0('all_eval_mat_',eval_stat,'.csv'))
+  evalMat0=read.csv(paste0(outDir, 'all_eval_mat_',eval_stat,'.csv'))
   for (model in models_to_run){
     evalMat=evalMat0[evalMat0[,2]==model,3:ncol(evalMat0)]
     evalMat=as.data.frame(t(evalMat))
@@ -75,7 +79,7 @@ for (eval_stat in eval_stats){
     long$Species <- factor(long$Species, levels = sort(levels(long$Species)))
     
     # name output image file
-    t_name = paste0(outDir ,eval_stat, "_", model, "_variable_importance_violin_plot.tiff")
+    t_name = paste0(vi_fold, eval_stat, "_", model, "_variable_importance_violin_plot.tiff")
     # create blank image file
     tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
@@ -108,7 +112,7 @@ for (eval_stat in eval_stats){
 ###############################
 
 # open variable importance file created in script 1a
-varImp0 = read.csv(paste0(project_path, 'all_VariImp.csv'))
+varImp0 = read.csv(paste0(outDir, 'all_VariImp.csv'))
 
 # get column names of variable importance data
 colnames = names(varImp0)
@@ -143,7 +147,7 @@ for (sp_nm in all_sp_nm){
     names(long)=c("Predictor", "Value")
     
     # name output image file
-    t_name=paste0(outDir, sp_nm, "_",model, "_variable_importance_box_plot.tiff")
+    t_name=paste0(vi_fold, sp_nm, "_",model, "_variable_importance_box_plot.tiff")
     # create blank image file
     tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")
@@ -152,7 +156,7 @@ for (sp_nm in all_sp_nm){
             fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
     # save image file output
     ggsave(filename = t_name, plot = a)    
-    
+
     # sign-posting of completed box plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance box plot \n')
   }
@@ -169,7 +173,7 @@ for (sp_nm in all_sp_nm){
     names(long) = c("Predictor", "Value")
     
     # name output image file
-    t_name=paste0(outDir, sp_nm, "_", model, "_variable_importance_violin_plot.tiff")
+    t_name=paste0(vi_fold, sp_nm, "_", model, "_variable_importance_violin_plot.tiff")
     # create blank image file
     tiff(t_name, res = 300, units = "in", pointsize = 12,
          width = 10, height = 10, compression = "lzw")

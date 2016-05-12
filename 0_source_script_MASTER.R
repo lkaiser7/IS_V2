@@ -16,7 +16,7 @@ rootDir<-"F:/LK_IS_analysis/"
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"global_to_local_WEIGHTED3"
+project_run<-"global_to_local_WEIGHTED"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -88,7 +88,7 @@ library("rworldxtra")
 library("maptools")
 
 # set all_sp_nm = 'Clidemia_hirta' for testing and debugging
-# list all species names to be analyzed
+# list all 17 species names to be analyzed
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora', 
               'Miconia_calvescens', 'Morella_faya', 'Panicum_maximum', 
@@ -99,7 +99,9 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # create a subset of species to run if needed
-sp_sub<-c('Falcataria_moluccana', 'Morella_faya', 'Psidium_cattleianum')
+sp_sub<-c('Hedychium_gardnerianum', 'Lantana_camara', 'Melinis_minutiflora',  
+          'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum', 
+          'Setaria_palmifolia', 'Cyathea_cooperi')
 all_sp_nm<-sp_sub
 
 # load map data for global extent
@@ -147,7 +149,7 @@ apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 9
+cpucores = 12
 
 ### MAIN SCRIPTS ###
 
@@ -187,7 +189,7 @@ species_ensemble_maps = F
 
 ### EM_fitting (script 1)
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
-NbRunEval = 2
+NbRunEval = 5
 # if the models should use response points weights or not
 useYweights = TRUE 
 # consider PAs outside of a species climate envelope (T) or not (F)
@@ -195,7 +197,7 @@ PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 2
+PA.nb.rep = 5
 # select number of PAs to determine point density
 PA.nb.absences = 1000 
 # candidate points to use only if PAs_outside_CE = F, if == 0, will use PA.nb.absences   
@@ -266,8 +268,10 @@ model_resolution = 0.5
 
 # create log for data input for initial run
 if (baseline_or_future == 1) {
+  # get processor ID for R session 
+  worker = paste0(Sys.Date(), "_worker", Sys.getpid())
   # create a text file name for specific ongoing processing session
-  txt_nm = paste0(project_path, "data_input_log.txt")
+  txt_nm = paste0(project_path, "data_input_log_", worker, ".txt")
   # write log file in species directory and sink console outputs to log
   sink(file(txt_nm, open = "wt"))
   # print sign posting for ongoing project run processing

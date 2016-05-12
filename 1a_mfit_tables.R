@@ -9,6 +9,7 @@
 library(biomod2)
 library(reshape2)
 library(plyr)
+library(stringr)
 
 # select individula species (miconia = all_sp_nm[7])
 sp_nm = all_sp_nm[1]
@@ -16,6 +17,8 @@ sp_nm = all_sp_nm[1]
 i = 1
 # begin loop through all species names
 for (sp_nm in all_sp_nm){
+  # replace species naming convention of "_" with "." 
+  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
   # set name of file saved from model fitting script 
   workspace_name = paste0(project_path, sp_dir, sp_nm, "_modelfitting.RData") 
   # load workspace data from model runs
@@ -29,25 +32,25 @@ for (sp_nm in all_sp_nm){
   ##### EVALUATION STATISTICS #####
   #################################
   
-  # loop to combine all evaluations statistics from each species 
-  for (eval_stat in eval_stats){ # set eval_stat = eval_stats for debugging
-    # save all eval_stat values from model evaluation as a data frame
-    Spp_eval<-data.frame(myBiomodModelEval[eval_stat, "Testing.data",,,])
-    # add species and run names to data frame
-    Spp_eval=cbind(matrix(sp_nm, dim(Spp_eval)[1],1), rownames(Spp_eval), Spp_eval)
-    
-    # create master file for evaluations from the first species
-    if (i==1){
-      # give new name to data frame for master file
-      assign(paste0("all_eval_mat_", eval_stat), Spp_eval)
-      # otherwise for all other species
-    }else{
-      # create a temporary data frame with evaluation data
-      jnk = rbind(get(paste0("all_eval_mat_", eval_stat)), Spp_eval)
-      # add temporary data frame to master file of evaluations
-      assign(paste0("all_eval_mat_", eval_stat), jnk)      
-    }
-  }
+  # loop to combine all evaluations statistics from each model per species 
+    for (eval_stat in eval_stats){ # set eval_stat = eval_stats for debugging
+      # save all eval_stat values from model evaluation as a data frame
+      Spp_eval<-data.frame(myBiomodModelEval[eval_stat, "Testing.data",,,])
+      # add species and run names to data frame
+      Spp_eval=cbind(matrix(sp_nm, dim(Spp_eval)[1],1), rownames(Spp_eval), Spp_eval)
+      
+      # create master file for evaluations from the first species
+      if (i==1){
+        # give new name to data frame for master file
+        assign(paste0("all_eval_mat_", eval_stat), Spp_eval)
+        # otherwise for all other species
+      }else{
+        # create a temporary data frame with evaluation data
+        jnk = rbind(get(paste0("all_eval_mat_", eval_stat)), Spp_eval)
+        # add temporary data frame to master file of evaluations
+        assign(paste0("all_eval_mat_", eval_stat), jnk)      
+      }
+    }  
   
   ###############################
   ##### VARIABLE IMPORTANCE #####
@@ -72,7 +75,7 @@ for (sp_nm in all_sp_nm){
   i = i + 1
 }
 # create file name for all model variable importance values
-FileName<-paste0(project_path, "all_VariImp.csv")
+FileName<-paste0(outDir, "all_VariImp.csv")
 # save variable importance as csv file
 write.csv(all_var_imp_mat, file = FileName, row.names = FALSE)
 
@@ -87,14 +90,14 @@ names(all_var_imp_mean) = c("species", "var", "meanVarImp")
 # remove row assigned names
 row.names(all_var_imp_mean)<-NULL 
 # create file name for mean of variable importance values
-FileName<-paste0(project_path, "all_VariImp_mean.csv")
+FileName<-paste0(outDir, "all_VariImp_mean.csv")
 # save variable importance means as csv file
 write.csv(all_var_imp_mean, file = FileName, row.names = FALSE)
 
 # loop through and save each evaluation statistic type
 for (eval_stat in eval_stats){
   # create file name for all model evaluations
-  FileName<-paste0(project_path, "all_eval_mat_", eval_stat, ".csv")
+  FileName<-paste0(outDir, "all_eval_mat_", eval_stat, ".csv")
   # save model evaluations per statistic as csv file
   write.csv(get(paste0("all_eval_mat_", eval_stat)), file = FileName, row.names = FALSE)
   
@@ -114,7 +117,7 @@ for (eval_stat in eval_stats){
   row.names(tmp_eval_map2)<-NULL 
   
   # create file name for mean evaluations of statistics
-  FileName<-paste0(project_path, "all_eval_mean_mat_", eval_stat, ".csv")
+  FileName<-paste0(outDir, "all_eval_mean_mat_", eval_stat, ".csv")
   # save mean evaluation statistics as csv file
   write.csv(tmp_eval_map2, file = FileName, row.names = FALSE)
 }

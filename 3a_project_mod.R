@@ -177,9 +177,9 @@ setMethod('predict', signature(object = 'MAXENT_biomod2_model'),
   # sign posting for returning maxent outputs
   cat("\n\t\tReading Maxent outputs...")
   proj<-raster(file.path(object@resp_name, temp_workdir, maxentWDtmp, "projMaxent.grd"))  
-  if(length(getScalingModel(object))){
+  if(length(get_scaling_model(object))){
     names(proj)<-"pred"
-    proj<-.testnull(object = getScalingModel(object), Prev = 0.5 , dat = proj)
+    proj<-.testnull(object = get_scaling_model(object), Prev = 0.5 , dat = proj)
   }  
   if(on_0_1000) proj<-round(proj*1000)  
   if(!is.null(filename)){
@@ -242,9 +242,9 @@ setMethod('predict', signature(object = 'MAXENT_biomod2_model'),
       unlink(file.path(object@resp_name, temp_workdir), recursive = TRUE, force = TRUE)
     }
   }  
-  if(length(getScalingModel(object))){
+  if(length(get_scaling_model(object))){
     proj<-data.frame(pred = proj)
-    proj<-.testnull(object = getScalingModel(object), Prev = 0.5 , dat = proj)
+    proj<-.testnull(object = get_scaling_model(object), Prev = 0.5 , dat = proj)
   }  
   if(on_0_1000) proj<-round(proj*1000) 
   return(proj)  
