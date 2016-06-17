@@ -4,8 +4,8 @@ Invasive Species Distribution Modeling in Hawaii
 A series of scripts to model global, regional, and local distributions of species using the R Statistcal Programming Software with the purpose to identify areas in Hawaii most vulnerable to invasive speces (see HOWTO_DIY file for instructions)
 
 ABOUT THE SCRIPTS:
-### 0_source_script_MASTER ###
-source coding file that runs all other scripts with various input variables to get certain desired output results
+### 0_source_script_SAMPLE ###
+sample of source code that runs all other scripts with various input variables based on IS_sample_data.zip file
 
 ### 1_model_fitting ###
 BIOMOD2 invasive species data formatting, options, modeling, and evaluation 
