@@ -141,11 +141,15 @@ sp_parallel_run = function(sp_nm) {
     neg_mySREresp = mySREresp == 0 
     # create matrix of potential candidate pseudo-absence points
     potential_PAs = rasterToPoints(neg_mySREresp, fun = function(x){x==1}) 
-    # assign number of pseudo-absences to be selected (from source code)
-    # n_PA_pts = PA.nb.absences 
-    # limit selection of PA points to same number of presence points 
-    n_PA_pts<-n_Occ_pts 
-
+    # assign number of pseudo-absences to be selected
+    if(useYweights) {
+      # limit selection of PA points to same number of presence points 
+      n_PA_pts<-n_Occ_pts 
+    } else {
+      # use selected number of PA points from master script
+      n_PA_pts = PA.nb.absences 
+    }
+    
     # extract geographic xy data from potential candidate pseudo-absences
     potential_PAs = as.data.frame(potential_PAs[,1:2]) 
     # remove any data with missing geographic information or NAs
@@ -160,7 +164,7 @@ sp_parallel_run = function(sp_nm) {
     # merge real species occurrence data with created candidate pseudo-absence points
     mySpeciesData<-data.frame(rbind(mySpeciesOcc, true_potential_PAs))
     # print posting of completed species data loading
-    cat('\n species presence and absence data loaded and saved. (Line 163)') 
+    cat('\n species presence and absence data loaded and saved. (Line 167)') 
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
     
@@ -240,19 +244,18 @@ sp_parallel_run = function(sp_nm) {
     }
       
     # print posting of primary processing of species' location predictor values
-    cat('\n extration of bioclimatic predictor values per species data done. (Line 243)')
+    cat('\n extration of bioclimatic predictor values per species data done. (Line 247)')
 
     # check header of final bioclim data formatting
     head(SP_ALL_data)
     tail(SP_ALL_data)
     # check number of presences, absences, and pseudo-absences
     table(SP_ALL_data$PA, useNA = "ifany")
-    # save output as .csv file (DO NOT RUN: takes a long time and lots of memory due to size)
-    # write.csv(SP_ALL_data, file = paste0(project_path, sp_dir, sp_nm, 
-    #                                      "_bioclim_suit_points.csv"))
+    # save output as .csv file (takes a long time and space due to file size)
+    write.csv(SP_ALL_data, file = paste0(project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
       
     # print posting of completed building of species location data and predictor values 
-    cat('\n species bioclimatic data selection and duplication removal complete. (Line 255)')
+    cat('\n species bioclimatic data selection and duplication removal complete. (Line 258)')
     
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_pres_pas.tif") 
@@ -272,7 +275,7 @@ sp_parallel_run = function(sp_nm) {
     dev.off() 
     
     # print posting of saved .tif image file of PA points 
-    cat('\n .tif image file of presence/absence points', tiff_name, 'saved. (Line 275) \n')
+    cat('\n .tif image file of presence/absence points', tiff_name, 'saved. (Line 278) \n')
     
     # sign-posting indicating number of duplicate entries removed
     cat('\n Of', length(dup_data), 'points,', 
@@ -290,6 +293,13 @@ sp_parallel_run = function(sp_nm) {
     
     # sign-posting defining variable to be used in BIOMOD2 package
     cat('\n biomod model configuration...') 
+    
+    # store number of random seed to ensure random sampling and reproducibility 
+    rng_seed<-as.numeric(round(Sys.time(), 0))
+    # print random seed number for record
+    cat('\n biomod formating and fitting using random seed', rng_seed )
+    # set seed
+    set.seed(rng_seed)
     
     # new data frame of XY coordinates only
     myRespXY = SP_ALL_data[, 1:2]
@@ -322,7 +332,7 @@ sp_parallel_run = function(sp_nm) {
       PA.dist.min = PA.dist.min)  #minimum distance to presences
 
     # sign-posting of completed biomod data formating
-    cat('\n biomod data formatting complete. (Line 325)') 
+    cat('\n biomod data formatting complete. (Line 335)') 
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
     
@@ -330,7 +340,8 @@ sp_parallel_run = function(sp_nm) {
     myBiomodOption<-BIOMOD_ModelingOptions(
       # GBM: Generalized Boosted Regression                                            
       GBM = list(distribution = 'bernoulli', interaction.depth = 7,  shrinkage = 0.001, 
-                 bag.fraction = 0.5, train.fraction = 1, n.trees = 100, cv.folds = 10),
+                 bag.fraction = 0.5, train.fraction = 1, n.trees = 100, cv.folds = 10,
+                 n.cores = 1), # to avoid parallel problems and models failing
       # MARS: Multivariate Adaptive Regression Splines
       MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),
       # RF: Random Forest Classification and Regression
@@ -371,7 +382,7 @@ sp_parallel_run = function(sp_nm) {
     myBiomodModelOut
         
     # sign-posting of completed biomod modeling 
-    cat('\n biomod data modeling complete. (Line 374)') 
+    cat('\n biomod data modeling complete. (Line 385)') 
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
     
@@ -425,7 +436,7 @@ sp_parallel_run = function(sp_nm) {
     save("myBiomodModelOut", file = workspace_name)   
   
     # sign-posting of completed biomod fitting for species 
-    cat('\n all model fitting, modeling, and evaluation complete. (Line 428)')
+    cat('\n all model fitting, modeling, and evaluation complete. (Line 440)')
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
 
@@ -441,7 +452,7 @@ sp_parallel_run = function(sp_nm) {
     # indicates that this species has already been run 
   }    
   # delete select temporary files per species once processing is finished
-  unlink(temp_sp_files_to_delete, recursive = TRUE)
+  unlink(temp_sp_files_to_delete, recursive = TRUE, force = TRUE)
   
   # reset sink to console output
   sink(NULL)
@@ -464,7 +475,7 @@ sfInit(parallel = TRUE, cpus = cpucores)
 # export all environmentals variables to cores for cluster programming
 sfExportAll() 
 # time parallel run calculation of function across cores
-system.time((sfLapply(all_sp_nm, fun = sp_parallel_run)))
+system.time(sfLapply(all_sp_nm, fun = sp_parallel_run))
 # remove all global environmental variables from cluster cores
 sfRemoveAll()
 # end parallel computing on other cpu cores

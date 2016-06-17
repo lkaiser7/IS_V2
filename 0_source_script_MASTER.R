@@ -9,14 +9,13 @@ rm(list = ls())
 ##### SET SOURCE LOCATIONS AND PATHS #####
 ##########################################
 
-# set root path to source files
-rootDir<-"Y:/PICCC_analysis/IS_analysis/"
+# set root path to source files (rootDir<-"Y:/PICCC_analysis/IS_analysis/")
 rootDir<-"F:/LK_IS_analysis/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"global_to_local_WEIGHTED"
+project_run<-"local_only_FULL"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -72,7 +71,7 @@ future_2015_bios<-paste0(bioclims, "all_HRCM/future_500m/")
 # select current data and bioclims to use for model approach
 baseData<-hiDir                # baseline species data (scripts 1 & 2)
 futureData<-hiDir              # future species data (scripts 3 & 5)
-biofitRun<-fitting_2015_bios     # for model fitting
+biofitRun<-fitting_2015_bios          # for model fitting
 biobaseRun<-current_2015_bios    # for baseline projections
 biofutureRun<-future_2015_bios   # for future projections
 
@@ -98,10 +97,10 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
-# create a subset of species to run if needed
-sp_sub<-c('Hedychium_gardnerianum', 'Lantana_camara', 'Melinis_minutiflora',  
-          'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum', 
-          'Setaria_palmifolia', 'Cyathea_cooperi')
+# create a subset of species to run if needed (run individually for global)
+sp_sub<-c('Pennisetum_setaceum', 'Psidium_cattleianum', 'Schinus_terebinthifolius',
+          'Setaria_palmifolia', 'Morella_faya', 'Leucaena_leucocephala',
+          'Clidemia_hirta', 'Panicum_maximum')
 all_sp_nm<-sp_sub
 
 # load map data for global extent
@@ -116,7 +115,7 @@ projection(world_map)<-coordSys
 projection(hawaii_map)<-coordSys
 
 # set map and scale (Hawaii or Global) to use for project run
-map_scale<-"Local"
+map_scale<-"Hawaii"
 map_to_use<-hawaii_map
 
 # list global extent from world_map
@@ -133,7 +132,7 @@ crop_ext<-hi_ext
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
 models_to_run = c("GBM", "MAXENT")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
 # select model evaluation methods (KAPPA, ROC, TSS)
-eval_stats = c("ROC", "TSS") 
+eval_stats = c("ROC", "KAPPA", "TSS") 
 # select environmental variables for models
 env_var_files = c("bio1.tif", "bio7.tif", "bio12.tif", "bio15.tif") 
 # create vector with bioclimatic variable names without the file extension (.tif)
@@ -149,7 +148,7 @@ apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 12
+cpucores = 24
 
 ### MAIN SCRIPTS ###
 
@@ -189,15 +188,15 @@ species_ensemble_maps = F
 
 ### EM_fitting (script 1)
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
-NbRunEval = 5
+NbRunEval = 10
 # if the models should use response points weights or not
-useYweights = TRUE 
+useYweights = FALSE 
 # consider PAs outside of a species climate envelope (T) or not (F)
 PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 5
+PA.nb.rep = 10
 # select number of PAs to determine point density
 PA.nb.absences = 1000 
 # candidate points to use only if PAs_outside_CE = F, if == 0, will use PA.nb.absences   
