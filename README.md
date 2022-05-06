@@ -30,6 +30,7 @@ ensemble model creation from model fitting outputs
 
 ### 2a_resp_curves ###
 response curve graphs from ensemble models
+
 NOTE: there is no "2b" script
 
 ### 2c_mean_resp_curves ###
