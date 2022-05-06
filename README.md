@@ -6,8 +6,11 @@ A series of scripts to model global, regional, and local distributions of specie
 ABOUT THE SCRIPTS:
 ### 0_source_script_SAMPLE ###
 sample of source code that runs all other scripts with various input variables based on IS_sample_data.zip file
+
 0_source_script_MASTER.R more recent main interface with user selections to run species distribution models
+
 0_source_script_MASTER_globalrun.R example for selected inputs for global runs
+
 0_source_script_MASTER_localrun.R example for selected inputs for local runs
 
 ### 1_model_fitting ###
