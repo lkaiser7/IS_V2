@@ -80,12 +80,12 @@ sp_parallel_run = function(sp_nm) {
     # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
     predictors = raster(paste0(biofitRun, env_var_files[1])) 
     # crop predictor to selected extent 
-    predictors = crop(predictors, crop_ext, projection = coordSys) 
+    #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
     
     # creates raster stack all bioclimate variables to use
     for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
       temp = raster(paste0(biofitRun, env_var_files[j]))
-      temp = crop(temp, crop_ext, projection = coordSys)
+      #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
       predictors = addLayer(predictors, temp)
     } 
     # assign names of bioclim variables to raster stack
@@ -142,20 +142,35 @@ sp_parallel_run = function(sp_nm) {
     # create matrix of potential candidate pseudo-absence points
     potential_PAs = rasterToPoints(neg_mySREresp, fun = function(x){x==1}) 
     # assign number of pseudo-absences to be selected
-    if(useYweights) {
-      # limit selection of PA points to same number of presence points 
-      n_PA_pts<-n_Occ_pts 
-    } else {
-      # use selected number of PA points from master script
-      n_PA_pts = PA.nb.absences 
+    # if(useYweights) { #not sure why using different number of pa's by run
+    #   # limit selection of PA points to same number of presence points 
+    # } else {
+    #   # use selected number of PA points from master script
+    #   n_PA_pts = number_of_PAs 
+    # }
+    if (number_of_PAs<100){
+      n_PA_pts<-n_Occ_pts*number_of_PAs 
+    }else{
+      n_PA_pts<-number_of_PAs 
     }
+    #potentially consider more robust PA selection:
+    #https://www.sciencedirect.com/science/article/abs/pii/S030438001500215X
+    #https://rdrr.io/cran/mopa/man/pseudoAbsences.html
+    
     
     # extract geographic xy data from potential candidate pseudo-absences
     potential_PAs = as.data.frame(potential_PAs[,1:2]) 
     # remove any data with missing geographic information or NAs
     true_potential_PAs = potential_PAs[complete.cases(potential_PAs),] 
+    
+    #remove some PAs if there is a ridiculously large amount
+    jnk=dim(true_potential_PAs)[1]
+    if (jnk>(candidatePAperPA*n_PA_pts)){
+      true_potential_PAs=true_potential_PAs[sample(x=jnk,size=candidatePAperPA*n_PA_pts, replace=F),]
+    }
     # add PA column to data frame and assign 'NA' to all rows for pseudo-absences
-    true_potential_PAs=cbind(true_potential_PAs, pa=rep('NA', dim(true_potential_PAs)[1],1)) 
+    #true_potential_PAs=cbind(true_potential_PAs, pa=rep('NA', dim(true_potential_PAs)[1],1)) 
+    true_potential_PAs$PA=NA 
     # rename column headers
     names(true_potential_PAs) = c('X', 'Y', 'PA') 
     # check header of new pseudo-absences data formatting
@@ -194,11 +209,13 @@ sp_parallel_run = function(sp_nm) {
                                             suit_weights, 
                                             bioclimData))
       # remove any NAs or rows with missing data
-      SP_bioclim_suitData<-SP_bioclim_suitData[complete.cases(SP_bioclim_suitData), ]
+      # SP_bioclim_suitData<-SP_bioclim_suitData[complete.cases(SP_bioclim_suitData), ]
+      SP_bioclim_suitData<-SP_bioclim_suitData[complete.cases(bioclimData), ]
       # set presence ponits suitability to 1 for all occurrence points
       for(score in 1:length(SP_bioclim_suitData$suit_weights)){
         # find where species occurs (PA = 1)
-        if(SP_bioclim_suitData[score, 3] == 1){
+        # if(SP_bioclim_suitData[score, 3] == 1){
+        if(!is.na(SP_bioclim_suitData[score, 3])){
           # set corresponding suitability score to 1
           SP_bioclim_suitData[score, 4]<-1
         }
@@ -224,7 +241,8 @@ sp_parallel_run = function(sp_nm) {
       # create data frame with bioclim data points and species pres&abs data
       Species_bioclimData<-data.frame(cbind(mySpeciesData, bioclimData)) 
       # remove any NAs or rows with missing data
-      Species_bioclimData<-Species_bioclimData[complete.cases(Species_bioclimData), ]
+      #Species_bioclimData<-Species_bioclimData[complete.cases(Species_bioclimData), ]
+      Species_bioclimData<-Species_bioclimData[complete.cases(bioclimData), ] #i think before the PAs were being removed in this step
       # check header of new species bioclim data formatting
       head(Species_bioclimData)
       
@@ -249,13 +267,14 @@ sp_parallel_run = function(sp_nm) {
     # check header of final bioclim data formatting
     head(SP_ALL_data)
     tail(SP_ALL_data)
+    dim(SP_ALL_data)
     # check number of presences, absences, and pseudo-absences
     table(SP_ALL_data$PA, useNA = "ifany")
     # save output as .csv file (takes a long time and space due to file size)
     write.csv(SP_ALL_data, file = paste0(project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
       
     # print posting of completed building of species location data and predictor values 
-    cat('\n species bioclimatic data selection and duplication removal complete. (Line 258)')
+    cat('\n species bioclimatic data selection and duplication removal complete. (Line 270)')
     
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_pres_pas.tif") 
@@ -265,7 +284,11 @@ sp_parallel_run = function(sp_nm) {
     # plot world map background
     plot(map_to_use, main = paste0(sp_nm, " Presence & Pseudo-Absence Points"))  
     # add absence points
-    points(subset(SP_ALL_data, PA == "NA"), col = "blue", pch = 20)
+    tmp_points=subset(SP_ALL_data, is.na(PA))
+    if (dim(tmp_points)[1]>n_PA_pts){
+      tmp_points=tmp_points[c(1:n_PA_pts),]
+    }
+    points(tmp_points, col = "blue", pch = 20)
     # add presence points
     points(subset(SP_ALL_data, PA == 1), col = "red", pch = 19)
     # add legend to map
@@ -339,7 +362,7 @@ sp_parallel_run = function(sp_nm) {
     # set different options for selected modeling techniques from source script
     myBiomodOption<-BIOMOD_ModelingOptions(
       # GBM: Generalized Boosted Regression                                            
-      GBM = list(distribution = 'bernoulli', interaction.depth = 7,  shrinkage = 0.001, 
+      GBM = list(distribution = "bernoulli", interaction.depth = 7,  shrinkage = 0.001, 
                  bag.fraction = 0.5, train.fraction = 1, n.trees = 100, cv.folds = 10,
                  n.cores = 1), # to avoid parallel problems and models failing
       # MARS: Multivariate Adaptive Regression Splines
@@ -348,11 +371,12 @@ sp_parallel_run = function(sp_nm) {
       RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
                 max.nodes = 10, corr.bias = TRUE), 
       # MAXENT: Maximum Entropy
-      MAXENT = list(maximumiterations = 100, visible = FALSE, linear = TRUE, 
-                    quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
-                    lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
-                    beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
-                    beta_hinge = -1, defaultprevalence = 0.5))
+      MAXENT.Phillips = list(path_to_maxent.jar = dataDir,
+                             maximumiterations = 100, visible = FALSE, linear = TRUE, 
+                             quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
+                             lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
+                             beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
+                             beta_hinge = -1, defaultprevalence = 0.5))
     
     # change working directory to project path to save model outputs
     setwd(project_path)
@@ -471,7 +495,7 @@ if (is.null(cpucores)){
   cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')))
 }
 # initialize parallel computing on minimum number of cpu cores
-sfInit(parallel = TRUE, cpus = cpucores)
+sfInit(parallel = parallel_run, cpus = cpucores)
 # export all environmentals variables to cores for cluster programming
 sfExportAll() 
 # time parallel run calculation of function across cores
@@ -484,3 +508,19 @@ sfStop()
 #############################
 ##### END MODEL FITTING #####
 #############################
+
+
+#############################
+#delete temp raster files
+sp_nm = all_sp_nm[1]
+for (sp_nm in all_sp_nm){
+  sp_nm = as.character(sp_nm) 
+  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  #Loc <- "mydir"
+  #system(paste0("rm -r ", temp_sp_files_to_delete))
+}
+
+temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
+unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames

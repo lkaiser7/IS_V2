@@ -57,8 +57,11 @@ for (eval_stat in eval_stats){
       theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
     # remove legend to plot
     a = a + theme(legend.position = "none")
+    print(a)
+    
     # save image file output
     ggsave(filename = t_name, plot = a)    
+    dev.off()
     
     # sign-posting of completed box plot for each evaluation statistic and model
     cat('done with', eval_stat, model, 'variable importance box plot \n')
@@ -98,9 +101,10 @@ for (eval_stat in eval_stats){
     # resize plot and add corresponding legend
     a = a + guides(fill = guide_legend(reverse = TRUE), guide = guide_legend(title = NULL))
     # plot final graph with all previously stored adjustments
-    a
+    print(a)
     # save image file output
-    ggsave(filename = t_name, plot = a)    
+    ggsave(filename = t_name, plot = a)  
+    dev.off()
     
     # sign-posting of completed violin plot for each evaluation statistic and model
     cat('done with', eval_stat, model, 'variable importance box plot \n')
@@ -154,9 +158,12 @@ for (sp_nm in all_sp_nm){
     # store basic qplot boxplot
     a = qplot(Predictor, Value, data = long, geom = c("boxplot", "jitter"), 
             fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
+    print(a)
+    
     # save image file output
     ggsave(filename = t_name, plot = a)    
-
+    dev.off()
+    
     # sign-posting of completed box plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance box plot \n')
   }
@@ -184,9 +191,12 @@ for (sp_nm in all_sp_nm){
     a = a + geom_violin(scale = "width")
     # remove axis elements 
     a = a+theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
+    print(a)
+    
     # save image file output
     ggsave(filename = t_name, plot = a) 
-
+    dev.off()
+    
     # sign-posting of completed violin plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance violin plot \n')
   }

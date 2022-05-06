@@ -153,7 +153,7 @@ if (is.null(cpucores)){
   cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')))
 }
 # initialize parallel computing on minimum number of cpu cores
-sfInit(parallel = TRUE, cpus = cpucores)
+sfInit(parallel = parallel_run, cpus = cpucores)
 # export all environmentals variables to cores for cluster programming
 sfExportAll() 
 # time parallel run calculation of function across cores
@@ -166,3 +166,18 @@ sfStop()
 #################################
 ##### END ENSEMBLE MODELING #####
 #################################
+
+#############################
+#delete temp raster files
+sp_nm = all_sp_nm[1]
+for (sp_nm in all_sp_nm){
+  sp_nm = as.character(sp_nm) 
+  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  #Loc <- "mydir"
+  #system(paste0("rm -r ", temp_sp_files_to_delete))
+}
+
+temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
+unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames

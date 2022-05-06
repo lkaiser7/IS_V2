@@ -10,12 +10,14 @@ rm(list = ls())
 ##########################################
 
 # set root path to source files
-rootDir<-"D:/projects/D:/projects/Abundance modeling/abundance_shifts_code//"
+# rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
+# rootDir<-"E:/Invasive_SDMs/"
+rootDir<-"C:/Users/lkaiser-local/Desktop/Phase1_SDMs/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"local_model"
+project_run<-"global_notHI_models"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -27,6 +29,7 @@ outDir<-paste0(project_path, "outputs/")
 dir.create(outDir, showWarnings = FALSE)
 
 # location of scripts and code
+# codeDir<-paste0("D:/projects/Invasives_modeling/Invasive_SDMs/IS_V2/")
 codeDir<-paste0(rootDir, "IS_V2/")
 
 # location of all data
@@ -43,36 +46,37 @@ nohiDir<-paste0(dataDir, "no_hi_data/")
 mapDir<-paste0(dataDir, "map_data/")
 
 # location of bioclimatic variables
-bioclims<-paste0(dataDir, "bioclim_vars/")
+bioclims_dir<-paste0(dataDir, "bioclim_vars/")
 
 # global bioclim variables V2.1 downloaded from worldclim.org (2020)
 # current (2000) bioclimatic variables @ 5 arc-min (170 km2)
-fitting_bios<-paste0(bioclims, "all_baseline/current_30s/")
+fitting_bios_global<-paste0(bioclims_dir, "all_baseline/current_30s/")
 # current(2000) bioclimatic variables @ 10 arc-min (340 km2)
-current_bios<-paste0(bioclims, "all_baseline/current_10min/")
+current_proj_bios_global<-paste0(bioclims_dir, "all_baseline/current_10min/")
 # ### V2.1 NOT YET AVAILABLE ###
 # # future (2100) bioclimatic variables @ 10 arc-min
-# future_bios<-paste0(bioclims, "all_future/future_10min/")
+# future_bios<-paste0(bioclims_dir, "all_future/future_10min/")
 
-# updated HRCM bioclims ***FOR HAWAII ONLY*** (2015)
+# updated HRCM bioclims_dir ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
-fitting_2015_bios<-paste0(bioclims, "all_HRCM/current_125m/")
+fitting_bios_HI<-paste0(bioclims_dir, "all_HRCM/current_125m/")
 # current updated bioclimatic variables @ 500 m
-current_2015_bios<-paste0(bioclims, "all_HRCM/current_500m/")
+#changed to new recalc values (GLOBAL AND LOCAL SEEM TO HAVE DIFFERENT UNITS!)
+current_proj_bios_HI<-paste0(bioclims_dir, "all_HRCM/current_250m_redone/") 
 # future updated bioclimatic variables @ 500 m 
-future_2015_bios<-paste0(bioclims, "all_HRCM/future_500m/")
+future_proj_bios_HI<-paste0(bioclims_dir, "all_HRCM/future_500m/")
 
-# GLOBAL A: allDir, fitting_bios, current/future_2015_bios
-# GLOBAL B: nohiDir, fitting_bios, current/future_2015_bios
-# LOCAL: hiDir, fitting_2015_bios, current/future_2015_bios
-# WEIGHTED: hiDir, fitting_2015_bios, current/future_2015_bios
+# GLOBAL A: allDir, fitting_bios_global, current/future_proj_bios_HI
+# GLOBAL B: nohiDir, fitting_bios_global, current/future_proj_bios_HI
+# LOCAL: hiDir, fitting_bios_HI, current/future_proj_bios_HI
+# WEIGHTED: hiDir, fitting_bios_HI, current/future_proj_bios_HI
 
 # select current data and bioclims to use for model approach
-baseData<-hiDir                # baseline species data (scripts 1 & 2)
+baseData<-nohiDir                # baseline species data (scripts 1 & 2)
 futureData<-hiDir              # future species data (scripts 3 & 5)
-biofitRun<-fitting_2015_bios     # for model fitting
-biobaseRun<-current_2015_bios    # for baseline projections
-biofutureRun<-future_2015_bios   # for future projections
+biofitRun<-fitting_bios_global     # for model fitting
+biobaseRun<-current_proj_bios_HI    # for baseline projections
+biofutureRun<-future_proj_bios_HI   # for future projections
 
 ##################################
 ##### GENERAL CONFIGURATIONS #####
@@ -88,18 +92,21 @@ library("maps")
 library("maptools")
 
 # set all_sp_nm = 'Clidemia_hirta' for testing and debugging
-# # list all 17 species names to be analyzed
-# all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum', 
-#               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora', 
-#               'Miconia_calvescens', 'Morella_faya', 'Panicum_maximum', 
-#               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum', 
-#               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius', 
-#               'Cyathea_cooperi', 'Ulex_europaeus')
-# # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
-# # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
+# list all 17 species names to be analyzed
+all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
+              'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
+              'Morella_faya', 'Panicum_maximum',
+              'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
+              'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
+              'Cyathea_cooperi')
+# NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
+# NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
-# Phase 1 Select Species
-all_sp_nm = c('Clidemia_hirta', 'Lantana_camara', 'Pennisetum_clandestinum', 'Psidium_cattleianum')
+# # Phase 1 Select Species
+# all_sp_nm = c('Clidemia_hirta', 'Lantana_camara', 'Pennisetum_clandestinum', 'Psidium_cattleianum')
+
+# # large species files to run separately
+# all_sp_nm = c('Miconia_calvescens', 'Ulex_europaeus')
 
 # # create a subset of species to run if needed (run individually for global)
 # sp_sub<-c('Clidemia_hirta')
@@ -117,22 +124,22 @@ projection(world_map)<-coordSys
 projection(hawaii_map)<-coordSys
 
 # set map and scale (Hawaii or Global) to use for project run
-map_scale<-"Hawaii"
-map_to_use<-hawaii_map
+map_scale<-"Global"
+map_to_use<-world_map
 
 # list global extent from world_map
 all_ext<-extent(world_map)
 # create local extent for Hawaii
 hi_ext<-extent(hawaii_map)
 # set crop extent for project run
-crop_ext<-hi_ext
+crop_ext<-all_ext
 
 #############################
 ##### MODELLING OPTIONS #####
 #############################
 
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
-models_to_run = c("GBM", "MAXENT.Phillips")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
+models_to_run = c("MAXENT.Phillips", "GBM")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
 # select model evaluation methods (KAPPA, ROC, TSS)
 eval_stats = c("ROC", "KAPPA", "TSS") 
 # select environmental variables for models
@@ -150,7 +157,8 @@ apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 30
+cpucores = 1
+parallel_run = F
 
 ### MAIN SCRIPTS ###
 
@@ -200,11 +208,12 @@ dens_PAs_outside_CE = 1
 # select number of repetitions for PA selections
 PA.nb.rep = 10
 # select number of PAs to determine point density
-PA.nb.absences = 1000 
-# candidate points to use only if PAs_outside_CE = F, if == 0, will use PA.nb.absences   
-candidatePAperPA = 200  # overridden if PseudoAbs_outside_CE = T
+number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
+#if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 
+# candidate points to use only if PAs_outside_CE = F, if == 0, will use number_of_PAs   
+candidatePAperPA = PA.nb.rep*5  # overridden if PseudoAbs_outside_CE = T
 # strategy for selecting PAs (disk, random, sre, user.defined)
-PA.strategy = "random" 
+PA.strategy = "random" #using random, as recommended by https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 # set 100m equivalence distance from actual data points
 equiv_100m = 0.0009430131
 # set 20 km minimum distance from actual data points
@@ -341,6 +350,9 @@ p_time = p_time/60
 # report processing time and show finished processing
 cat('\n','It took ', p_time, "minutes (on average) to model each species with",
     length(models_to_run), "model types") 
+
+# delete temp files
+source(paste0(codeDir,"8_delele_tmp_files.R"))
 
 #########################
 ### END SOURCE SCRIPT ###

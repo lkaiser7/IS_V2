@@ -65,6 +65,7 @@ Process_raster_data_BadtoGood = function(raster_var, out_nm, min_lim = NULL,
     # find maximum from raster
     max_lim = maxValue(raster_var)
   }
+  if (maxValue(raster_var)>max_lim) max_lim=maxValue(raster_var)
   
   # set color ramp palette
   col5<-colorRampPalette(c('red', 'gray96', 'darkgreen')) 
@@ -107,6 +108,7 @@ Process_raster_data_NeutraltoGood = function(raster_var, out_nm, min_lim = NULL,
     # find maximum from raster
     max_lim = maxValue(raster_var)
   }
+  if (maxValue(raster_var)>max_lim) max_lim=maxValue(raster_var)
   
   # set color ramp palette
   col5<-colorRampPalette(c('gray96', 'darkgreen')) 
@@ -223,13 +225,13 @@ for (eval_stat in spp_ensemble_eval_stats){
       # reset i counter to 1
       i = 1
       # loop through 2
-      for (i in projections_to_run){
+      for (i in 1:projections_to_run){
         # store individual project name
         proj_nm = comp_projects[i]
         # store individual raster name
         raster_name = raster_names[i]
         # store individual bin name
-        raster_name_bin=raster_names_bin[i]
+        raster_name_bin = raster_names_bin[i]
         
         # store first file name for raster .grd file
         file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 

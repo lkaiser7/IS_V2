@@ -20,7 +20,7 @@ sp_parallel_run = function(sp_nm){
   library(colorRamps)
   library(rasterVis)
   library(tools)
-  library(ncdf)
+  library(ncdf4)
   library(gbm) 
   
   # set options for BIOMOD2 fixes in code (if assigned TRUE in source script)
@@ -79,7 +79,7 @@ sp_parallel_run = function(sp_nm){
     # create raster layer from bioclimatic variables
     predictors = raster(paste0(clim_data, env_var_files[1])) 
     # crop predictors to raster resolution extent
-    predictors = crop(predictors,  crop_ext) 
+    #predictors = crop(predictors,  crop_ext) #not cropping it now
     # assign temporary variable to count number of bioclimatic variables for runs
     jnk0 = length(env_var_files)
     
@@ -88,7 +88,7 @@ sp_parallel_run = function(sp_nm){
       # create temporary raster layer of each new bioclim variable layer to add
       temp = raster(paste0(clim_data, env_var_files[jj]))
       # crop temporary raster layer to raster resolution extent
-      temp = crop(temp,  crop_ext)
+      #temp = crop(temp,  crop_ext) #not cropping anymore
       # add new bioclimatic variable layer to raster stack
       predictors = addLayer(predictors, temp) 
     }
@@ -242,7 +242,7 @@ sp_parallel_run = function(sp_nm){
     # return output to console
     sink(NULL) 
   }
-} # ADDED TO AVOID ERROR - CHECK ALL {} PAIRS
+} 
 # END snowfall function
 
 ########################################
@@ -257,7 +257,7 @@ if (is.null(cpucores)){
   cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')))
 }
 # initialize parallel computing on minimum number of cpu cores
-sfInit(parallel = TRUE, cpus = cpucores)
+sfInit(parallel = parallel_run, cpus = cpucores)
 # export all environmentals variables to cores for cluster programming
 sfExportAll() 
 # time parallel run calculation of function across cores
@@ -270,3 +270,19 @@ sfStop()
 #################################
 ##### END MODEL PROJECTIONS #####
 #################################
+
+
+#############################
+#delete temp raster files
+sp_nm = all_sp_nm[1]
+for (sp_nm in all_sp_nm){
+  sp_nm = as.character(sp_nm) 
+  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  #Loc <- "mydir"
+  #system(paste0("rm -r ", temp_sp_files_to_delete))
+}
+
+temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
+unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames

@@ -366,9 +366,12 @@ for (eval_stat in spp_ensemble_eval_stats){
                                     paste0(out_ras, 'spp_ensembles/spp_em_gained_range_', comp_projects[2], '_', eval_stat), 
                                     mask_data = mask_layer)
   
-  # shapefile figures with results for publication
-  prot_areas = shapefile(paste0("Y:/PICCC_analysis/FB_analysis/habitat_analysis/",
+  # shapefile figures with results for publication - check file path!
+  #prot_areas = shapefile(paste0("Y:/PICCC_analysis/completed_projects/FB_SDM/habitat_analysis/",
+  #                              "protected_areas_20100331_simpleWGS1984.shp"))
+  prot_areas = shapefile(paste0("F:/LK_IS_analysis/data/habitat_analysis/",
                                 "protected_areas_20100331_simpleWGS1984.shp"))
+  
   # run function with loaded rasters with overlay of protected areas
   Process_raster_data_NeutraltoGood_W_overlay(spp_em_kept_range, 
                                               paste0(out_ras, 'spp_ensembles/spp_em_kept_ranges_w_prot_areas_', comp_projects[2], '_', eval_stat), 
