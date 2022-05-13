@@ -1,0 +1,26 @@
+"name","directly.loaded","version","date","depends","imports","linksto","r.version"
+"biomod2",TRUE,"3.5.1","2021-06-11","R (>= 3.4.0)","stats, utils, lattice, sp, raster, parallel, reshape, ggplot2,
+abind, rasterVis, pROC (>= 1.15.0), nnet, gbm (>= 2.1.3), mda,
+randomForest, rpart, MASS, methods, PresenceAbsence, dismo,
+caret, ENMeval, doParallel, foreach, earth, dplyr, tidyr,
+checkmate, maxnet, purrr, rlang",NA,4.1.3
+"colorRamps",TRUE,"2.3.1","2007-09-09",NA,NA,NA,4.1.3
+"cowplot",TRUE,"1.1.1","2020-12-30 14:30:02 UTC","R (>= 3.5.0)","ggplot2 (> 2.2.1), grid, gtable, grDevices, methods, rlang,
+scales",NA,4.1.3
+"dplyr",TRUE,"1.0.8","2022-02-08 09:30:02 UTC","R (>= 3.4.0)","generics, glue (>= 1.3.2), lifecycle (>= 1.0.1), magrittr (>=
+1.5), methods, R6, rlang (>= 1.0.0), tibble (>= 2.1.3),
+tidyselect (>= 1.1.1), utils, vctrs (>= 0.3.5), pillar (>=
+1.5.1)",NA,4.1.3
+"ggplot2",TRUE,"3.3.5","2021-06-25 11:30:09 UTC","R (>= 3.3)","digest, glue, grDevices, grid, gtable (>= 0.1.1), isoband,
+MASS, mgcv, rlang (>= 0.4.10), scales (>= 0.5.0), stats,
+tibble, withr (>= 2.0.0)",NA,4.1.3
+"plyr",TRUE,"1.8.7","2022-03-24 21:50:02 UTC","R (>= 3.1.0)","Rcpp (>= 0.11.0)","Rcpp",4.1.3
+"raster",TRUE,"3.5-15","2022-01-22","sp (>= 1.4-5), R (>= 3.5.0)","Rcpp, methods, terra (>= 1.5-12)","Rcpp",4.1.3
+"reshape2",TRUE,"1.4.4","2020-04-09 13:50:02 UTC","R (>= 3.1)","plyr (>= 1.8.1), Rcpp, stringr","Rcpp",4.1.3
+"rgdal",TRUE,"1.5-30","2022-04-08","R (>= 3.5.0), methods, sp (>= 1.1-0)","grDevices, graphics, stats, utils","sp",4.1.3
+"snow",FALSE,"0.4-4","2021-10-27 14:10:02 UTC","R (>= 2.13.1), utils",NA,NA,4.1.3
+"snowfall",TRUE,"1.84-6.1","2013-12-18","R (>= 2.10), snow",NA,NA,4.1.3
+"sp",FALSE,"1.4-6","2021-11-14 16:00:02 UTC","R (>= 3.0.0), methods","utils, stats, graphics, grDevices, lattice, grid",NA,4.1.3
+"stringr",TRUE,"1.4.0","2019-02-10 03:40:03 UTC","R (>= 3.1)","glue (>= 1.2.0), magrittr, stringi (>= 1.1.7)",NA,4.1.3
+"viridis",TRUE,"0.6.2","2021-10-13 20:50:02 UTC","R (>= 2.10), viridisLite (>= 0.4.0)","stats, ggplot2 (>= 1.0.1), gridExtra",NA,4.1.3
+"viridisLite",FALSE,"0.4.0","2021-04-13 15:00:02 UTC","R (>= 2.10)",NA,NA,4.1.3

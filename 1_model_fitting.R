@@ -16,6 +16,7 @@ file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
+sp_nm=all_sp_nm[1]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
@@ -127,9 +128,82 @@ sp_parallel_run = function(sp_nm) {
     # check header of new presence data formatting
     head(mySpeciesOcc)
     
+    cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cellnumbers = TRUE) 
+    #remove repeats
+    unique_cells=!duplicated(cell_numbers_df[,1])
+    #n_pres_wDups=nrow(mySpeciesOcc)
+    mySpeciesOcc=mySpeciesOcc[unique_cells,]
+    cat("after removing raster cell duplicates, sp records went from ", length(unique_cells), " points to ", sum(unique_cells), " points \n")
+    
+    
+    #######################
+    #now thin points!
+    #View(mySpeciesOcc)
+    mySpeciesOcc_thin=mySpeciesOcc[mySpeciesOcc$PA==1,]
+    mySpeciesOcc_thin$sp=sp_nm
+    library(spThin)
+    if (grepl("global", project_run)){
+      thinning_dist_km=4
+    }else{
+      thinning_dist_km=1
+    }
+    cat("using ", thinning_dist_km, " km thinning distance \n")
+    
+    thinned_dataset_full <-
+      thin( loc.data = mySpeciesOcc_thin, 
+            lat.col = "Y", long.col = "X", 
+            spec.col = "sp", 
+            thin.par = thinning_dist_km, reps = 1, 
+            locs.thinned.list.return = TRUE, 
+            write.files = FALSE, 
+            write.log.file = FALSE)
+    #View(thinned_dataset_full)
+    thinned_dataset_full=thinned_dataset_full[[1]]
+    thinned_dataset_full$PA=1
+    names(thinned_dataset_full)=c("X","Y", "PA")
+    cat("thinned presences from ", nrow(mySpeciesOcc), " points to ", nrow(thinned_dataset_full), " points \n")
+    mySpeciesOcc=rbind(thinned_dataset_full, mySpeciesOcc[mySpeciesOcc$PA!=1,]) 
+    
     # sign posting for pseudo-absence handling to define points
     cat('\n defining candidate PA points... (Line 131)')
     cat('\n begin selecting points from bioclimatic predictors:')
+    
+    # ####################
+    # #alternative approach:
+    # ac=mySpeciesOcc[,-3]
+    # names(ac)=c("x", "y")
+    # y=ac$y
+    # x=ac$x
+    # coordinates(ac) <- ~x+y
+    # projection(ac) <- CRS('+proj=longlat +datum=WGS84')
+    # #We first create a 'circles' model (see the chapter about geographic models), using an arbitrary radius of 50 km
+    # 
+    # library(sf)
+    # m <- st_distance(st_as_sf(ac))
+    # mean(m, na.rm=T)
+    # hist(c(m))
+    # # circles with a radius of 50 km
+    # x <- circles(ac, d=100000, lonlat=TRUE)
+    # pol <- polygons(x)
+    # #Note that you need to have the rgeos package installed for the circles function to 'dissolve' the circles (remove boundaries were circles overlap).
+    # #And then we take a random sample of points within the polygons. We only want one point per grid cell.
+    # 
+    # # sample randomly from all circles
+    # samp1 <- spsample(pol, n_Occ_pts, type='random', iter=25)
+    # # get unique cells
+    # mask=predictors[[1]]
+    # cells <- cellFromXY(mask, samp1)
+    # length(cells)
+    # ## [1] 250
+    # cells <- unique(cells)
+    # length(cells)
+    # ## [1] 161
+    # xy <- xyFromCell(mask, cells)
+    # #Plot to inspect the results:
+    #   
+    # plot(pol, axes=TRUE)
+    # points(xy, cex=0.75, pch=20, col='blue')
+    
     
     # create raster layer based on environmental response variable cells
     mySREresp<-reclassify(subset(predictors, 1, drop = TRUE), c(-Inf, Inf, 0))

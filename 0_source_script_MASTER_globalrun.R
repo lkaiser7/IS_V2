@@ -12,7 +12,9 @@ rm(list = ls())
 # set root path to source files
 # rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
 # rootDir<-"E:/Invasive_SDMs/"
-rootDir<-"C:/Users/lkaiser-local/Desktop/Phase1_SDMs/"
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/")
+rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
+
 # set working directory to main analysis folder
 setwd(rootDir)
 
@@ -30,11 +32,11 @@ dir.create(outDir, showWarnings = FALSE)
 
 # location of scripts and code
 # codeDir<-paste0("D:/projects/Invasives_modeling/Invasive_SDMs/IS_V2/")
-codeDir<-paste0(rootDir, "IS_V2/")
+codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/")) #in order of priority
+codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 # location of all data
 dataDir<-paste0(rootDir, "data/")
-
 # all species data
 allDir<-paste0(dataDir, "all_data/")
 # Hawaii species data
@@ -43,28 +45,33 @@ hiDir<-paste0(dataDir, "hi_data/")
 nohiDir<-paste0(dataDir, "no_hi_data/")
 
 # location of map data and shapefiles
-mapDir<-paste0(dataDir, "map_data/")
+mapDirs<-c(paste0(dataDir, "map_data/"), "D:/data/")
+mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
 # location of bioclimatic variables
-bioclims_dir<-paste0(dataDir, "bioclim_vars/")
+bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 
 # global bioclim variables V2.1 downloaded from worldclim.org (2020)
 # current (2000) bioclimatic variables @ 5 arc-min (170 km2)
 fitting_bios_global<-paste0(bioclims_dir, "all_baseline/current_30s/")
 # current(2000) bioclimatic variables @ 10 arc-min (340 km2)
-current_proj_bios_global<-paste0(bioclims_dir, "all_baseline/current_10min/")
+#current_proj_bios_global<-paste0(bioclims_dir, "all_baseline/current_10min/") #not used
 # ### V2.1 NOT YET AVAILABLE ###
 # # future (2100) bioclimatic variables @ 10 arc-min
 # future_bios<-paste0(bioclims_dir, "all_future/future_10min/")
 
 # updated HRCM bioclims_dir ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
-fitting_bios_HI<-paste0(bioclims_dir, "all_HRCM/current_125m/")
+fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
+fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
+
 # current updated bioclimatic variables @ 500 m
 #changed to new recalc values (GLOBAL AND LOCAL SEEM TO HAVE DIFFERENT UNITS!)
-current_proj_bios_HI<-paste0(bioclims_dir, "all_HRCM/current_250m_redone/") 
+current_proj_bios_HI<-fitting_bios_HI #paste0(bioclims_dir, "all_HRCM/current_250m_redone/") 
 # future updated bioclimatic variables @ 500 m 
-future_proj_bios_HI<-paste0(bioclims_dir, "all_HRCM/future_500m/")
+future_proj_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/future_500m/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
+future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_HIs)))]
 
 # GLOBAL A: allDir, fitting_bios_global, current/future_proj_bios_HI
 # GLOBAL B: nohiDir, fitting_bios_global, current/future_proj_bios_HI
@@ -98,7 +105,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Morella_faya', 'Panicum_maximum',
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
-              'Cyathea_cooperi')
+              'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
@@ -157,9 +164,13 @@ apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 1
-parallel_run = F
+cpucores = 4
 
+if (cpucores==1){
+  parallel_run = F
+}else{
+  parallel_run = T
+}
 ### MAIN SCRIPTS ###
 
 # RUN 'T' FOR BOTH BASELINE AND FUTURE
