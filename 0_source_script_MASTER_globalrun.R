@@ -18,8 +18,9 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
+run_type="global_notHI" #local_HI
 # select name for project and create directory
-project_run<-"global_notHI_models"
+project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -38,19 +39,23 @@ codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 # location of all data
 dataDir<-paste0(rootDir, "data/")
 # all species data
-allDir<-paste0(dataDir, "all_data/")
+allDir<-paste0(dataDir, "merged_data/all_data/")
 # Hawaii species data
-hiDir<-paste0(dataDir, "hi_data/")
+hiDir<-paste0(dataDir, "merged_data/hi_data/")
 # excluding Hawaii species data
-nohiDir<-paste0(dataDir, "no_hi_data/")
+nohiDir<-paste0(dataDir, "merged_data/no_hi_data/")
 
 # location of map data and shapefiles
 mapDirs<-c(paste0(dataDir, "map_data/"), "D:/data/")
 mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
 # location of bioclimatic variables
-bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
-bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
+if (run_type=="global_notHI"){
+  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
+}else{
+  XXX
+}
 
 # global bioclim variables V2.1 downloaded from worldclim.org (2020)
 # current (2000) bioclimatic variables @ 5 arc-min (170 km2)
@@ -79,9 +84,13 @@ future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_
 # WEIGHTED: hiDir, fitting_bios_HI, current/future_proj_bios_HI
 
 # select current data and bioclims to use for model approach
-baseData<-nohiDir                # baseline species data (scripts 1 & 2)
+if (run_type=="global_notHI"){
+  baseData<-nohiDir                # baseline species data (scripts 1 & 2)
+  biofitRun<-fitting_bios_global     # for model fitting
+}else{
+  XXX
+}
 futureData<-hiDir              # future species data (scripts 3 & 5)
-biofitRun<-fitting_bios_global     # for model fitting
 biobaseRun<-current_proj_bios_HI    # for baseline projections
 biofutureRun<-future_proj_bios_HI   # for future projections
 
@@ -131,16 +140,24 @@ projection(world_map)<-coordSys
 projection(hawaii_map)<-coordSys
 
 # set map and scale (Hawaii or Global) to use for project run
-map_scale<-"Global"
-map_to_use<-world_map
-
+if (run_type=="global_notHI"){
+  map_scale<-"Global"
+  map_to_use<-world_map
+}else{
+  map_scale<-"Hawaii"
+  map_to_use<-hawaii_map
+}
 # list global extent from world_map
 all_ext<-extent(world_map)
 # create local extent for Hawaii
 hi_ext<-extent(hawaii_map)
-# set crop extent for project run
-crop_ext<-all_ext
 
+# set crop extent for project run
+if (run_type=="global_notHI"){
+  crop_ext<-all_ext
+}else{
+  crop_ext<-hi_ext
+}
 #############################
 ##### MODELLING OPTIONS #####
 #############################
@@ -228,7 +245,14 @@ PA.strategy = "random" #using random, as recommended by https://besjournals.onli
 # set 100m equivalence distance from actual data points
 equiv_100m = 0.0009430131
 # set 20 km minimum distance from actual data points
-PA.dist.min = 200*equiv_100m 
+if (run_type=="global_notHI"){
+  PA.dist.min = 4*equiv_100m 
+  thinning_dist_km=4 #also set presence thinning distance
+}else{
+  PA.dist.min = 1*equiv_100m 
+  thinning_dist_km=1 #also set presence thinning distance
+}
+
 # to run the full models (T) or not (F)
 do.full.models = TRUE
 

@@ -16,7 +16,7 @@ file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[1]
+sp_nm=all_sp_nm[16]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
@@ -552,11 +552,19 @@ sp_parallel_run = function(sp_nm) {
   # delete select temporary files per species once processing is finished
   unlink(temp_sp_files_to_delete, recursive = TRUE, force = TRUE)
   
+  sp_nm = as.character(sp_nm) 
+  sp_dir = paste0(sub("_", ".", sp_nm), "/")
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  
   # reset sink to console output
   sink(NULL)
 }
 # END snowfall function
 
+#sp_nm=all_sp_nm[16]
+#sp_parallel_run(sp_nm)
+  
 ########################################
 ##### SNOWFALL FUNCTION SCRIPT RUN #####
 ########################################
@@ -589,7 +597,7 @@ sfStop()
 sp_nm = all_sp_nm[1]
 for (sp_nm in all_sp_nm){
   sp_nm = as.character(sp_nm) 
-  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+  sp_dir = paste0(sub("_", ".", sp_nm), "/")
   temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
   unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
   #Loc <- "mydir"
