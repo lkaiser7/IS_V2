@@ -125,8 +125,6 @@ sp_parallel_run = function(sp_nm) {
     mySpeciesOcc$pa<-rep(1, length(mySpeciesOcc[,1])) 
     # rename column headers
     names(mySpeciesOcc)<-c("X", "Y", "PA")
-    # store number of presence points per species 
-    n_Occ_pts<-length(mySpeciesOcc$PA)
     # check header of new presence data formatting
     head(mySpeciesOcc)
     
@@ -165,6 +163,9 @@ sp_parallel_run = function(sp_nm) {
     names(thinned_dataset_full)=c("X","Y", "PA")
     cat("thinned presences from ", nrow(mySpeciesOcc), " points to ", nrow(thinned_dataset_full), " points \n")
     mySpeciesOcc=rbind(thinned_dataset_full, mySpeciesOcc[mySpeciesOcc$PA!=1,]) 
+    
+    # store number of presence points per species 
+    n_Occ_pts<-length(mySpeciesOcc$PA)
     
     # sign posting for pseudo-absence handling to define points
     cat('\n defining candidate PA points... (Line 131)')

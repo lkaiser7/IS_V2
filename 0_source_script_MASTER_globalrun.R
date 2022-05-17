@@ -18,7 +18,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="local_HI" #local_HI global_notHI nested_HI
+run_type="global_notHI" #local_HI global_notHI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
