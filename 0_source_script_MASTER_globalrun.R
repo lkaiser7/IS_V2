@@ -366,13 +366,21 @@ if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
 }
 
+############################################
 # auxiliary scripts based on settings above
 if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
-  source(paste0(codeDir, "1a_mfit_tables.R"))}
+  source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))}
 if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
-  source(paste0(codeDir, "1b_mfit_graphs.R"))}
+  source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))}
 if (create_response_curves) { # 2a - response curves
-  source(paste0(codeDir, "2a_resp_curves.r"))}
+  source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
+  source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
+}
+source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
+source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
+source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
+
+
 
 if (raster_output_creation) { # 4 - create output rasters
   source(paste0(codeDir,"4_raster_output.R"))}
