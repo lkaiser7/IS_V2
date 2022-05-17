@@ -607,5 +607,5 @@ for (sp_nm in all_sp_nm){
   #system(paste0("rm -r ", temp_sp_files_to_delete))
 }
 
-temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
+temp_loc_to_delete=dir_for_temp_files #paste0("E:/Invasive_SDMs/global_model/temp/", "*")
 unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames

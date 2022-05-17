@@ -12,13 +12,13 @@ rm(list = ls())
 # set root path to source files
 # rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
 # rootDir<-"E:/Invasive_SDMs/"
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/lfortini/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="global_notHI" #local_HI global_notHI nested_HI
+run_type="local_HI" #local_HI global_notHI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -33,7 +33,7 @@ dir.create(outDir, showWarnings = FALSE)
 
 # location of scripts and code
 # codeDir<-paste0("D:/projects/Invasives_modeling/Invasive_SDMs/IS_V2/")
-codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/")) #in order of priority
+codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/lfortini/git_repos/IS_V2/") #in order of priority
 codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 # location of all data
@@ -51,10 +51,10 @@ mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
 # location of bioclimatic variables
 if (run_type=="global_notHI"){
-  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/lfortini/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }else{
-  bioclims_dirs=c("D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("/home/lfortini/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }
 
@@ -380,10 +380,11 @@ source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
 source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
 source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
 
-
-
 if (raster_output_creation) { # 4 - create output rasters
   source(paste0(codeDir,"4_raster_output.R"))}
+
+############################################
+# future projection scripts
 
 if (create_analog_climate_map) { # 5 - map analog climates
   source(paste0(codeDir,"5_analog_climate.R"))}
