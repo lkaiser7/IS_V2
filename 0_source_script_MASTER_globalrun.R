@@ -18,7 +18,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="global_notHI" #local_HI
+run_type="local_HI" #local_HI global_notHI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -54,7 +54,8 @@ if (run_type=="global_notHI"){
   bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }else{
-  XXX
+  bioclims_dirs=c("D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }
 
 # global bioclim variables V2.1 downloaded from worldclim.org (2020)
@@ -68,7 +69,7 @@ fitting_bios_global<-paste0(bioclims_dir, "all_baseline/current_30s/")
 
 # updated HRCM bioclims_dir ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
-fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
+fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
 fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 
 # current updated bioclimatic variables @ 500 m
@@ -87,8 +88,11 @@ future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_
 if (run_type=="global_notHI"){
   baseData<-nohiDir                # baseline species data (scripts 1 & 2)
   biofitRun<-fitting_bios_global     # for model fitting
+  bioclim_scaling_factors=c(1/10, 1/10, 1, 1/10) #rasters were saved as integers
 }else{
-  XXX
+  baseData<-hiDir                # baseline species data (scripts 1 & 2)
+  biofitRun<-fitting_bios_HI     # for model fitting
+  bioclim_scaling_factors=c(1, 1, 1, 1)
 }
 futureData<-hiDir              # future species data (scripts 3 & 5)
 biobaseRun<-current_proj_bios_HI    # for baseline projections
@@ -228,7 +232,11 @@ species_ensemble_maps = F
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
 NbRunEval = 10
 # if the models should use response points weights or not
-useYweights = FALSE 
+if (run_type=="nested_HI"){
+  useYweights = T
+}else{
+  useYweights = F 
+}
 # consider PAs outside of a species climate envelope (T) or not (F)
 PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas

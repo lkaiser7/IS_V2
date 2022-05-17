@@ -80,12 +80,14 @@ sp_parallel_run = function(sp_nm) {
     
     # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
     predictors = raster(paste0(biofitRun, env_var_files[1])) 
+    predictors=predictors*bioclim_scaling_factors[1]
     # crop predictor to selected extent 
     #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
     
     # creates raster stack all bioclimate variables to use
     for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
       temp = raster(paste0(biofitRun, env_var_files[j]))
+      temp=temp*bioclim_scaling_factors[j]
       #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
       predictors = addLayer(predictors, temp)
     } 

@@ -98,8 +98,8 @@ dir.create("data/merged_data/all_data", showWarnings = F, recursive = T)
 dir.create("data/merged_data/hi_data", showWarnings = F, recursive = T)
 dir.create("data/merged_data/no_hi_data", showWarnings = F, recursive = T)
 
-sp_nm = all_sp_nm[1]
-scope = scopes[1]
+sp_nm = all_sp_nm[2]
+scope = scopes[3]
 
 
 for (scope in scopes){
@@ -128,18 +128,14 @@ for (scope in scopes){
     #View(inat_df)
     if (orig_exists&inat_exists){
       df=rbind(orig_df, inat_df)
-    }
-    if (orig_exists){
-      df=orig_df
-    }
-    if (inat_exists){
-      df=inat_df
+    }else{
+      if (orig_exists){
+        df=orig_df
+      }
+      if (inat_exists){
+        df=inat_df
+      }
     }
     write.csv(df, paste0("data/merged_data/",scope,"/",sp_nm,".csv"), row.names = F)
   }
 }
-
-
-
-
-
