@@ -12,13 +12,13 @@ rm(list = ls())
 # set root path to source files
 # rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
 # rootDir<-"E:/Invasive_SDMs/"
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/lfortini/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="local_HI" #local_HI global_notHI nested_HI
+run_type="global_notHI" #local_HI global_notHI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -33,7 +33,7 @@ dir.create(outDir, showWarnings = FALSE)
 
 # location of scripts and code
 # codeDir<-paste0("D:/projects/Invasives_modeling/Invasive_SDMs/IS_V2/")
-codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/lfortini/git_repos/IS_V2/") #in order of priority
+codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/pierc/git_repos/IS_V2/") #in order of priority
 codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 # location of all data
@@ -51,12 +51,10 @@ mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
 # location of bioclimatic variables
 if (run_type=="global_notHI"){
-  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/lfortini/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/pierc/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }else{
-  bioclims_dirs=c("/home/lfortini/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
-                  "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
-                  paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }
 
@@ -71,7 +69,8 @@ fitting_bios_global<-paste0(bioclims_dir, "all_baseline/current_30s/")
 
 # updated HRCM bioclims_dir ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
-fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
+fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/",
+                    "/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
 fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 
 # current updated bioclimatic variables @ 500 m
@@ -187,7 +186,7 @@ apply_biomod2_fixes = TRUE
 # choose whether to overwrite past results (T) or not (F)
 overwrite = FALSE
 # select number of computer cores for processing (max = 32)
-cpucores = 4
+cpucores = 20
 
 if (cpucores==1){
   parallel_run = F
@@ -411,3 +410,4 @@ source(paste0(codeDir,"8_delele_tmp_files.R"))
 #########################
 ### END SOURCE SCRIPT ###
 #########################
+
