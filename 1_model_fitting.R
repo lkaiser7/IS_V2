@@ -16,7 +16,7 @@ file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[16]
+sp_nm=all_sp_nm[1]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
@@ -577,7 +577,7 @@ if (is.null(cpucores)){
   cpucores = as.integer(Sys.getenv('NUMBER_OF_PROCESSORS'))  
 }else{
   # determine minimum number of processors available
-  cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')))
+  cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')), na.rm=T)
 }
 # initialize parallel computing on minimum number of cpu cores
 sfInit(parallel = parallel_run, cpus = cpucores)
