@@ -10,7 +10,7 @@
 library(biomod2)
 library(stringr)
 library(colorRamps)
-
+library(raster)
 ######################
 ##### FUNCTIONS ######
 ######################

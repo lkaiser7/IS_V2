@@ -54,7 +54,9 @@ if (run_type=="global_notHI"){
   bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/lfortini/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }else{
-  bioclims_dirs=c("/home/lfortini/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("/home/lfortini/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
+                  "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
+                  paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }
 
