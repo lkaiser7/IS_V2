@@ -235,7 +235,7 @@ for (eval_stat in spp_ensemble_eval_stats){
         
         # store first file name for raster .grd file
         file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                            proj_nm, "_", sp_nm, "_ensemble.grd")
+                            proj_nm, "_", sp_nm, "_ensemble.tif")
         # store temporary raster stack 
         temp_raster = stack(file_name1)
         
@@ -248,7 +248,7 @@ for (eval_stat in spp_ensemble_eval_stats){
 
         # store first bin name for raster .grd file
         file_name1_bin = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                                proj_nm, "_", sp_nm, "_ensemble_", eval_stat, "bin.grd")
+                                proj_nm, "_", sp_nm, "_ensemble_", eval_stat, "bin.tif")
         # store temporary raster stack 
         temp_raster_bin = stack(file_name1_bin)  
         

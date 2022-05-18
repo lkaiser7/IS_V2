@@ -12,6 +12,8 @@ require(snowfall)
 # reset sp_nm counter to first species
 sp_nm = all_sp_nm[1] 
 
+#overwrite=T
+
 # initialize parallel function
 sp_parallel_run = function(sp_nm){
   # load packaged in snowfall
@@ -22,13 +24,16 @@ sp_parallel_run = function(sp_nm){
   library(tools)
   library(ncdf4)
   library(gbm) 
+  library(raster)
   
   # set options for BIOMOD2 fixes in code (if assigned TRUE in source script)
   if(apply_biomod2_fixes) {
     # set raster package options
-    rasterOptions(tmpdir = dir_for_temp_files, timer = T, progress = "text", todisk = T) 
+    raster::rasterOptions(tmpdir = dir_for_temp_files, timer = T, progress = "text", todisk = T) 
     # all model projection fixes to BIOMOD2 code created by Adam Vorsino
     source(paste0(codeDir,"3a_project_mod.R")) 
+  }else{
+    raster::rasterOptions(tmpdir = dir_for_temp_files, timer = T, progress = "text", todisk = T) 
   }
   
   # convert species name to character object (in case the species are numbered)
@@ -239,6 +244,76 @@ sp_parallel_run = function(sp_nm){
       # sign-posting if projection for species is already done
       cat('\n', sp_nm, 'projections previously done.')
     }
+    ######################
+    ######################
+    cat('\n', 'converting grd to tiff files.')
+    for (eval_stat in spp_ensemble_eval_stats){
+      # convert species name to character
+      sp_nm = as.character(sp_nm)  
+      # store species name as character
+      sp_nm0 = sp_nm
+      # replace species naming convention of "_" with "."
+      sp_nm = str_replace_all(sp_nm, "_", ".")
+      
+      # print sign posting of ongoing modeling per species 
+      cat('\n',sp_nm,'grid conversion')
+      
+      # store raster names
+      raster_names = c("EM_suitability1", "EM_suitability2")
+      # store bin names
+      raster_names_bin = c("EM_BIN1", "EM_BIN2")
+      
+      # reset i counter to 1
+      i = 1
+      # loop through 2
+      for (i in 1:projections_to_run){
+        # store individual project name
+        proj_nm = comp_projects[i]
+        # store individual raster name
+        raster_name = raster_names[i]
+        # store individual bin name
+        raster_name_bin = raster_names_bin[i]
+        
+        #file_name=file_name1
+        replace_grd_fx=function(file_name){
+          if (file.exists(file_name)){
+            library(terra) #using terra package to save as raster package does not keep layer names
+            #https://stackoverflow.com/questions/26763013/r-write-rasterstack-and-preserve-layer-names
+            # store first file name for raster .grd file
+            temp_raster = rast(file_name) 
+            output_nm=sub(pattern = ".grd$", replacement = ".tif", file_name)
+            if (file.exists(output_nm) == FALSE | overwrite == 1){
+              terra::writeRaster(temp_raster, filename = output_nm, gdal=c(compress="LZW"), overwrite=T)
+            }
+            unlink(file_name, recursive=T, force=T)
+            unlink(sub(pattern = ".grd$", replacement = ".gri", file_name), recursive=T, force=T)
+          }
+        }
+        
+        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp_nm, "_ensemble.grd")
+        replace_grd_fx(file_name1)
+        
+        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp_nm, "_ensemble_", eval_stat, "bin.grd")
+        replace_grd_fx(file_name1)
+        
+        ####delete unused grids
+        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp_nm, "_", eval_stat, "bin.grd")
+        unlink(file_name1, recursive=T, force=T)
+        unlink(sub(pattern = ".grd$", replacement = ".gri", file_name1), recursive=T, force=T)
+        
+        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp_nm, ".grd")
+        unlink(file_name1, recursive=T, force=T)
+        unlink(sub(pattern = ".grd$", replacement = ".gri", file_name1), recursive=T, force=T)
+        
+      }
+    }
+    
+    
+    
     # return output to console
     sink(NULL) 
   }
