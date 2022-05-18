@@ -9,6 +9,9 @@
 # load necessary packages
 require(snowfall)
 
+temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
+unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames
+
 # reset sp_nm counter to first species
 sp_nm = all_sp_nm[1] 
 
@@ -38,8 +41,13 @@ sp_parallel_run = function(sp_nm){
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
+  
   # replace species naming convention of "_" with "." 
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+  
+  #remove previous temp results
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
   
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
@@ -106,7 +114,7 @@ sp_parallel_run = function(sp_nm){
     rm("temp", "jnk0") 
     # return summary of raster stack of predictors
     predictors 
-
+    
     # sign-posting noting completion of loading predictors
     cat('\n done loading predictors.')  
     
@@ -121,7 +129,7 @@ sp_parallel_run = function(sp_nm){
     Maui= c(-156.8, -155.53, 20.46, 21.05)
     Hawaii = c(-156.10,-154.74, 18.87, 20.30)
     Kahoolawe = c(-156.8, -156.51, 20.46, 20.62)
-      
+    
     # create blank list of island names for species
     spIslandNames = c("")
     
@@ -152,14 +160,14 @@ sp_parallel_run = function(sp_nm){
       }
       # sign-posting to project BIOMOD2 outputs
       cat('\n run biomod_projection...')
-        
+      
       ######################
       ##### projection #####
       ######################
-        
+      
       # change working directory to project path to save model outputs
       setwd(project_path)
-        
+      
       # for baseline projections
       myBiomodProj_baseline<-BIOMOD_Projection(
         modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
@@ -170,22 +178,22 @@ sp_parallel_run = function(sp_nm){
         compress = 'xz',  #compression format of files on hard drive
         build.clamping.mask = clampingMask,  #if clamping mask should be saved or not
         keep.in.memory = memory) #if clamping mask should be saved to hard disk or not
-        
+      
       # reset working directory to root 
       setwd(rootDir)
-              
+      
       # reclaim memory no longer in use and return memory usage summary
       gc()
       # sign-posting of completed projections
       cat('\n', sp_nm, 'projection complete.')
       # sign-posting of memory size and availability
       cat('point 1 mem', memory.size(), memory.size(max=TRUE), 'nn') 
-        
+      
       # save projection R workspace environement 
       save("myBiomodProj_baseline", file = workspace_name_out0)
       # sign-posting of completed BIOMOD2 projections
       cat('\n done with running biomod_projection.')
-        
+      
       # otherwise if projection workspace already exists
     } else {
       
@@ -194,7 +202,7 @@ sp_parallel_run = function(sp_nm){
       # sign-posting indicating models are loaded from past runs
       cat('\n', sp_nm, 'projection of individual models loaded from past run.')
     }
-          
+    
     # run BIOMOD2 fixes if TRUE in source script
     if (apply_biomod2_fixes){
       # load baseline projections manually from directory
@@ -203,24 +211,24 @@ sp_parallel_run = function(sp_nm){
       # use previously created baseline projections
       myBiomodProjection<-myBiomodProj_baseline
     }
-          
+    
     # sign-posting to run forecasting of ensemble models
     cat('\n run ensemble forecasting...')
-      
+    
     # set location to save R workspace data and ensemble projections
     workspace_name_out1 = paste0(project_path, sp_dir, sp_nm, 
                                  "_", proj_nm, "_all_model_ensemble_proj.RData") 
     # check if ensemble projections workspace already exists or not
     if (file.exists(workspace_name_out1) == FALSE | overwrite == TRUE) { 
       
-        
+      
       ################################
       ##### ensemble_forecasting #####
       ################################
-        
+      
       # change working directory to project path to save model outputs
       setwd(project_path)
-        
+      
       # run ensemble projections for species
       myBiomodEF <- BIOMOD_EnsembleForecasting(
         projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
@@ -228,16 +236,16 @@ sp_parallel_run = function(sp_nm){
         EM.output = myBiomodEM,  #BIOMOD.EnsembleModeling.out from ensemble modeling
         binary.meth = eval_stats,  #evaluation method statistics 
         keep.in.memory = memory)  #if output should be saved to hard disk or not
-        
+      
       # reset working directory to root 
       setwd(rootDir)
-        
+      
       # sign-posting of completed ensemble projections
       cat('\n', sp_nm, 'ensemble projection done.') 
-        
+      
       # save ensemble projections R workspace environement 
       save("myBiomodProjection", "myBiomodEF", file = workspace_name_out1)
-        
+      
       # remove any temporary files
       removeTmpFiles(h = 1) 
     } else {
@@ -312,6 +320,14 @@ sp_parallel_run = function(sp_nm){
       }
     }
     
+    #############################
+    #delete temp raster files
+    sp_nm = as.character(sp_nm) 
+    sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+    temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+    unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+    #Loc <- "mydir"
+    #system(paste0("rm -r ", temp_sp_files_to_delete))
     
     
     # return output to console
@@ -347,17 +363,6 @@ sfStop()
 #################################
 
 
-#############################
-#delete temp raster files
-sp_nm = all_sp_nm[1]
-for (sp_nm in all_sp_nm){
-  sp_nm = as.character(sp_nm) 
-  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
-  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-  #Loc <- "mydir"
-  #system(paste0("rm -r ", temp_sp_files_to_delete))
-}
 
 temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
 unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames

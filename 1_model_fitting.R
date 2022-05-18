@@ -29,6 +29,7 @@ sp_parallel_run = function(sp_nm) {
   library(stringr)
   library(tools)
   require(snowfall)
+  library(terra)
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
@@ -91,10 +92,27 @@ sp_parallel_run = function(sp_nm) {
       #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
       predictors = addLayer(predictors, temp)
     } 
+    rm(j, temp) # remove temporary files
+    
+    # # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
+    # predictors = rast(paste0(biofitRun, env_var_files[1])) 
+    # predictors=predictors*bioclim_scaling_factors[1]
+    # # crop predictor to selected extent 
+    # #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
+    # 
+    # # creates raster stack all bioclimate variables to use
+    # for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
+    #   temp = rast(paste0(biofitRun, env_var_files[j]))
+    #   temp=temp*bioclim_scaling_factors[j]
+    #   #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
+    #   predictors = c(predictors, temp)
+    # } 
+    
+    predictors=rast(paste0(biofitRun, env_var_files)) #try
+    predictors=predictors*bioclim_scaling_factors #try
+    
     # assign names of bioclim variables to raster stack
     names(predictors)<-var_names
-    # remove temporary files
-    rm(j, temp)
     
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_env_vars_used.tif") 
@@ -128,9 +146,12 @@ sp_parallel_run = function(sp_nm) {
     # check header of new presence data formatting
     head(mySpeciesOcc)
     
-    cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cellnumbers = TRUE) 
+    #cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cellnumbers = TRUE) 
+    cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cells = TRUE) 
+    #View(cell_numbers_df)
     #remove repeats
-    unique_cells=!duplicated(cell_numbers_df[,1])
+    #unique_cells=!duplicated(cell_numbers_df[,1])
+    unique_cells=!duplicated(cell_numbers_df[,3])
     #n_pres_wDups=nrow(mySpeciesOcc)
     mySpeciesOcc=mySpeciesOcc[unique_cells,]
     cat("after removing raster cell duplicates, sp records went from ", length(unique_cells), " points to ", sum(unique_cells), " points \n")
@@ -209,15 +230,19 @@ sp_parallel_run = function(sp_nm) {
     
     
     # create raster layer based on environmental response variable cells
-    mySREresp<-reclassify(subset(predictors, 1, drop = TRUE), c(-Inf, Inf, 0))
+    #mySREresp<-reclassify(predictors[[1]], c(-Inf, Inf, 0))
+    mySREresp<-classify(predictors[[1]], matrix(c(-Inf, Inf, 0), ncol = 3, byrow = T))
     # assign shared cells from bioclims and data to '1'
-    mySREresp[cellFromXY(mySREresp, mySpeciesOcc[,1:2])]<-1 
+    mySREresp[cellFromXY(mySREresp, mySpeciesOcc[,1:2])]<-NA 
     # calculate number of real absences (generally presence-only data) - should be 0
     act_abs = dim(mySpeciesOcc[mySpeciesOcc$PA == 0,])[1] 
     # create raster area outside of all known cells with data points
-    neg_mySREresp = mySREresp == 0 
+    #mySREresp[mySREresp==1]=NA
+    #neg_mySREresp = mySREresp == 0 
     # create matrix of potential candidate pseudo-absence points
-    potential_PAs = rasterToPoints(neg_mySREresp, fun = function(x){x==1}) 
+    #potential_PAs = rasterToPoints(mySREresp) 
+    potential_PAs = as.points(mySREresp) 
+    
     # assign number of pseudo-absences to be selected
     # if(useYweights) { #not sure why using different number of pa's by run
     #   # limit selection of PA points to same number of presence points 
@@ -230,28 +255,39 @@ sp_parallel_run = function(sp_nm) {
     }else{
       n_PA_pts<-number_of_PAs 
     }
+    
     #potentially consider more robust PA selection:
     #https://www.sciencedirect.com/science/article/abs/pii/S030438001500215X
     #https://rdrr.io/cran/mopa/man/pseudoAbsences.html
-    
-    
-    # extract geographic xy data from potential candidate pseudo-absences
-    potential_PAs = as.data.frame(potential_PAs[,1:2]) 
-    # remove any data with missing geographic information or NAs
-    true_potential_PAs = potential_PAs[complete.cases(potential_PAs),] 
-    
-    #remove some PAs if there is a ridiculously large amount
-    jnk=dim(true_potential_PAs)[1]
-    if (jnk>(candidatePAperPA*n_PA_pts)){
-      true_potential_PAs=true_potential_PAs[sample(x=jnk,size=candidatePAperPA*n_PA_pts, replace=F),]
-    }
-    # add PA column to data frame and assign 'NA' to all rows for pseudo-absences
+    true_potential_PAs=spatSample(mySREresp, candidatePAperPA*n_PA_pts, method="random", xy=T, replace=FALSE, na.rm=T)
     #true_potential_PAs=cbind(true_potential_PAs, pa=rep('NA', dim(true_potential_PAs)[1],1)) 
+    true_potential_PAs=true_potential_PAs[,-3]
     true_potential_PAs$PA=NA 
     # rename column headers
     names(true_potential_PAs) = c('X', 'Y', 'PA') 
     # check header of new pseudo-absences data formatting
     head(true_potential_PAs) 
+    #View(true_potential_PAs)
+    
+    # 
+    # 
+    # # extract geographic xy data from potential candidate pseudo-absences
+    # potential_PAs = as.data.frame(potential_PAs[,1:2]) 
+    # # remove any data with missing geographic information or NAs
+    # true_potential_PAs = potential_PAs[complete.cases(potential_PAs),] 
+    # 
+    # #remove some PAs if there is a ridiculously large amount
+    # jnk=dim(true_potential_PAs)[1]
+    # if (jnk>(candidatePAperPA*n_PA_pts)){
+    #   true_potential_PAs=true_potential_PAs[sample(x=jnk,size=candidatePAperPA*n_PA_pts, replace=F),]
+    # }
+    # # add PA column to data frame and assign 'NA' to all rows for pseudo-absences
+    # #true_potential_PAs=cbind(true_potential_PAs, pa=rep('NA', dim(true_potential_PAs)[1],1)) 
+    # true_potential_PAs$PA=NA 
+    # # rename column headers
+    # names(true_potential_PAs) = c('X', 'Y', 'PA') 
+    # # check header of new pseudo-absences data formatting
+    # head(true_potential_PAs) 
     
     # merge real species occurrence data with created candidate pseudo-absence points
     mySpeciesData<-data.frame(rbind(mySpeciesOcc, true_potential_PAs))
@@ -264,8 +300,12 @@ sp_parallel_run = function(sp_nm) {
     cat('\n extracting env vars to points...')
     
     # create matrix with cell numbers of real data from selected bioclim variables
-    bioclimData<-extract(predictors, mySpeciesData[, 1:2], cellnumbers = TRUE) 
-     
+    bioclimData<-extract(predictors, mySpeciesData[, 1:2], cells = TRUE) 
+    bioclimData=bioclimData[, c("cell", var_names)]
+    #bioclimData<-raster::extract(predictors, mySpeciesData[, 1:2], cellnumbers=TRUE) 
+    
+    #View(bioclimData)
+    
     if(useYweights) {
       # location of suitability scores based on data points
       suitscores<-paste0(dataDir, "suitability_scores/")
@@ -330,7 +370,7 @@ sp_parallel_run = function(sp_nm) {
       # remove temporary vector
       rm(jnk)    
       # identify duplicates within the cell column
-      dup_data<-duplicated(data_sort$cells) 
+      dup_data<-duplicated(data_sort$cell) 
       # calculate number of duplicate entries
       n_dups = length(dup_data[dup_data == TRUE]) 
       
