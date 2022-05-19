@@ -9,8 +9,6 @@
 # load necessary packages
 require(snowfall)
 
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
-
 # reset sp_nm counter to first species
 sp_nm = all_sp_nm[1] 
 
@@ -29,14 +27,6 @@ sp_parallel_run = function(sp_nm){
   library(raster)
   
   # set options for BIOMOD2 fixes in code (if assigned TRUE in source script)
-  if(apply_biomod2_fixes) {
-    # set raster package options
-    raster::rasterOptions(tmpdir = dir_for_temp_files, timer = T, progress = "text", todisk = T) 
-    # all model projection fixes to BIOMOD2 code created by Adam Vorsino
-    source(paste0(codeDir,"3a_project_mod.R")) 
-  }else{
-    raster::rasterOptions(tmpdir = dir_for_temp_files, timer = T, progress = "text", todisk = T) 
-  }
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
@@ -44,9 +34,19 @@ sp_parallel_run = function(sp_nm){
   # replace species naming convention of "_" with "." 
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
   
-  #remove previous temp results
-  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  # create temporary directory per species to be deleted
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/")
+  dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
+  # set temporary directory to created temp file
+  rasterOptions(tmpdir = temp_sp_files_to_delete)
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  # print posting of temporary file location
+  cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
+  
+  if(apply_biomod2_fixes) {
+    # all model projection fixes to BIOMOD2 code created by Adam Vorsino
+    source(paste0(codeDir,"3a_project_mod.R")) 
+  }
   
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
@@ -319,15 +319,8 @@ sp_parallel_run = function(sp_nm){
       }
     }
     
-    #############################
-    #delete temp raster files
-    sp_nm = as.character(sp_nm) 
-    sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
-    temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-    unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-    #Loc <- "mydir"
-    #system(paste0("rm -r ", temp_sp_files_to_delete))
-    
+    # delete select temporary files per species once processing is finished
+    unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
     
     # return output to console
     sink(NULL) 
@@ -361,7 +354,3 @@ sfStop()
 ##### END MODEL PROJECTIONS #####
 #################################
 
-
-
-
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames

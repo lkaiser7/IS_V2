@@ -286,14 +286,15 @@ if (baseline_or_future == 1) {
 if (baseline_or_future == 4) {
   clim_data = biofutureRun 
   proj_nm = 'future'}
+
 # temporary folder for files during processing to avoid memory errors
-dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
+#dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
 # conditions if applying fixes to BIOMOD2 (script 3b)
 if (apply_biomod2_fixes) {
   # name model run based on scenario 
   maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
   # create temporary directory file
-  dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
+  #dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
 }
 
 ### raster_output_creation (script 4)

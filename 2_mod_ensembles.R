@@ -11,8 +11,6 @@ require(snowfall)
 library(biomod2)
 library(stringr)
 
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
-
 # reset species counter to 1
 sp_nm = all_sp_nm[1] 
 
@@ -29,6 +27,15 @@ sp_parallel_run = function(sp_nm){
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
   # create new folder with species name
   dir.create(paste0(project_path, sp_dir), showWarnings = FALSE) 
+  
+  # create temporary directory per species to be deleted
+  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/")
+  dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
+  # set temporary directory to created temp file
+  rasterOptions(tmpdir = temp_sp_files_to_delete)
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  # print posting of temporary file location
+  cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
@@ -132,9 +139,13 @@ sp_parallel_run = function(sp_nm){
     cat('\n It took', p_time, 'minutes for', sp_nm, 'ensemble modeling.')    
   }else{
     # sign-posting if file for ensemble modeling has already been created 
-    cat('\n', sp_nm, 'ensemble modleing already done...')
+    cat('\n', sp_nm, 'ensemble modleling already done...')
     # indicates that this species has already been run 
   }
+  
+  # delete select temporary files per species once processing is finished
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
+  
   # reset sink to console output
   sink(NULL)
 }
@@ -166,16 +177,14 @@ sfStop()
 ##### END ENSEMBLE MODELING #####
 #################################
 
-#############################
-#delete temp raster files
-sp_nm = all_sp_nm[1]
-for (sp_nm in all_sp_nm){
-  sp_nm = as.character(sp_nm) 
-  sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
-  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-  #Loc <- "mydir"
-  #system(paste0("rm -r ", temp_sp_files_to_delete))
-}
-
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
+# #############################
+# #delete temp raster files
+# sp_nm = all_sp_nm[1]
+# for (sp_nm in all_sp_nm){
+#   sp_nm = as.character(sp_nm) 
+#   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
+#   temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+#   unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+#   #Loc <- "mydir"
+#   #system(paste0("rm -r ", temp_sp_files_to_delete))
+# }

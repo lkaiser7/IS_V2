@@ -13,7 +13,6 @@ require(tools)
 # copy maxent jar and batch files to project path for processing
 file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
           project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
@@ -44,7 +43,7 @@ sp_parallel_run = function(sp_nm) {
   dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
-  
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
  
@@ -593,13 +592,9 @@ sp_parallel_run = function(sp_nm) {
     cat('\n fitting for', sp_nm, 'already done...') 
     # indicates that this species has already been run 
   }    
-  # delete select temporary files per species once processing is finished
-  unlink(temp_sp_files_to_delete, recursive = TRUE, force = TRUE)
   
-  sp_nm = as.character(sp_nm) 
-  sp_dir = paste0(sub("_", ".", sp_nm), "/")
-  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+  # delete select temporary files per species once processing is finished
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
   
   # reset sink to console output
   sink(NULL)
@@ -636,16 +631,14 @@ sfStop()
 #############################
 
 
-#############################
-#delete temp raster files
-sp_nm = all_sp_nm[1]
-for (sp_nm in all_sp_nm){
-  sp_nm = as.character(sp_nm) 
-  sp_dir = paste0(sub("_", ".", sp_nm), "/")
-  temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-  unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-  #Loc <- "mydir"
-  #system(paste0("rm -r ", temp_sp_files_to_delete))
-}
-
-unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
+# #############################
+# #delete temp raster files
+# sp_nm = all_sp_nm[1]
+# for (sp_nm in all_sp_nm){
+#   sp_nm = as.character(sp_nm) 
+#   sp_dir = paste0(sub("_", ".", sp_nm), "/")
+#   temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
+#   unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
+#   #Loc <- "mydir"
+#   #system(paste0("rm -r ", temp_sp_files_to_delete))
+# }
