@@ -9,8 +9,7 @@
 # load necessary packages
 require(snowfall)
 
-temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
-unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
 
 # reset sp_nm counter to first species
 sp_nm = all_sp_nm[1] 
@@ -364,5 +363,5 @@ sfStop()
 
 
 
-temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
-unlink(temp_loc_to_delete, recursive=T, force=T) #delete previous frames
+
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames

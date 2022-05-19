@@ -13,6 +13,7 @@ require(tools)
 # copy maxent jar and batch files to project path for processing
 file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
           project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
@@ -647,5 +648,4 @@ for (sp_nm in all_sp_nm){
   #system(paste0("rm -r ", temp_sp_files_to_delete))
 }
 
-#temp_loc_to_delete=dir_for_temp_files #paste0("E:/Invasive_SDMs/global_model/temp/", "*")
-unlink(dir_for_temp_files, recursive=T, force=T) #delete previous frames
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames

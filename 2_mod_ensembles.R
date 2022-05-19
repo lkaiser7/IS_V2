@@ -11,8 +11,7 @@ require(snowfall)
 library(biomod2)
 library(stringr)
 
-# set species name to Miconia_calvescens for debugging (all_sp_nm[7])
-# sp_nm<-"Miconia_calvescens"
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
 
 # reset species counter to 1
 sp_nm = all_sp_nm[1] 
@@ -179,5 +178,4 @@ for (sp_nm in all_sp_nm){
   #system(paste0("rm -r ", temp_sp_files_to_delete))
 }
 
-#temp_loc_to_delete=paste0("E:/Invasive_SDMs/global_model/temp/", "*")
-unlink(dir_for_temp_files, recursive=T, force=T) #delete previous frames
+unlink(paste0(dir_for_temp_files, "*"), recursive=T, force=T) #delete previous frames
