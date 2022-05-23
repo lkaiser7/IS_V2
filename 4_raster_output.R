@@ -5,7 +5,7 @@
 ##################
 ##### SET UP #####
 ##################
-
+setwd(rootDir)
 # load necessary packages 
 library(biomod2)
 library(stringr)

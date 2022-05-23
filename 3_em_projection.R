@@ -287,11 +287,21 @@ sp_parallel_run = function(sp_nm){
             library(terra) #using terra package to save as raster package does not keep layer names
             #https://stackoverflow.com/questions/26763013/r-write-rasterstack-and-preserve-layer-names
             # store first file name for raster .grd file
-            temp_raster = rast(file_name) 
-            output_nm=sub(pattern = ".grd$", replacement = ".tif", file_name)
-            if (file.exists(output_nm) == FALSE | overwrite == 1){
-              terra::writeRaster(temp_raster, filename = output_nm, gdal=c(compress="LZW"), overwrite=T)
-            }
+            tryCatch({
+              options(warn=-1) #suppress warnings
+              temp_raster = rast(file_name) 
+              output_nm=sub(pattern = ".grd$", replacement = ".tif", file_name)
+              if (file.exists(output_nm) == FALSE | overwrite == 1){
+                terra::writeRaster(temp_raster, filename = output_nm, gdal=c(compress="LZW"), overwrite=T)
+              }
+              
+            }, warning = function(war) {
+              print(paste("MY_WARNING:  ",war))    
+            }, error = function(err) {    
+              print(paste("MY_ERROR:  ",err))
+            }, finally = {
+              options(warn=0)
+            }) # END tryCatch
             unlink(file_name, recursive=T, force=T)
             unlink(sub(pattern = ".grd$", replacement = ".gri", file_name), recursive=T, force=T)
           }
@@ -321,6 +331,9 @@ sp_parallel_run = function(sp_nm){
     
     # delete select temporary files per species once processing is finished
     unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
+    
+    #delete individual projection files
+    unlink(paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/individual_projections/*"), recursive=T, force=T) #delete previous frames
     
     # return output to console
     sink(NULL) 

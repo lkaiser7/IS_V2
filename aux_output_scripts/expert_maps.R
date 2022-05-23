@@ -5,7 +5,7 @@
 ### SET UP ####
 
 # working directory
-wdDir<-"D:/Phase1_SDMs/"
+wdDir<-rootDir
 setwd(wdDir)
 
 # load packages
@@ -14,7 +14,7 @@ library(raster)
 library(viridis)
 
 # load map data
-hi_map<-readOGR(paste0(wdDir, "data/map_data"), "Main_Hawaiian_Islands_simple3")
+hi_map<-readOGR(paste0(mapDir, "Main_Hawaiian_Islands_simple3.shp"))
 # hi_map<-readOGR(paste0(wdDir, "data/map_data"), "state_coast") # SAME
 # remove Niihau
 hi_map<-hi_map[which(hi_map$Island != "NI"),]

@@ -18,7 +18,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="local_HI" #local_HI global_notHI nested_HI
+run_type="global_notHI" # global_notHI local_HI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -186,9 +186,9 @@ interpolateDef = FALSE
 # apply fixes for large (T) or small (F) models to solve memory issues (script 3b)
 apply_biomod2_fixes = T
 # choose whether to overwrite past results (T) or not (F)
-overwrite = T
+overwrite = F
 # select number of computer cores for processing (max = 32)
-cpucores = 5
+cpucores = 3
 
 if (cpucores==1){
   parallel_run = F
@@ -368,7 +368,7 @@ if (EM_ensemble){  # 2 - run ensemble code
 }
 if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
-  #source(paste0(codeDir,"3d_convert_grd_to_tiff.R")) #convert huge grd files to compressed tiff   
+  source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
 }
 
 ############################################

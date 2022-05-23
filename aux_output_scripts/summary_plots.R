@@ -5,7 +5,7 @@
 ### SET UP ####
 
 # working directory
-wdDir<-"D:/Phase1_SDMs/"
+wdDir<-rootDir
 setwd(wdDir)
 
 # load packages
@@ -13,14 +13,14 @@ library(rgdal)
 library(raster)
 
 # load map data
-hi_map<-readOGR(paste0(wdDir, "data/map_data"), "Main_Hawaiian_Islands_simple3")
+hi_map<-readOGR(paste0(mapDir, "Main_Hawaiian_Islands_simple3.shp"))
 # hi_map<-readOGR(paste0(wdDir, "data/map_data"), "state_coast") # SAME
 # remove Niihau
 hi_map<-hi_map[which(hi_map$Island != "NI"),]
 plot(hi_map)
 
 # models
-m_type<-c("global", "local", "nested")
+m_type<-c("global_notHI", "local_HI", "nested_HI")
 # # set model type
 # mod<-m_type[3]
 # select main or LRG species
@@ -68,23 +68,23 @@ sp_lrg<-c("Cyathea_cooperi", "Ulex_europaeus")
 # rastDir<-paste0(wdDir, m_path, "output_rasters/")
 # plotDir<-paste0(wdDir, m_path, "outputs/")
 
-if(LRG){
+# if(LRG){
+#   # model paths
+#   g_mod<-paste0(m_type[1], "_notHI_models_LRG/")
+#   l_mod<-paste0(m_type[2], "_HI_models_LRG/")
+#   n_mod<-paste0(m_type[3], "_HI_models_LRG/")
+#   # species names
+#   sp_nm<-sp_lrg
+#   
+# }else{
   # model paths
-  g_mod<-paste0(m_type[1], "_notHI_models_LRG/")
-  l_mod<-paste0(m_type[2], "_HI_models_LRG/")
-  n_mod<-paste0(m_type[3], "_HI_models_LRG/")
-  # species names
-  sp_nm<-sp_lrg
-  
-}else{
-  # model paths
-  g_mod<-paste0(m_type[1], "_notHI_models/")
-  l_mod<-paste0(m_type[2], "_HI_models/")
-  n_mod<-paste0(m_type[3], "_HI_models/")
+  g_mod<-paste0(m_type[1], "/")
+  l_mod<-paste0(m_type[2], "/")
+  n_mod<-paste0(m_type[3], "/")
   # species names
   sp_nm<-sp_sm
-  
-}
+#   
+# }
 
 # save outputs path
 outDir<-paste0(wdDir, "summary_results/")

@@ -46,14 +46,14 @@ sp_parallel_run = function(sp_nm) {
   unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
- 
+  
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
   # create a text file name for specific ongoing processing session
   txt_nm = paste0(project_path, sp_dir, proj_nm, "_fitting_log_", worker, ".txt")
   # write log file in species directory and sink console outputs to log
   sink(file(txt_nm, open = "wt"))
-
+  
   # print list start date of processing
   cat('\n Started on ', date(), '\n') 
   # list initial processing time 
@@ -66,12 +66,12 @@ sp_parallel_run = function(sp_nm) {
   
   # set name of file to save all workspace data after model run
   workspace_name = paste0(project_path, sp_dir, sp_nm, "_modelfitting.RData")
-    
+  
   # create file name for variable importance from model runs
   FileName00<-paste0(project_path, sp_dir, sp_nm, "_VariImp.csv") 
   # if species file already exists, skip to end, otherwise begin model fitting
   if (file.exists(FileName00) == FALSE | overwrite == TRUE) {     
-
+    
     #####################
     ##### LOAD DATA #####
     #####################
@@ -156,6 +156,9 @@ sp_parallel_run = function(sp_nm) {
     mySpeciesOcc=mySpeciesOcc[unique_cells,]
     cat("after removing raster cell duplicates, sp records went from ", length(unique_cells), " points to ", sum(unique_cells), " points \n")
     
+    #memory management
+    #sort( sapply(ls(),function(x){object.size(get(x))})) 
+    rm(world_map, map_to_use, hawaii_map, cell_numbers_df, mySpecies)
     
     #######################
     #now thin points!
@@ -187,6 +190,11 @@ sp_parallel_run = function(sp_nm) {
     
     # store number of presence points per species 
     n_Occ_pts<-length(mySpeciesOcc$PA)
+    
+    #memory management
+    #sort( sapply(ls(),function(x){object.size(get(x))})) 
+    rm(mySpeciesOcc_thin, thinned_dataset_full)
+    
     
     # sign posting for pseudo-absence handling to define points
     cat('\n defining candidate PA points... (Line 131)')
@@ -241,7 +249,7 @@ sp_parallel_run = function(sp_nm) {
     #neg_mySREresp = mySREresp == 0 
     # create matrix of potential candidate pseudo-absence points
     #potential_PAs = rasterToPoints(mySREresp) 
-    potential_PAs = as.points(mySREresp) 
+    #potential_PAs = as.points(mySREresp) 
     
     # assign number of pseudo-absences to be selected
     # if(useYweights) { #not sure why using different number of pa's by run
@@ -291,6 +299,7 @@ sp_parallel_run = function(sp_nm) {
     
     # merge real species occurrence data with created candidate pseudo-absence points
     mySpeciesData<-data.frame(rbind(mySpeciesOcc, true_potential_PAs))
+    rm(true_potential_PAs, mySpeciesOcc, mySREresp)
     # print posting of completed species data loading
     cat('\n species presence and absence data loaded and saved. (Line 167)') 
     # record time and date stamp
@@ -304,6 +313,8 @@ sp_parallel_run = function(sp_nm) {
     bioclimData=bioclimData[, c("cell", var_names)]
     #bioclimData<-raster::extract(predictors, mySpeciesData[, 1:2], cellnumbers=TRUE) 
     
+    #sort( sapply(ls(),function(x){object.size(get(x))})) 
+    #rm(predictors)
     #View(bioclimData)
     
     if(useYweights) {
@@ -320,7 +331,7 @@ sp_parallel_run = function(sp_nm) {
         g_weight<-1/(1+(suitability_scores[ss, 2]/(suitability_scores[ss, 2]-1))^2)
         suit_weights[ss, 1]<-g_weight
       }
-                                           
+      
       # create data frame with species PAs, suitability scores, and bioclim points  
       SP_bioclim_suitData<-data.frame(cbind(mySpeciesData, 
                                             suit_weights, 
@@ -377,10 +388,10 @@ sp_parallel_run = function(sp_nm) {
       # create new data frame without duplicate cells and drop cell column  
       SP_ALL_data<-data_sort[!dup_data, -4] 
     }
-      
+    
     # print posting of primary processing of species' location predictor values
     cat('\n extration of bioclimatic predictor values per species data done. (Line 247)')
-
+    
     # check header of final bioclim data formatting
     head(SP_ALL_data)
     tail(SP_ALL_data)
@@ -389,7 +400,7 @@ sp_parallel_run = function(sp_nm) {
     table(SP_ALL_data$PA, useNA = "ifany")
     # save output as .csv file (takes a long time and space due to file size)
     write.csv(SP_ALL_data, file = paste0(project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
-      
+    
     # print posting of completed building of species location data and predictor values 
     cat('\n species bioclimatic data selection and duplication removal complete. (Line 270)')
     
@@ -470,7 +481,7 @@ sp_parallel_run = function(sp_nm) {
       PA.nb.absences = n_PA_pts,  #number of PAs to select
       PA.strategy = PA.strategy,  #how to select PAs
       PA.dist.min = PA.dist.min)  #minimum distance to presences
-
+    
     # sign-posting of completed biomod data formating
     cat('\n biomod data formatting complete. (Line 335)') 
     # record time and date stamp
@@ -488,7 +499,7 @@ sp_parallel_run = function(sp_nm) {
       RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
                 max.nodes = 10, corr.bias = TRUE), 
       # MAXENT: Maximum Entropy
-      MAXENT.Phillips = list(path_to_maxent.jar = dataDir,
+      MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
                              maximumiterations = 100, visible = FALSE, linear = TRUE, 
                              quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
                              lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
@@ -497,7 +508,7 @@ sp_parallel_run = function(sp_nm) {
     
     # change working directory to project path to save model outputs
     setwd(project_path)
-      
+    
     # sign-posting for ensemble model fitting
     cat('\n model fitting...')
     
@@ -521,7 +532,7 @@ sp_parallel_run = function(sp_nm) {
     
     # return summary output of biomod model runs
     myBiomodModelOut
-        
+    
     # sign-posting of completed biomod modeling 
     cat('\n biomod data modeling complete. (Line 385)') 
     # record time and date stamp
@@ -575,12 +586,12 @@ sp_parallel_run = function(sp_nm) {
     
     # save BIOMOD modeling output from workspace
     save("myBiomodModelOut", file = workspace_name)   
-  
+    
     # sign-posting of completed biomod fitting for species 
     cat('\n all model fitting, modeling, and evaluation complete. (Line 440)')
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
-
+    
     # calculate total processing time
     ptm1 = proc.time() - ptm0 
     # store time elapsed and convert to minutes
@@ -603,7 +614,7 @@ sp_parallel_run = function(sp_nm) {
 
 #sp_nm=all_sp_nm[16]
 #sp_parallel_run(sp_nm)
-  
+
 ########################################
 ##### SNOWFALL FUNCTION SCRIPT RUN #####
 ########################################

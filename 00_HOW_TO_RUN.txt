@@ -38,6 +38,10 @@
 # DIRECTIONS #
 ##############
 
+First step is to intall java and download the maxent file!
+Instructions here at:
+http://modata.ceoe.udel.edu/dev/dhaulsee/class_rcode/r_pkgmanuals/MAXENT4R_directions.pdf
+
 # The main configuration file (0_source_script) holds all the inputs for the other scripts.
 # Any of these settings and configurations can be changed in that main script to reflect
 # a certain desired output.  There are a few main lines that should generally be changed.

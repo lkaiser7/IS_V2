@@ -20,6 +20,7 @@ sp_parallel_run = function(sp_nm){
   library(biomod2)
   library(stringr)
   require(snowfall)
+  library(raster)
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
