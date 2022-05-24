@@ -35,6 +35,8 @@ sp_parallel_run = function(sp_nm){
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
   unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  gc()
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
@@ -146,6 +148,8 @@ sp_parallel_run = function(sp_nm){
   
   # delete select temporary files per species once processing is finished
   unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
+  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  gc()
   
   # reset sink to console output
   sink(NULL)

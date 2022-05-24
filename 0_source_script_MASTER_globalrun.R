@@ -15,6 +15,8 @@ rm(list = ls())
 project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 
+tempfile(pattern = "clidemia")
+
 # set working directory to main analysis folder
 setwd(rootDir)
 
@@ -154,6 +156,7 @@ if (run_type=="global_notHI"){
   map_scale<-"Hawaii"
   map_to_use<-hawaii_map
 }
+
 # list global extent from world_map
 all_ext<-extent(world_map)
 # create local extent for Hawaii
@@ -165,6 +168,8 @@ if (run_type=="global_notHI"){
 }else{
   crop_ext<-hi_ext
 }
+rm(world_map, hawaii_map)
+
 #############################
 ##### MODELLING OPTIONS #####
 #############################
@@ -188,7 +193,7 @@ apply_biomod2_fixes = T
 # choose whether to overwrite past results (T) or not (F)
 overwrite = F
 # select number of computer cores for processing (max = 32)
-cpucores = 3
+cpucores = 1
 
 if (cpucores==1){
   parallel_run = F
