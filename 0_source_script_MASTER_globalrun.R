@@ -15,8 +15,6 @@ rm(list = ls())
 project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 
-tempfile(pattern = "clidemia")
-
 # set working directory to main analysis folder
 setwd(rootDir)
 
@@ -81,8 +79,8 @@ fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 #changed to new recalc values (GLOBAL AND LOCAL SEEM TO HAVE DIFFERENT UNITS!)
 current_proj_bios_HI<-fitting_bios_HI #paste0(bioclims_dir, "all_HRCM/current_250m_redone/") 
 # future updated bioclimatic variables @ 500 m 
-future_proj_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/future_500m/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
-future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_HIs)))]
+# future_proj_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/future_500m/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
+# future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_HIs)))]
 
 # GLOBAL A: allDir, fitting_bios_global, current/future_proj_bios_HI
 # GLOBAL B: nohiDir, fitting_bios_global, current/future_proj_bios_HI
@@ -101,7 +99,7 @@ if (run_type=="global_notHI"){
 }
 futureData<-hiDir              # future species data (scripts 3 & 5)
 biobaseRun<-current_proj_bios_HI    # for baseline projections
-biofutureRun<-future_proj_bios_HI   # for future projections
+#biofutureRun<-future_proj_bios_HI   # for future projections
 
 ##################################
 ##### GENERAL CONFIGURATIONS #####
@@ -347,7 +345,7 @@ if (baseline_or_future == 1) {
   cat('bioclimatic variables:', var_names, '\n')
   cat('fitting bioclim data:', biofitRun, '\n')
   cat('baseline bioclim data:', biobaseRun, '\n')
-  cat('future bioclim data:', biofutureRun, '\n')
+  #cat('future bioclim data:', biofutureRun, '\n')
   cat('map and crop extent:', map_scale, '\n')
   cat('selected models:', models_to_run, '\n')
   cat('selected evaluation statistics:', eval_stats, '\n')
