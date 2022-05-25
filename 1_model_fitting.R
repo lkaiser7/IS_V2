@@ -10,9 +10,9 @@
 require(snowfall)
 require(tools)
 
-# copy maxent jar and batch files to project path for processing
-file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
-          project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+# # copy maxent jar and batch files to project path for processing
+# file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
+#           project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
@@ -159,7 +159,7 @@ sp_parallel_run = function(sp_nm) {
     
     #memory management
     #sort( sapply(ls(),function(x){object.size(get(x))})) 
-    rm(map_to_use, cell_numbers_df, mySpecies)
+    rm(cell_numbers_df, mySpecies)
     
     #######################
     #now thin points!
@@ -425,6 +425,7 @@ sp_parallel_run = function(sp_nm) {
            pch = 16, col = c("red", "blue"))
     # save image file
     dev.off() 
+    rm(map_to_use)
     
     # print posting of saved .tif image file of PA points 
     cat('\n .tif image file of presence/absence points', tiff_name, 'saved. (Line 278) \n')
@@ -474,12 +475,12 @@ sp_parallel_run = function(sp_nm) {
     
     # load BIOMOD2 data for formatting
     myBiomodData<-BIOMOD_FormatingData(
-      resp.name = sp_nm,  #species name
-      resp.var = myResp,  #pres/abs/pa points
-      expl.var = myExpl,  #bioclim values
-      resp.xy = myRespXY,  #xy coordinates
-      PA.nb.rep = PA.nb.rep,  #number of PAs selections
-      PA.nb.absences = n_PA_pts,  #number of PAs to select
+      resp.name = sp_nm,  #species name (character)
+      resp.var = c(myResp)[[1]],  #pres/abs/pa points #myResp (1 col df)
+      expl.var = myExpl,  #bioclim values (df)
+      resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
+      PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
+      PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
       PA.strategy = PA.strategy,  #how to select PAs
       PA.dist.min = PA.dist.min)  #minimum distance to presences
     
