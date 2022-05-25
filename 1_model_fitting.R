@@ -476,7 +476,7 @@ sp_parallel_run = function(sp_nm) {
     # load BIOMOD2 data for formatting
     myBiomodData<-BIOMOD_FormatingData(
       resp.name = sp_nm,  #species name (character)
-      resp.var = c(myResp)[[1]],  #pres/abs/pa points #myResp (1 col df)
+      resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
       expl.var = myExpl,  #bioclim values (df)
       resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
       PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
