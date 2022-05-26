@@ -122,6 +122,8 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
+# all_sp_nm = c('Leucaena_leucocephala', 'Melinis_minutiflora',
+#               'Morella_faya')
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
@@ -191,7 +193,7 @@ apply_biomod2_fixes = T
 # choose whether to overwrite past results (T) or not (F)
 overwrite = F
 # select number of computer cores for processing (max = 32)
-cpucores = 1
+cpucores = 5
 
 if (cpucores==1){
   parallel_run = F
@@ -202,9 +204,9 @@ if (cpucores==1){
 
 # RUN 'T' FOR BOTH BASELINE AND FUTURE
 # script 1: to run model fitting (T) or not (F)
-EM_fitting = TRUE
+EM_fitting = T
 # script 2: to run ensemble modeling (T) or not (F)
-EM_ensemble = TRUE
+EM_ensemble = T
 # script 3: to project model results (T) or not (F)
 EM_project = TRUE
 
@@ -384,6 +386,7 @@ if (create_response_curves) { # 2a - response curves
   source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
   source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
 }
+
 source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
 source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
 source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
@@ -394,12 +397,12 @@ if (raster_output_creation) { # 4 - create output rasters
 ############################################
 # future projection scripts
 
-if (create_analog_climate_map) { # 5 - map analog climates
-  source(paste0(codeDir,"5_analog_climate.R"))}
-if (calculate_distribution_shifts) { # 6 - calcuate distribution shift
-  source(paste0(codeDir,"6_range_shifts.R"))}
-if (species_ensemble_maps) { # 7 - map species ensembles
-  source(paste0(codeDir,"7_ensemble_maps.R"))}
+# if (create_analog_climate_map) { # 5 - map analog climates
+#   source(paste0(codeDir,"5_analog_climate.R"))}
+# if (calculate_distribution_shifts) { # 6 - calcuate distribution shift
+#   source(paste0(codeDir,"6_range_shifts.R"))}
+# if (species_ensemble_maps) { # 7 - map species ensembles
+#   source(paste0(codeDir,"7_ensemble_maps.R"))}
 
 # stop the clock and calculate processing time to run all scripts and code
 ptmEnd = proc.time() - ptmStart 

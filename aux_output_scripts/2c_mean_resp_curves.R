@@ -15,7 +15,7 @@ rootDir<-"D:/Phase1_SDMs/"
 setwd(rootDir)
 
 # list model scales
-all_mod_scale = c("local", "global", "nested")
+all_mod_scale = c("global_notHI", "local_HI", "nested_HI")#c("local", "global", "nested")
 
 # load necessary packages
 library(biomod2)
@@ -25,21 +25,11 @@ library(dplyr)
 library(ggplot2)
 
 # load code to override and set manual facet scales
-source("facet_scale_fix.R")
+source("aux_output_scripts/facet_scale_fix.R")
 # alternatively use cowplot or grid.arrange on multiple plots
 
 # set all_sp_nm = 'Clidemia_hirta' for testing and debugging
 # list all species names to be analyzed
-sm_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
-             'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
-             'Morella_faya', 'Panicum_maximum',
-             'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
-             'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius')
-
-lrg_sp_nm = c('Cyathea_cooperi', 'Ulex_europaeus') #'Miconia_calvescens', 
-
-# select current data and bioclims to use for model approach
-all_sp_nm<-sm_sp_nm      # small or large species data files 
 
 ##############################
 ##### LOAD AND LOOP DATA #####
@@ -60,20 +50,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     # set model scale
     mod_scale<-all_mod_scale[m]
     
-    # select name for project and create directory
-    if(mod_scale == "global"){
-      project_run<-paste0(mod_scale, "_notHI_models")
-      #project_run<-paste0(mod_scale, "_notHI_models_LRG")
-    }else{
-      project_run<-paste0(mod_scale, "_HI_models")
-      #project_run<-paste0(mod_scale, "_HI_models_LRG")
-    }
-    # "global_notHI_models", "global_notHI_models_LRG"
-    # "local_HI_models", "local_HI_models_LRG"
-    # "nested_HI_models", "nested_HI_models_LRG"
-    
     # set path of ongoing project run for all outputs
-    project_path<-paste0(rootDir, project_run, "/")
+    project_path<-paste0(rootDir, mod_scale, "/")
     
     # location to save any extra or more specific outputs
     outDir<-paste0(project_path, "outputs/")
@@ -143,9 +121,9 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     write.csv(rp.dat2, paste0(rt_fold, sp.name, "_pred_val_by_model.csv"))
     
     # save tables per model scale run
-    if(mod_scale == "local"){
+    if(mod_scale == "local_HI"){ #"global_notHI", "local_HI", "nested_HI"
       local_tab<-rp.dat2
-    }else if(mod_scale == "global"){
+    }else if(mod_scale == "global_notHI"){
       global_tab<-rp.dat2
     }else{
       nested_tab<-rp.dat2

@@ -21,45 +21,27 @@ hi_map<-hi_map[which(hi_map$Island != "NI"),]
 plot(hi_map)
 
 # models
-m_type<-c("global", "local", "nested")
+m_type<-c("global_notHI", "local_HI", "nested_HI")# c("global", "local", "nested")
 # # set model type
 # mod<-m_type[3]
 # select main or LRG species
-LRG = F
-
 # sdm species
-sp_sm<-c("Clidemia_hirta", "Falcataria_moluccana", "Hedychium_gardnerianum", 
+sp_nm<-c("Clidemia_hirta", "Falcataria_moluccana", "Hedychium_gardnerianum", 
          "Lantana_camara", "Leucaena_leucocephala", "Melinis_minutiflora",
          "Morella_faya", "Panicum_maximum", "Passiflora_tarminiana", 
          "Pennisetum_clandestinum", "Pennisetum_setaceum", "Psidium_cattleianum", 
-         "Schinus_terebinthifolius", "Setaria_palmifolia")
-av_sm<-c("Clid", "Falc", "Hedy", "Lant", "Leuc", "Meli", "More", 
-         "Pani", "Pass", "Penc", "Pens", "Psid", "Schi", "Seta")
+         "Schinus_terebinthifolius", "Setaria_palmifolia", 
+         "Cyathea_cooperi", "Miconia_calvescens", "Ulex_europaeus")
+av_sp<-c("Clid", "Falc", "Hedy", "Lant", "Leuc", "Meli", "More", 
+         "Pani", "Pass", "Penc", "Pens", "Psid", "Schi", "Seta", 
+         "Spha", "Mico", "Ulex")
 
-# LRG species
-sp_lrg<-c("Cyathea_cooperi", "Miconia_calvescens", "Ulex_europaeus")
-sp_lrg<-c("Cyathea_cooperi", "Ulex_europaeus")
-av_lrg<-c("Spha", "Ulex")
 # Cyathea.cooperi run for both in global and local models but use LRG outputs
 
-if(LRG){
-  # model paths
-  g_mod<-paste0(m_type[1], "_notHI_models_LRG/")
-  l_mod<-paste0(m_type[2], "_HI_models_LRG/")
-  n_mod<-paste0(m_type[3], "_HI_models_LRG/")
-  # species names
-  sp_nm<-sp_lrg
-  av_sp<-av_lrg
-  
-}else{
-  # model paths
-  g_mod<-paste0(m_type[1], "_notHI_models/")
-  l_mod<-paste0(m_type[2], "_HI_models/")
-  n_mod<-paste0(m_type[3], "_HI_models/")
-  # species names
-  sp_nm<-sp_sm
-  av_sp<-av_sm
-}
+g_mod<-m_type[1]
+l_mod<-m_type[2]
+n_mod<-m_type[3]
+
 
 # save outputs path
 outDir<-paste0(wdDir, "expert_analysis/")
