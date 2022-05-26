@@ -94,20 +94,37 @@ sp_parallel_run = function(sp_nm){
     setwd(project_path)
     
     # combine models and make ensemble predictions built from 1_model_fitting 
-    myBiomodEM<-BIOMOD_EnsembleModeling( 
-      modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
-      chosen.models = remaining_models,  #vector of model runs to use
-      em.by = 'all',  #how models will be combined
-      eval.metric = eval_stats, #evaluation metrics to build ensemble
-      eval.metric.quality.threshold = eval.metric.threshold,  #threshold to exclude models
-      prob.mean = TRUE,  #estimate mean probabilities 
-      prob.cv = TRUE,  #estimate coefficient of variation
-      prob.ci = TRUE,  #estimate confidence interval of prob.mean
-      prob.ci.alpha = 0.05,  #signficance level for estimating confidence interval
-      prob.median = TRUE,  #estimate median
-      committee.averaging = TRUE,  #estimate committee averaging
-      prob.mean.weight = TRUE,  #estimate weighted sums
-      prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
+    if (packageVersion("biomod2")=="4.0"){
+      myBiomodEM<-BIOMOD_EnsembleModeling( 
+        bm.mod = myBiomodModelOut,  #BIOMOD.models.out from model fitting
+        models.chosen = remaining_models,  #vector of model runs to use
+        em.by = 'all',  #how models will be combined
+        metric.eval = eval_stats, #evaluation metrics to build ensemble
+        metric.select.thresh = eval.metric.threshold,  #threshold to exclude models
+        prob.mean = TRUE,  #estimate mean probabilities 
+        prob.cv = TRUE,  #estimate coefficient of variation
+        prob.ci = TRUE,  #estimate confidence interval of prob.mean
+        prob.ci.alpha = 0.05,  #signficance level for estimating confidence interval
+        prob.median = TRUE,  #estimate median
+        committee.averaging = TRUE,  #estimate committee averaging
+        prob.mean.weight = TRUE,  #estimate weighted sums
+        prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
+    }else{
+      myBiomodEM<-BIOMOD_EnsembleModeling( 
+        modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
+        chosen.models = remaining_models,  #vector of model runs to use
+        em.by = 'all',  #how models will be combined
+        eval.metric = eval_stats, #evaluation metrics to build ensemble
+        eval.metric.quality.threshold = eval.metric.threshold,  #threshold to exclude models
+        prob.mean = TRUE,  #estimate mean probabilities 
+        prob.cv = TRUE,  #estimate coefficient of variation
+        prob.ci = TRUE,  #estimate confidence interval of prob.mean
+        prob.ci.alpha = 0.05,  #signficance level for estimating confidence interval
+        prob.median = TRUE,  #estimate median
+        committee.averaging = TRUE,  #estimate committee averaging
+        prob.mean.weight = TRUE,  #estimate weighted sums
+        prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
+    }
 
     # reset working directory to root 
     setwd(rootDir)

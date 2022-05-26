@@ -473,6 +473,20 @@ sp_parallel_run = function(sp_nm) {
       myYweights = NULL 
     }
     
+    # stack_raster <- function(ENV, resp.xy ) {
+    #   r <- stack()
+    #   for (col in 1:ncol(ENV)) {
+    #     ENV_col <- rasterFromXYZ(cbind(resp.xy, ENV[, col]), digits = 5 )
+    #     r <- stack(r , ENV_col)
+    #     
+    #   }
+    #   names(r) = colnames(ENV)
+    #   return(r)
+    # }
+    # 
+    # r <- stack_raster(myExpl, myRespXY)
+    # r 
+    
     # load BIOMOD2 data for formatting
     myBiomodData<-BIOMOD_FormatingData(
       resp.name = sp_nm,  #species name (character)
@@ -514,21 +528,49 @@ sp_parallel_run = function(sp_nm) {
     # sign-posting for ensemble model fitting
     cat('\n model fitting...')
     
-    # create ensemble model from formatting data and modeling options
-    myBiomodModelOut<-BIOMOD_Modeling(
-      myBiomodData,  #formatted biomod data
-      models = models_to_run,  #select models to run
-      models.options = myBiomodOption,  #biomod options object
-      NbRunEval = NbRunEval,  #number of evaluation runs*** 10
-      DataSplit = 80,  #amount of data to use for training
-      Yweights = myYweights,  #response points weights
-      Prevalence = NULL, #used to build 'weighted response weights' 
-      VarImport = 4,  #permuations to estimate variable importance*** 10
-      do.full.models = do.full.models,  #calibrate and evaluate to all data
-      models.eval.meth = eval_stats,  #evaluation metrics
-      SaveObj = TRUE,  #save output object
-      rescal.all.models = TRUE)  #scale to binomial GLM
     
+    if (packageVersion("biomod2")=="4.0"){
+      # create ensemble model from formatting data and modeling options
+      myBiomodModelOut<-BIOMOD_Modeling(
+        myBiomodData,  #formatted biomod data
+        models = models_to_run,  #select models to run
+        #models.options = myBiomodOption,  #biomod options object
+        bm.options = myBiomodOption,  #biomod options object
+        #NbRunEval = NbRunEval,  #number of evaluation runs*** 10
+        nb.rep = NbRunEval,  #number of evaluation runs*** 10
+        #DataSplit = 80,  #amount of data to use for training
+        data.split.perc = 80,  #amount of data to use for training
+        #Yweights = myYweights,  #response points weights
+        weights = myYweights,  #response points weights
+        #Prevalence = NULL, #used to build 'weighted response weights' 
+        prevalence = NULL, #used to build 'weighted response weights' 
+        #VarImport = 4,  #permuations to estimate variable importance*** 10
+        var.import = 4,  #permuations to estimate variable importance*** 10
+        do.full.models = do.full.models,  #calibrate and evaluate to all data
+        #models.eval.meth = eval_stats,  #evaluation metrics
+        metric.eval = eval_stats,  #evaluation metrics
+        #SaveObj = TRUE,  #save output object
+        save.output = TRUE,  #save output object
+        #rescal.all.models = TRUE)  #scale to binomial GLM
+        scale.models = F)  #scale to binomial GLM
+      
+    }else{
+      # create ensemble model from formatting data and modeling options
+      myBiomodModelOut<-BIOMOD_Modeling(
+        myBiomodData,  #formatted biomod data
+        models = models_to_run,  #select models to run
+        models.options = myBiomodOption,  #biomod options object
+        NbRunEval = NbRunEval,  #number of evaluation runs*** 10
+        DataSplit = 80,  #amount of data to use for training
+        Yweights = myYweights,  #response points weights
+        Prevalence = NULL, #used to build 'weighted response weights' 
+        VarImport = 4,  #permuations to estimate variable importance*** 10
+        do.full.models = do.full.models,  #calibrate and evaluate to all data
+        models.eval.meth = eval_stats,  #evaluation metrics
+        SaveObj = TRUE,  #save output object
+        rescal.all.models = TRUE)  #scale to binomial GLM
+      
+    } 
     # reset working directory to root 
     setwd(rootDir)
     
