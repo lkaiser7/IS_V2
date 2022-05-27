@@ -1,7 +1,7 @@
 ### mean ensemble modeling curves ###
 
 # clear the environment, temp files, and all other variables
-rm(list = ls())
+#rm(list = ls())
 
 ##################
 ##### SET UP #####
@@ -10,13 +10,13 @@ rm(list = ls())
 ### FROM MASTER SCRIPT ###
 
 # set root path to source files
-rootDir<-"D:/Phase1_SDMs/"
+#rootDir<-"D:/Phase1_SDMs/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
 # list model scales
 all_mod_scale = c("global_notHI", "local_HI", "nested_HI")#c("local", "global", "nested")
-
+all_mod_scale=paste0(all_mod_scale, "_models")
 # load necessary packages
 library(biomod2)
 library(stringr)
@@ -25,7 +25,7 @@ library(dplyr)
 library(ggplot2)
 
 # load code to override and set manual facet scales
-source("aux_output_scripts/facet_scale_fix.R")
+source(paste0(codeDir, "aux_output_scripts/facet_scale_fix.R"))
 # alternatively use cowplot or grid.arrange on multiple plots
 
 # set all_sp_nm = 'Clidemia_hirta' for testing and debugging
@@ -36,6 +36,7 @@ source("aux_output_scripts/facet_scale_fix.R")
 ##############################
 
 # loop through each species
+s=1
 for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   # select single species name
   sp.name<-all_sp_nm[s]
@@ -46,6 +47,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   print(sp.name)
   
   # loop through each model type 
+  m=1
   for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging 
     # set model scale
     mod_scale<-all_mod_scale[m]
@@ -100,7 +102,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     # add model type column
     rp.dat$model_type=NA
     # list chosen models
-    chosen_models=c('GBM', 'MAXENT.Phillips')
+    chosen_models=models_to_run #c('GBM', 'MAXENT.Phillips')
     
     # loop through and table by model
     for(chosen_model in chosen_models){
@@ -149,7 +151,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   
   # create folder in output directory for mean response curve plots
   rc_fold<-paste0(rootDir, "mean_response_curves/")
-  # dir.create(rc_fold, showWarnings = FALSE) 
+  dir.create(rc_fold, showWarnings = FALSE) 
   
   # color blind palettes
   # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible 

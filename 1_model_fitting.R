@@ -320,9 +320,10 @@ sp_parallel_run = function(sp_nm) {
     
     if(useYweights) {
       # location of suitability scores based on data points
-      suitscores<-paste0(dataDir, "suitability_scores/")
+      suitscores<-paste0("global_notHI_models/", "output_rasters/")
+      #suitscores<-paste0(dataDir, "suitability_scores/")
       # load suitability score raster for species from global models 
-      sp_scores<-raster(paste0(suitscores, sp_nm, "_suitability_baseline_ROC_wmean.tif"))
+      sp_scores<-raster(paste0(suitscores, sp_nm, "_suitability_baseline_TSS_wmean.tif"))
       # create matrix with extracted suitability scores to use as weights
       suitability_scores<-extract(sp_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
       # create column for weights calculated from suitability scores
@@ -365,7 +366,13 @@ sp_parallel_run = function(sp_nm) {
       n_dups = length(dup_data[dup_data == TRUE]) 
       
       # create new data frame without duplicate cells and drop cell columns  
-      SP_ALL_data<-data_sort[!dup_data, -5]
+      if (length(dup_data)>0){
+        SP_ALL_data<-data_sort[!dup_data, -5]
+      }else{
+        SP_ALL_data<-data_sort[, -5]
+      }
+      #View(SP_ALL_data)
+      
     } else {
       # create data frame with bioclim data points and species pres&abs data
       Species_bioclimData<-data.frame(cbind(mySpeciesData, bioclimData)) 
@@ -387,7 +394,11 @@ sp_parallel_run = function(sp_nm) {
       n_dups = length(dup_data[dup_data == TRUE]) 
       
       # create new data frame without duplicate cells and drop cell column  
-      SP_ALL_data<-data_sort[!dup_data, -4] 
+      if (length(dup_data)>0){
+        SP_ALL_data<-data_sort[!dup_data, -4] 
+      }else{
+        SP_ALL_data<-data_sort[, -4]
+      }
     }
     
     # print posting of primary processing of species' location predictor values
@@ -435,7 +446,7 @@ sp_parallel_run = function(sp_nm) {
         n_dups, 'were within the same raster cell and removed for', sp_nm,
         'and all bioclimatic point data was extracted, mapped, and [saved].')
     if(useYweights){
-      cat('\n suitability scores were also extracted and to use for model fitting.')
+      cat('\n suitability scores were also extracted to use for model fitting.')
     }
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))

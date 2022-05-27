@@ -18,7 +18,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="global_notHI" # global_notHI local_HI nested_HI
+run_type="test_local_HI" # global_notHI local_HI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -122,8 +122,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
-# all_sp_nm = c('Leucaena_leucocephala', 'Melinis_minutiflora',
-#               'Morella_faya')
+all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
@@ -375,24 +374,34 @@ if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
   source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
 }
+if (raster_output_creation) { # 4 - create output rasters
+  source(paste0(codeDir,"4_raster_output.R"))}
 
 ############################################
 # auxiliary scripts based on settings above
 if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
-  source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))}
+  source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))
+}
 if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
   source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))}
 if (create_response_curves) { # 2a - response curves
   source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
+}
+
+####################################
+#only run these after having the global, local and nested models ready
+if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
+  source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
+  source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R"))
+}
+if (create_response_curves) { # 2a - response curves
   source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
 }
 
-source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
 source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
+source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
 source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
 
-if (raster_output_creation) { # 4 - create output rasters
-  source(paste0(codeDir,"4_raster_output.R"))}
 
 ############################################
 # future projection scripts

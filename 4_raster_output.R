@@ -189,7 +189,7 @@ dir.create(paste0(project_path, 'output_rasters/main/'), showWarnings = FALSE)
 sp_nm = all_sp_nm[1]
 
 # select first evaluation statistic
-eval_stat = spp_ensemble_eval_stats[1]
+eval_stat = spp_ensemble_eval_stats[3]
 # loop through all evaluation statistics
 for (eval_stat in spp_ensemble_eval_stats){
   # loop through all species 
@@ -238,7 +238,7 @@ for (eval_stat in spp_ensemble_eval_stats){
                             proj_nm, "_", sp_nm, "_ensemble.tif")
         # store temporary raster stack 
         temp_raster = stack(file_name1)
-        
+        #names(temp_raster)
         # find integer of band of total consensus weighted mean ROC from ensemble models 
         band_n = which(names(temp_raster) == paste0(sp_nm, '_EM', spp_ensemble_type,
                                                     'By', eval_stat, 
