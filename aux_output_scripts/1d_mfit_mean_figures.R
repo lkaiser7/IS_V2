@@ -7,8 +7,8 @@ library(ggplot2)
 library(cowplot)
 
 # create folder in output directory for plots
-vi_fold<-paste0(rootDir, "mean_VariImp_plots/")
-dir.create(vi_fold, showWarnings = FALSE)
+vi_fold<-paste0(rootDir, "combined_results/mean_VariImp_plots/")
+dir.create(vi_fold, showWarnings = FALSE, recursive = T)
 
 # LOAD FILES
 global_vi<-read.csv("global_notHI_models/outputs/all_VariImp_model_mean.csv")

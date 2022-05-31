@@ -27,8 +27,8 @@ l_mod<-m_type[2]
 n_mod<-m_type[3]
 
 # save outputs path
-outDir<-paste0(wdDir, "expert_analysis/")
-dir.create(outDir, showWarnings = F)
+outDir<-paste0(wdDir, "combined_results/expert_analysis/")
+dir.create(outDir, showWarnings = F, recursive = T)
 dir.create(paste0(outDir, "suitability_maps/"), showWarnings = F)
 dir.create(paste0(outDir, "binary_maps/"), showWarnings = F)
 

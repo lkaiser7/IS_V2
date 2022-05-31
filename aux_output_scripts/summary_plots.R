@@ -27,8 +27,8 @@ l_mod<-paste0(m_type[2], "_models/")
 n_mod<-paste0(m_type[3], "_models/")
 
 # save outputs path
-outDir<-paste0(wdDir, "summary_results/")
-dir.create(outDir, showWarnings = F)
+outDir<-paste0(wdDir, "combined_results/summary_results/")
+dir.create(outDir, showWarnings = F, recursive = T)
 dir.create(paste0(outDir, "suitability_maps/"), showWarnings = F)
 dir.create(paste0(outDir, "clipped_suit_maps/"), showWarnings = F)
 dir.create(paste0(outDir, "all_curves/"), showWarnings = F)

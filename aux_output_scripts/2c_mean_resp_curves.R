@@ -150,8 +150,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   setwd(rootDir)
   
   # create folder in output directory for mean response curve plots
-  rc_fold<-paste0(rootDir, "mean_response_curves/")
-  dir.create(rc_fold, showWarnings = FALSE) 
+  rc_fold<-paste0(rootDir, "combined_results/mean_response_curves/")
+  dir.create(rc_fold, showWarnings = FALSE, recursive = T) 
   
   # color blind palettes
   # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible 

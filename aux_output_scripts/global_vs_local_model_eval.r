@@ -1,6 +1,6 @@
 #wd="D:/projects/Invasives_modeling/results/xfirst round of results/main_results/"
 setwd(rootDir)
-dir.create("model_eval_metric/", showWarnings = F)
+dir.create("combined_results/model_eval_metric/", showWarnings = F, recursive = T)
 #eval_metrics=c("TSS", "ROC", "KAPPA") #
 
 eval_stat = eval_stats[1]
@@ -29,9 +29,9 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   names(mean_GBM_eval_df)=c("Species", "Global", "Local")
   
   #View(mean_maxent_eval_df)
-  file_name=paste0("model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".csv")
+  file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".csv")
   write.csv(mean_maxent_eval_df, file_name, row.names = F)
-  file_name=paste0("model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".csv")
+  file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".csv")
   write.csv(mean_GBM_eval_df, file_name, row.names = F)
   
   plot(mean_maxent_eval_df$Global, mean_maxent_eval_df$Local)
@@ -46,7 +46,7 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
     geom_text(label=mean_maxent_eval_df$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
     theme(legend.position="none")
   a
-  tiff_name=paste0("model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".tiff")
+  tiff_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
   
   library(ggplot2)
@@ -55,18 +55,18 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
     geom_text(label=mean_GBM_eval_df$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
     theme(legend.position="none")
   a
-  tiff_name=paste0("model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".tiff")
+  tiff_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
   
 }
 
 #now compare metrics
 for (eval_stat in eval_stats){
-  file_name=paste0("model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".csv")
+  file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".csv")
   maxent_file=read.csv(file_name)
   maxent_file$metric=eval_stat
   assign(paste0("maxent_", eval_stat), maxent_file)
-  file_name=paste0("model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".csv")
+  file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".csv")
   gbm_file=read.csv(file_name)
   gbm_file$metric=eval_stat
   assign(paste0("gbm_", eval_stat), gbm_file)
@@ -82,7 +82,7 @@ a=ggplot(data=all_maxent_metrics, aes(x=Species, y=Local, fill=metric)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.title=element_blank()) + ylab("Local maxent eval. metrics") +xlab("")
 a
-tiff_name=paste0("model_eval_metric/local_HI_maxent_eval_metric_comparison.tiff")
+tiff_name=paste0("combined_results/model_eval_metric/local_HI_maxent_eval_metric_comparison.tiff")
 ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
 
 a=ggplot(data=all_maxent_metrics, aes(x=Species, y=Global, fill=metric)) +
@@ -90,7 +90,7 @@ a=ggplot(data=all_maxent_metrics, aes(x=Species, y=Global, fill=metric)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.title=element_blank()) + ylab("Global maxent eval. metrics") +xlab("")
 a
-tiff_name=paste0("model_eval_metric/global_notHI_maxent_eval_metric_comparison.tiff")
+tiff_name=paste0("combined_results/model_eval_metric/global_notHI_maxent_eval_metric_comparison.tiff")
 ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
 
 a=ggplot(data=all_gbm_metrics, aes(x=Species, y=Local, fill=metric)) +
@@ -98,7 +98,7 @@ a=ggplot(data=all_gbm_metrics, aes(x=Species, y=Local, fill=metric)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.title=element_blank()) + ylab("Local gbm eval. metrics") +xlab("")
 a
-tiff_name=paste0("model_eval_metric/local_HI_gbm_eval_metric_comparison.tiff")
+tiff_name=paste0("combined_results/model_eval_metric/local_HI_gbm_eval_metric_comparison.tiff")
 ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
 
 a=ggplot(data=all_gbm_metrics, aes(x=Species, y=Global, fill=metric)) +
@@ -106,5 +106,5 @@ a=ggplot(data=all_gbm_metrics, aes(x=Species, y=Global, fill=metric)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.title=element_blank()) + ylab("Global gbm eval. metrics") +xlab("")
 a
-tiff_name=paste0("model_eval_metric/global_notHI_gbm_eval_metric_comparison.tiff")
+tiff_name=paste0("combined_results/model_eval_metric/global_notHI_gbm_eval_metric_comparison.tiff")
 ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
