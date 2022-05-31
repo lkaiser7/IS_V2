@@ -122,7 +122,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
-all_sp_nm = c('Clidemia_hirta')# DEBUG
+#all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
