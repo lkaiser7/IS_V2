@@ -18,7 +18,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-run_type="test_local_HI" # global_notHI local_HI nested_HI
+run_type="test_noFix2_local_HI" # global_notHI local_HI nested_HI
 # select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
@@ -188,7 +188,7 @@ plot_graphs = TRUE
 useRasterDef = TRUE
 interpolateDef = FALSE
 # apply fixes for large (T) or small (F) models to solve memory issues (script 3b)
-apply_biomod2_fixes = T
+apply_biomod2_fixes = F
 # choose whether to overwrite past results (T) or not (F)
 overwrite = F
 # select number of computer cores for processing (max = 32)

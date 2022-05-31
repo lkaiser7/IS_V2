@@ -121,19 +121,7 @@ sp_parallel_run = function(sp_nm){
     
     # set projection name to scenario (for baseline or future)
     projection_name = proj_nm
-    
-    # define extent of each different island (extra from old code)
-    Kauai = c(-159.82,-159.26, 21.84, 22.25)
-    Oahu = c(-158.32, -157.62,  21.22, 21.73)
-    Molokai = c(-157.34, -156.69, 21.03, 21.25)
-    Lanai = c(-157.08, -156.78, 20.70, 20.92)
-    Maui= c(-156.8, -155.53, 20.46, 21.05)
-    Hawaii = c(-156.10,-154.74, 18.87, 20.30)
-    Kahoolawe = c(-156.8, -156.51, 20.46, 20.62)
-    
-    # create blank list of island names for species
-    spIslandNames = c("")
-    
+  
     # set location to save R workspace data after all ensemble model projections
     workspace_name_out0 = paste0(project_path, sp_dir, sp_nm, 
                                  "_", proj_nm, "_all_models_proj.RData") 
@@ -238,6 +226,43 @@ sp_parallel_run = function(sp_nm){
         binary.meth = eval_stats,  #evaluation method statistics 
         keep.in.memory = memory)  #if output should be saved to hard disk or not
       
+      #################################
+      #create binary projections
+      #load ensemble stack
+      sp.nm = str_replace_all(sp_nm, "_", ".")
+      EM_stack=paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble.grd")
+      EM_stack=stack(EM_stack)
+      EM_stack_names=names(EM_stack)
+      
+      #get threshold values and apply to appropriate ensemble layer
+      scores_all=get_evaluations(myBiomodEM)
+      eval_stat = eval_stats[1]
+      WMwmean_ensemble_cutoffs=c()
+      for (eval_stat in eval_stats){
+        cat("doing ", eval_stat, " ensemble bin rasters \n")
+        index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
+        jnk=scores_all[[index]]
+        cutoff=jnk[eval_stat, "Cutoff"]
+        WMwmean_ensemble_cutoffs=c(WMwmean_ensemble_cutoffs, cutoff)
+        
+        stack_index=grep(pattern = paste0("EMwmeanBy", eval_stat), EM_stack_names)
+        EMwmean_raster=EM_stack[[stack_index]]
+        EMwmeanBin_raster=BinaryTransformation(EMwmean_raster, cutoff)
+        #plot(EMwmean_raster)
+        #plot(EMwmeanBin_raster)
+        
+        #save raster
+        writeRaster(EMwmeanBin_raster, 
+                    paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmeanBy", eval_stat, "_bin.tif"),
+                    overwrite=T,
+                    compress="LZW")
+      }
+      #save cutoffs
+      write.csv(WMwmean_ensemble_cutoffs, 
+                paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmean_cutoffs.csv"), row.names = F)
+      
+      
+      
       # reset working directory to root 
       setwd(rootDir)
       
@@ -256,6 +281,7 @@ sp_parallel_run = function(sp_nm){
     ######################
     ######################
     cat('\n', 'converting grd to tiff files.')
+    eval_stat = spp_ensemble_eval_stats[1]
     for (eval_stat in spp_ensemble_eval_stats){
       # convert species name to character
       sp_nm = as.character(sp_nm)  
@@ -292,6 +318,7 @@ sp_parallel_run = function(sp_nm){
             tryCatch({
               options(warn=-1) #suppress warnings
               temp_raster = rast(file_name) 
+              #names(temp_raster)
               output_nm=sub(pattern = ".grd$", replacement = ".tif", file_name)
               if (file.exists(output_nm) == FALSE | overwrite == 1){
                 terra::writeRaster(temp_raster, filename = output_nm, gdal=c(compress="LZW"), overwrite=T)
