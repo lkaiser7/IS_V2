@@ -39,9 +39,9 @@ sp_parallel_run = function(sp_nm){
   dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
-  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
-  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
-  gc()
+  #unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  #file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  #gc()
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
@@ -217,19 +217,30 @@ sp_parallel_run = function(sp_nm){
       
       # change working directory to project path to save model outputs
       setwd(project_path)
-      
+      sp.nm=sub("_", ".", sp_nm)
       # run ensemble projections for species
+      # myBiomodEF <- BIOMOD_EnsembleForecasting(
+      #   projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
+      #   total.consensus = TRUE,  #mean of all combined model projections
+      #   EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
+      #   proj.name=sp_nm,
+      #   binary.meth = eval_stats,  #evaluation method statistics 
+      #   keep.in.memory = memory)  #if output should be saved to hard disk or not
+      
       myBiomodEF <- BIOMOD_EnsembleForecasting(
-        projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
-        total.consensus = TRUE,  #mean of all combined model projections
-        EM.output = myBiomodEM,  #BIOMOD.EnsembleModeling.out from ensemble modeling
+        #projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
+        #total.consensus = TRUE,  #mean of all combined model projections
+        new.env = predictors,
+        EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
+        proj.name=proj_nm,
         binary.meth = eval_stats,  #evaluation method statistics 
-        keep.in.memory = memory)  #if output should be saved to hard disk or not
+        keep.in.memory = memory) #,
+      
+      #keep.in.memory = memory)  #if output should be saved to hard disk or not
       
       #################################
       #create binary projections
       #load ensemble stack
-      sp.nm = str_replace_all(sp_nm, "_", ".")
       EM_stack=paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble.grd")
       EM_stack=stack(EM_stack)
       EM_stack_names=names(EM_stack)

@@ -16,7 +16,7 @@ require(tools)
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[1]
+sp_nm=all_sp_nm[15]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
@@ -43,8 +43,8 @@ sp_parallel_run = function(sp_nm) {
   dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
-  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
-  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  #unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  #file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
@@ -146,9 +146,9 @@ sp_parallel_run = function(sp_nm) {
     names(mySpeciesOcc)<-c("X", "Y", "PA")
     # check header of new presence data formatting
     head(mySpeciesOcc)
-    
+    cat("will extract preds now \n")
     #cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cellnumbers = TRUE) 
-    cell_numbers_df<-extract(predictors[[1]], mySpeciesOcc[, 1:2], cells = TRUE) 
+    cell_numbers_df<-terra::extract(predictors[[1]], mySpeciesOcc[, 1:2], cells = TRUE) 
     #View(cell_numbers_df)
     #remove repeats
     #unique_cells=!duplicated(cell_numbers_df[,1])
