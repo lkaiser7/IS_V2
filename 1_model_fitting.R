@@ -16,12 +16,12 @@ require(tools)
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[15]
+sp_nm=all_sp_nm[1]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
   library(biomod2)
-  library(raster)
+  #library(raster)
   library(rgeos)
   library(randomForest)
   library(dismo)
@@ -43,8 +43,8 @@ sp_parallel_run = function(sp_nm) {
   dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
-  #unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
-  #file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
@@ -310,7 +310,7 @@ sp_parallel_run = function(sp_nm) {
     cat('\n extracting env vars to points...')
     
     # create matrix with cell numbers of real data from selected bioclim variables
-    bioclimData<-extract(predictors, mySpeciesData[, 1:2], cells = TRUE) 
+    bioclimData<-terra::extract(predictors, mySpeciesData[, 1:2], cells = TRUE) 
     bioclimData=bioclimData[, c("cell", var_names)]
     #bioclimData<-raster::extract(predictors, mySpeciesData[, 1:2], cellnumbers=TRUE) 
     
@@ -545,7 +545,7 @@ sp_parallel_run = function(sp_nm) {
     best_model=eval3@results[which(eval3@results$delta.AICc==0),]
     fc=as.character(best_model$fc)
     maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
-                                  P=grepl("P", fc), T=grepl("T", fc), rm=best_model$rm,
+                                  P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
                                   gbm.trees=optim_gbm$n.trees)
     #View(eval3@results)
     FileName<-paste0(project_path, sp_dir, sp_nm, "_optim_maxent_and_GBM_parameters.csv") 
@@ -717,18 +717,19 @@ sp_parallel_run = function(sp_nm) {
     p_time = as.numeric(ptm1[3])/60 
     # report processing time to log file
     cat('\n It took ', p_time, "minutes to model", sp_nm)
+    sink(NULL)
   }else{
     # sign-posting if file for variable importance has already been created 
     cat('\n fitting for', sp_nm, 'already done...') 
+    sink(NULL)
+    unlink(txt_nm) #delete previous frames
     # indicates that this species has already been run 
   }    
   
   # delete select temporary files per species once processing is finished
   unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
-  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
   gc()
   # reset sink to console output
-  sink(NULL)
 }
 # END snowfall function
 
@@ -756,6 +757,8 @@ system.time(sfLapply(all_sp_nm, fun = sp_parallel_run))
 sfRemoveAll()
 # end parallel computing on other cpu cores
 sfStop()
+
+file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
 
 #############################
 ##### END MODEL FITTING #####

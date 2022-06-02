@@ -192,7 +192,7 @@ apply_biomod2_fixes = F
 # choose whether to overwrite past results (T) or not (F)
 overwrite = F
 # select number of computer cores for processing (max = 32)
-cpucores = 5
+cpucores = 2
 
 if (cpucores==1){
   parallel_run = F

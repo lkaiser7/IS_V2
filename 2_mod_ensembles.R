@@ -34,8 +34,8 @@ sp_parallel_run = function(sp_nm){
   dir.create(temp_sp_files_to_delete, showWarnings = FALSE)
   # set temporary directory to created temp file
   rasterOptions(tmpdir = temp_sp_files_to_delete)
-  #unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
-  #file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
+  unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous temp files if any
+  file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
   #gc()
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
@@ -112,7 +112,7 @@ sp_parallel_run = function(sp_nm){
     }else{
       myBiomodEM<-BIOMOD_EnsembleModeling( 
         modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
-        chosen.models = "all", #remaining_models,  #vector of model runs to use
+        chosen.models = remaining_models, #"all", #remaining_models,  #vector of model runs to use
         em.by = 'PA_dataset+repet', # 'all' 'PA_dataset+repet', 'PA_dataset', 'PA_dataset+algo'#'all',  #how models will be combined #CHECK THIS: https://rpubs.com/dgeorges/38564 #if all, evaluation is using all candidate PAs
         eval.metric = eval_stats, #evaluation metrics to build ensemble
         eval.metric.quality.threshold = NULL, #eval.metric.threshold,  #threshold to exclude models
@@ -121,7 +121,7 @@ sp_parallel_run = function(sp_nm){
         prob.ci = F,  #estimate confidence interval of prob.mean
         prob.ci.alpha = 0.05,  #signficance level for estimating confidence interval
         prob.median = F,  #estimate median
-        committee.averaging = TRUE,  #estimate committee averaging
+        committee.averaging = T,  #estimate committee averaging
         prob.mean.weight = TRUE,  #estimate weighted sums
         prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
     }
@@ -157,10 +157,15 @@ sp_parallel_run = function(sp_nm){
     p_time = as.numeric(ptm1[3])/60 
     # report processing time to log file
     cat('\n It took', p_time, 'minutes for', sp_nm, 'ensemble modeling.')    
+    # reset sink to console output
+    sink(NULL)
   }else{
     # sign-posting if file for ensemble modeling has already been created 
     cat('\n', sp_nm, 'ensemble modleling already done...')
     # indicates that this species has already been run 
+    # reset sink to console output
+    sink(NULL)
+    unlink(txt_nm) #delete previous frames
   }
   
   # delete select temporary files per species once processing is finished
@@ -168,8 +173,6 @@ sp_parallel_run = function(sp_nm){
   file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
   gc()
   
-  # reset sink to console output
-  sink(NULL)
 }
 # END snowfall function
 
