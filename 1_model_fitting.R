@@ -529,15 +529,22 @@ sp_parallel_run = function(sp_nm) {
     #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
     #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
     #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
-    
-    library(rJava)
+    packages=as.data.frame(installed.packages())$Package
+    if ("rJava" %in% packages){
+      library("rJava")
+      algo_type="maxent.jar"
+    }else{
+      algo_type="maxnet"
+      library(maxnet)
+      library(ecospat)
+    }
     # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
     #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
     #                      partitions='randomkfold', algorithm="maxent.jar", 
     #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
     eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
                          bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-                         partitions='randomkfold', algorithm="maxent.jar", 
+                         partitions='randomkfold', algorithm=algo_type, 
                          tune.args=list(fc = c("L", "LQ", "H", "LQH", "LQHP", "LQHPT", 'LQP'), rm = 1:4))
     #L = linear, Q = quadratic, H = hinge, P = product and T = threshold
     #fc are data transforms, rm is regularization
@@ -557,7 +564,7 @@ sp_parallel_run = function(sp_nm) {
     myBiomodData<-BIOMOD_FormatingData(
       resp.name = sp_nm,  #species name (character)
       resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
-      expl.var = myExpl,  #bioclim values (df)
+      expl.var = stack(predictors), #myExpl,  #bioclim values (df)
       resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
       PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
       PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
@@ -631,6 +638,8 @@ sp_parallel_run = function(sp_nm) {
       
     }else{
       # create ensemble model from formatting data and modeling options
+      if (.Platform$OS.type == "unix"){system("export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/")}
+      if (.Platform$OS.type == "unix"){system('export PATH="/usr/lib/jvm/java-1.11.0-openjdk-amd64:$PATH"')}
       myBiomodModelOut<-BIOMOD_Modeling(
         myBiomodData,  #formatted biomod data
         models = models_to_run,  #select models to run
