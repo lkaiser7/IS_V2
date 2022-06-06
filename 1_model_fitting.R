@@ -498,58 +498,69 @@ sp_parallel_run = function(sp_nm) {
     # r <- stack_raster(myExpl, myRespXY)
     # r 
     
-    ##############################
-    cat('\n optimizing gbm parameters \n')
-    #GBM optimization
-    #https://rdrr.io/cran/dismo/man/gbm.step.html
-    library(dismo)
-    index_of_Ps=which(SP_ALL_data$PA==1)
-    index_of_PAs=which(is.na(SP_ALL_data$PA))
-    chosen_PAs=sample(index_of_PAs, size=n_PA_pts*4, replace = F)
-    tmp_SP_ALL_data=SP_ALL_data[c(index_of_Ps,chosen_PAs),]
-    tmp_SP_ALL_data[is.na(tmp_SP_ALL_data$PA),"PA"]=0    
-    #View(tmp_SP_ALL_data)
-    
-    if (is.null(myYweights)){
-      Ywgts=rep(1, nrow(tmp_SP_ALL_data))
+    gbm.tree.complexity=7
+    gbm.learning.rate=0.001
+    gbm.bag.fraction=0.5
+    if (optimize_model_params){
+      ##############################
+      cat('\n optimizing gbm parameters \n')
+      #GBM optimization
+      #https://rdrr.io/cran/dismo/man/gbm.step.html
+      library(dismo)
+      index_of_Ps=which(SP_ALL_data$PA==1)
+      index_of_PAs=which(is.na(SP_ALL_data$PA))
+      chosen_PAs=sample(index_of_PAs, size=n_PA_pts*4, replace = F)
+      tmp_SP_ALL_data=SP_ALL_data[c(index_of_Ps,chosen_PAs),]
+      tmp_SP_ALL_data[is.na(tmp_SP_ALL_data$PA),"PA"]=0    
+      #View(tmp_SP_ALL_data)
+      
+      if (is.null(myYweights)){
+        Ywgts=rep(1, nrow(tmp_SP_ALL_data))
+      }else{
+        Ywgts=myYweights[c(index_of_Ps,chosen_PAs)]      
+      }
+      optim_gbm=gbm.step(data=tmp_SP_ALL_data, gbm.x = var_names, gbm.y = "PA", site.weights=Ywgts,
+                         n.trees = 20, max.trees = 2000,
+                         tree.complexity = gbm.tree.complexity, learning.rate = gbm.learning.rate, 
+                         bag.fraction = gbm.bag.fraction, n.folds = 10,) #higher tree complexity leads to more stable number of trees
+      cat("optimum number of GBM trees is ", optim_gbm$n.trees, "\n")
+      
+      #########################
+      #maxent optimization
+      cat('\n optimizing maxent parameters \n')
+      #SDMtune or ENMeval packages
+      library(ENMeval)
+      #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
+      #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
+      #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
+      
+      library(rJava)
+      # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
+      #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
+      #                      partitions='randomkfold', algorithm="maxent.jar", 
+      #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
+      eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
+                           bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
+                           partitions='randomkfold', algorithm="maxent.jar", 
+                           tune.args=list(fc = c("L", "LQ", "H", "LQH", "LQHP", "LQHPT", 'LQP'), rm = 1:4))
+      #L = linear, Q = quadratic, H = hinge, P = product and T = threshold
+      #fc are data transforms, rm is regularization
+      #eval3@tune.settings
+      best_model=eval3@results[which(eval3@results$delta.AICc==0),]
+      fc=as.character(best_model$fc)
+      maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
+                                    P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
+                                    gbm.trees=optim_gbm$n.trees, gbm.shrinkage = gbm.learning.rate, 
+                                    gbm.bag.fraction = gbm.bag.fraction)
+      #View(eval3@results)
+      FileName<-paste0(project_path, sp_dir, sp_nm, "_optim_maxent_and_GBM_parameters.csv") 
+      write.csv(maxent_best_params, file = FileName, row.names = F) 
     }else{
-      Ywgts=myYweights[c(index_of_Ps,chosen_PAs)]      
+      maxent_best_params=data.frame(L=T, Q=T, H=T,
+                                    P=T, T=T, rm=1,
+                                    gbm.trees=1, gbm.shrinkage = gbm.learning.rate, #0.001 
+                                    gbm.bag.fraction = gbm.bag.fraction) #0.75
     }
-    optim_gbm=gbm.step(data=tmp_SP_ALL_data, gbm.x = var_names, gbm.y = "PA", site.weights=Ywgts,
-                       n.trees = 20, max.trees = 2000,
-                       tree.complexity = 7, learning.rate = 0.01, 
-                       bag.fraction = 0.75, n.folds = 10,) #higher tree complexity leads to more stable number of trees
-    cat("optimum number of GBM trees is ", optim_gbm$n.trees, "\n")
-    
-    #########################
-    #maxent optimization
-    cat('\n optimizing maxent parameters \n')
-    #SDMtune or ENMeval packages
-    library(ENMeval)
-    #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
-    #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
-    #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
-    
-    library(rJava)
-    # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
-    #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-    #                      partitions='randomkfold', algorithm="maxent.jar", 
-    #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
-    eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
-                         bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-                         partitions='randomkfold', algorithm="maxent.jar", 
-                         tune.args=list(fc = c("L", "LQ", "H", "LQH", "LQHP", "LQHPT", 'LQP'), rm = 1:4))
-    #L = linear, Q = quadratic, H = hinge, P = product and T = threshold
-    #fc are data transforms, rm is regularization
-    #eval3@tune.settings
-    best_model=eval3@results[which(eval3@results$delta.AICc==0),]
-    fc=as.character(best_model$fc)
-    maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
-                                  P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
-                                  gbm.trees=optim_gbm$n.trees)
-    #View(eval3@results)
-    FileName<-paste0(project_path, sp_dir, sp_nm, "_optim_maxent_and_GBM_parameters.csv") 
-    write.csv(maxent_best_params, file = FileName, row.names = F) 
     
     
     ##############################
@@ -572,8 +583,8 @@ sp_parallel_run = function(sp_nm) {
     # set different options for selected modeling techniques from source script
     myBiomodOption<-BIOMOD_ModelingOptions(
       # GBM: Generalized Boosted Regression                                            
-      GBM = list(distribution = "bernoulli", interaction.depth = 7,  shrinkage = 0.01, 
-                 bag.fraction = 0.75, train.fraction = 1, n.trees = optim_gbm$n.trees, cv.folds = 10,
+      GBM = list(distribution = "bernoulli", interaction.depth = gbm.tree.complexity,  shrinkage = maxent_best_params$gbm.shrinkage, 
+                 bag.fraction = maxent_best_params$gbm.bag.fraction, train.fraction = 1, n.trees = maxent_best_params$n.trees, cv.folds = 10,
                  n.cores = 1), # to avoid parallel problems and models failing
       # # MARS: Multivariate Adaptive Regression Splines
       # MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),

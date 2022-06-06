@@ -1,25 +1,36 @@
 ### invasive species models source script ###
 ### scripts to build and run biomod2 sdms ###
 ### master code to use in sdm IS_analysis ###
-
-# clear the environment, temp files, and all other variables
-rm(list = ls())
+rm(list = ls()) # clear the environment, temp files, and all other variables
 
 ##########################################
-##### SET SOURCE LOCATIONS AND PATHS #####
+##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
+
+optimize_model_params=F
+apply_biomod2_fixes = T # apply fixes to solve memory issues (script 3b)
+cpucores = 5 # select number of computer cores for processing (max = 32)
+run_type="local_HI_wFix_noOptim" # global_notHI local_HI nested_HI # select name for project and create directory
+
+all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
+              'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
+              'Morella_faya', 'Panicum_maximum',
+              'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
+              'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
+              'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
+all_sp_nm = c('Clidemia_hirta')# DEBUG
+# NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
+# NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-# rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
-# rootDir<-"E:/Invasive_SDMs/"
 project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
+setwd(rootDir) # set working directory to main analysis folder
 
-# set working directory to main analysis folder
-setwd(rootDir)
+# location of scripts and code
+codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/pierc/git_repos/IS_V2/") #in order of priority
+codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
-run_type="local_HI" # global_notHI local_HI nested_HI
-# select name for project and create directory
 project_run<-paste0(run_type, "_models")
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
@@ -30,11 +41,6 @@ dir.create(project_path, showWarnings = FALSE)
 outDir<-paste0(project_path, "outputs/")
 # create output folder in project path
 dir.create(outDir, showWarnings = FALSE)
-
-# location of scripts and code
-# codeDir<-paste0("D:/projects/Invasives_modeling/Invasive_SDMs/IS_V2/")
-codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/pierc/git_repos/IS_V2/") #in order of priority
-codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 # location of all data
 dataDir<-paste0(rootDir, "data/")
@@ -82,11 +88,6 @@ current_proj_bios_HI<-fitting_bios_HI #paste0(bioclims_dir, "all_HRCM/current_25
 # future_proj_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/future_500m/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/")
 # future_proj_bios_HI<-future_proj_bios_HIs[min(which(dir.exists(future_proj_bios_HIs)))]
 
-# GLOBAL A: allDir, fitting_bios_global, current/future_proj_bios_HI
-# GLOBAL B: nohiDir, fitting_bios_global, current/future_proj_bios_HI
-# LOCAL: hiDir, fitting_bios_HI, current/future_proj_bios_HI
-# WEIGHTED: hiDir, fitting_bios_HI, current/future_proj_bios_HI
-
 # select current data and bioclims to use for model approach
 if (run_type=="global_notHI"){
   baseData<-nohiDir                # baseline species data (scripts 1 & 2)
@@ -114,27 +115,6 @@ library("rworldxtra")
 library("maps")
 library("maptools")
 
-# set all_sp_nm = 'Clidemia_hirta' for testing and debugging
-# list all 17 species names to be analyzed
-all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
-              'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
-              'Morella_faya', 'Panicum_maximum',
-              'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
-              'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
-              'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
-#all_sp_nm = c('Clidemia_hirta')# DEBUG
-# NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
-# NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
-
-# # Phase 1 Select Species
-# all_sp_nm = c('Clidemia_hirta', 'Lantana_camara', 'Pennisetum_clandestinum', 'Psidium_cattleianum')
-
-# # large species files to run separately
-# all_sp_nm = c('Miconia_calvescens', 'Ulex_europaeus')
-
-# # create a subset of species to run if needed (run individually for global)
-# sp_sub<-c('Clidemia_hirta')
-# all_sp_nm<-sp_sub
 
 # load map data for global extent
 world_map<-getMap(resolution = "high")
@@ -187,12 +167,8 @@ plot_graphs = TRUE
 # plotting options depending on if server or not
 useRasterDef = TRUE
 interpolateDef = FALSE
-# apply fixes for large (T) or small (F) models to solve memory issues (script 3b)
-apply_biomod2_fixes = F
 # choose whether to overwrite past results (T) or not (F)
 overwrite = F
-# select number of computer cores for processing (max = 32)
-cpucores = 2
 
 if (cpucores==1){
   parallel_run = F

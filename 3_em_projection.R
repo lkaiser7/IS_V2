@@ -227,9 +227,12 @@ sp_parallel_run = function(sp_nm){
       #   binary.meth = eval_stats,  #evaluation method statistics 
       #   keep.in.memory = memory)  #if output should be saved to hard disk or not
       
+      # setMethod('writeValues', signature(object = 'RasterBrick'),
+      #           writeRaster(...))
       myBiomodEF <- BIOMOD_EnsembleForecasting(
         projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
         total.consensus = TRUE,  #mean of all combined model projections
+        #selected.models=remaining_models,
         #new.env = predictors,
         EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
         proj.name=proj_nm,
