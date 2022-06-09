@@ -8,9 +8,13 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 
 optimize_model_params=F
-apply_biomod2_fixes = T # apply fixes to solve memory issues (script 3b)
-cpucores = 5 # select number of computer cores for processing (max = 32)
-run_type="local_HI_wFix_noOptim" # global_notHI local_HI nested_HI # select name for project and create directory
+apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
+cpucores = 1 # select number of computer cores for processing (max = 32)
+# select model evaluation methods (KAPPA, ROC, TSS)
+eval_stats = c("ROC", "KAPPA", "TSS") 
+#eval_stats = c("TSS") #DEBUG
+run_type="local_HI_noOptim_noFix" # global_notHI local_HI nested_HI # select name for project and create directory
+nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
@@ -155,8 +159,9 @@ rm(world_map, hawaii_map)
 
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
 models_to_run = c("MAXENT.Phillips", "GBM")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
-# select model evaluation methods (KAPPA, ROC, TSS)
-eval_stats = c("ROC", "KAPPA", "TSS") 
+# for raster creation and shifted calculations for mapping
+spp_ensemble_eval_stats = eval_stats #c('ROC', 'TSS', 'KAPPA')
+
 # select environmental variables for models
 env_var_files = c("bio1.tif", "bio7.tif", "bio12.tif", "bio15.tif") 
 # create vector with bioclimatic variable names without the file extension (.tif)
@@ -282,8 +287,6 @@ if (apply_biomod2_fixes) {
 projections_to_run = 1 
 # type of ensemble configurations for multiple species maps
 spp_ensemble_type = "wmean" 
-# for raster creation and shifted calculations for mapping
-spp_ensemble_eval_stats = c('ROC', 'TSS', 'KAPPA')
 # for raster creation and shifted calculations
 comp_projects = c('baseline', 'future')
 # for raster creation 
@@ -350,33 +353,36 @@ if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
   source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
 }
-if (raster_output_creation) { # 4 - create output rasters
-  source(paste0(codeDir,"4_raster_output.R"))}
-
-############################################
-# auxiliary scripts based on settings above
-if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
-  source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))
+if (nothing_beyond_projection==F){
+  if (raster_output_creation) { # 4 - create output rasters
+    source(paste0(codeDir,"4_raster_output.R"))}
+  
+  ############################################
+  # auxiliary scripts based on settings above
+  if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
+    source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))
+  }
+  if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
+    source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))}
+  if (create_response_curves) { # 2a - response curves
+    source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
+  }
+  
+  ####################################
+  #only run these after having the global, local and nested models ready
+  if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
+    source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
+    source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R"))
+  }
+  if (create_response_curves) { # 2a - response curves
+    source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
+  }
+  
+  source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
+  source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
+  source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
+  
 }
-if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
-  source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))}
-if (create_response_curves) { # 2a - response curves
-  source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
-}
-
-####################################
-#only run these after having the global, local and nested models ready
-if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
-  source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
-  source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R"))
-}
-if (create_response_curves) { # 2a - response curves
-  source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
-}
-
-source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
-source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
-source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
 
 
 ############################################
@@ -400,7 +406,7 @@ cat('\n','It took ', p_time, "minutes (on average) to model each species with",
     length(models_to_run), "model types") 
 
 # delete temp files
-source(paste0(codeDir,"8_delele_tmp_files.R"))
+#source(paste0(codeDir,"8_delele_tmp_files.R"))
 
 #########################
 ### END SOURCE SCRIPT ###

@@ -783,6 +783,19 @@ sfStop()
 
 file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
 
+tryCatch({options(warn=-1); detach(package:rworldmap)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:rworldxtra)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maps)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maptools)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:spThin)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:terra)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:ENMeval)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:rJava)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maxnet)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:ecospat)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+
+
+# END tryCatch
 #############################
 ##### END MODEL FITTING #####
 #############################

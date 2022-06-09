@@ -232,7 +232,7 @@ sp_parallel_run = function(sp_nm){
       myBiomodEF <- BIOMOD_EnsembleForecasting(
         projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
         total.consensus = TRUE,  #mean of all combined model projections
-        #selected.models=remaining_models,
+        selected.models=remaining_models,
         #new.env = predictors,
         EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
         proj.name=proj_nm,
@@ -240,10 +240,13 @@ sp_parallel_run = function(sp_nm){
         keep.in.memory = memory) #,
       
       #keep.in.memory = memory)  #if output should be saved to hard disk or not
+      # sign-posting of completed ensemble projections
+      cat('\n', 'BIOMOD_EnsembleForecasting function complete.') 
       
       #################################
       #create binary projections
       #load ensemble stack
+      cat('\n', 'Now creating binary projections') 
       EM_stack=paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble.grd")
       EM_stack=stack(EM_stack)
       EM_stack_names=names(EM_stack)
