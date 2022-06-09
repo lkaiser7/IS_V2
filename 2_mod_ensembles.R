@@ -113,11 +113,12 @@ sp_parallel_run = function(sp_nm){
       myBiomodEM<-BIOMOD_EnsembleModeling( 
         modeling.output = myBiomodModelOut,  #BIOMOD.models.out from model fitting
         chosen.models = remaining_models, #"all", #remaining_models,  #vector of model runs to use
-        em.by = 'PA_dataset+repet', # 'all' 'PA_dataset+repet', 'PA_dataset', 'PA_dataset+algo'#'all',  #how models will be combined #CHECK THIS: https://rpubs.com/dgeorges/38564 #if all, evaluation is using all candidate PAs
+        em.by = 'all', # 'all' 'PA_dataset+repet', 'PA_dataset',   #how models will be combined into ensemble. If all, will create a single ensemble model https://rpubs.com/dgeorges/38564 #if all, evaluation is using all candidate PAs
+        #em.by = 'PA_dataset', # 'all' 'PA_dataset+repet', 'PA_dataset', 'PA_dataset+algo'#'all',  #how models will be combined #CHECK THIS: https://rpubs.com/dgeorges/38564 #if all, evaluation is using all candidate PAs
         eval.metric = eval_stats, #evaluation metrics to build ensemble
         eval.metric.quality.threshold = NULL, #eval.metric.threshold,  #threshold to exclude models
         prob.mean = T,  #estimate mean probabilities 
-        prob.cv = T,  #estimate coefficient of variation
+        prob.cv = F,  #estimate coefficient of variation
         prob.ci = F,  #estimate confidence interval of prob.mean
         prob.ci.alpha = 0.05,  #signficance level for estimating confidence interval
         prob.median = F,  #estimate median

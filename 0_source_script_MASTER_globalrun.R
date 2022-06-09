@@ -7,13 +7,13 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
 
-optimize_model_params=F
+optimize_model_params=T
 apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
 cpucores = 1 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
-eval_stats = c("ROC", "KAPPA", "TSS") 
-#eval_stats = c("TSS") #DEBUG
-run_type="local_HI_noOptim_noFix" # global_notHI local_HI nested_HI # select name for project and create directory
+#eval_stats = c("ROC", "KAPPA", "TSS") 
+eval_stats = c("TSS") #DEBUG
+run_type="local_HI_Optim_noFix_TSS" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
