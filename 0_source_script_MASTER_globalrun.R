@@ -9,11 +9,11 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 
 optimize_model_params=T
 apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 1 # select number of computer cores for processing (max = 32)
+cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="local_HI_Optim_noFix_TSS" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
@@ -22,7 +22,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
-all_sp_nm = c('Clidemia_hirta')# DEBUG
+# all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 

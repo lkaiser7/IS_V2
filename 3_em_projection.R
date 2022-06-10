@@ -259,7 +259,7 @@ sp_parallel_run = function(sp_nm){
         cat("doing ", eval_stat, " ensemble bin rasters \n")
         index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
         jnk=scores_all[[index]]
-        jnk=scores_all[index]
+        #jnk=scores_all[index]
         cutoff=jnk[eval_stat, "Cutoff"]
         WMwmean_ensemble_cutoffs=c(WMwmean_ensemble_cutoffs, cutoff)
         
