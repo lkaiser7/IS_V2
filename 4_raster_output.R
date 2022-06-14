@@ -189,7 +189,7 @@ dir.create(paste0(project_path, 'output_rasters/main/'), showWarnings = FALSE)
 sp_nm = all_sp_nm[1]
 
 # select first evaluation statistic
-eval_stat = spp_ensemble_eval_stats[3]
+eval_stat = spp_ensemble_eval_stats[1]
 # loop through all evaluation statistics
 for (eval_stat in spp_ensemble_eval_stats){
   # loop through all species 
@@ -234,7 +234,7 @@ for (eval_stat in spp_ensemble_eval_stats){
         raster_name_bin = raster_names_bin[i]
         
         # store first file name for raster .grd file
-        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
+        file_name1 = paste0(getwd(), "/", project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
                             proj_nm, "_", sp_nm, "_ensemble.tif")
         # store temporary raster stack 
         temp_raster = stack(file_name1)
@@ -246,18 +246,20 @@ for (eval_stat in spp_ensemble_eval_stats){
         # assign stored raster name to selected band with weighted mean ROC values
         assign(raster_name, raster(temp_raster, layer = band_n)/1000)
 
+        #NOW BIN
         # store first bin name for raster .grd file
+        #paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmeanBy", eval_stat, "_bin.tif")
         file_name1_bin = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                                proj_nm, "_", sp_nm, "_ensemble_", eval_stat, "bin.tif")
+                                proj_nm, "_", sp_nm, "_ensemble_EMwmeanBy", eval_stat, "_bin.tif")
         # store temporary raster stack 
-        temp_raster_bin = stack(file_name1_bin)  
+        temp_raster_bin = raster(file_name1_bin)  
         
-        # find integer of desired band
-        band_n = which(names(temp_raster) == paste0(sp_nm,'_EM',spp_ensemble_type,
-                                                    'By',eval_stat, 
-                                                    '_mergedAlgo_mergedRun_mergedData')) 
+        # # find integer of desired band
+        # band_n = which(names(temp_raster) == paste0(sp_nm,'_EM',spp_ensemble_type,
+        #                                             'By',eval_stat, 
+        #                                             '_mergedAlgo_mergedRun_mergedData')) 
         # assign stored raster bin name to selected band 
-        assign(raster_name_bin, raster(temp_raster_bin, layer = band_n))
+        assign(raster_name_bin, temp_raster_bin)
         
         # run if true in source script
         if (plot_spp_ensemble_CV){

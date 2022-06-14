@@ -325,7 +325,7 @@ sp_parallel_run = function(sp_nm) {
       # load suitability score raster for species from global models 
       sp_scores<-raster(paste0(suitscores, sp_nm, "_suitability_baseline_TSS_wmean.tif"))
       # create matrix with extracted suitability scores to use as weights
-      suitability_scores<-extract(sp_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
+      suitability_scores<-raster::extract(sp_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
       # create column for weights calculated from suitability scores
       suit_weights<-matrix(0, nrow = length(suitability_scores[, 2]), ncol = 1)
       # use eq(1) from Gallien et al. (2012) to calculate Yweights
@@ -559,6 +559,7 @@ sp_parallel_run = function(sp_nm) {
       #fc are data transforms, rm is regularization
       #eval3@tune.settings
       best_model=eval3@results[which(eval3@results$delta.AICc==0),]
+      if (nrow(best_model)>1) best_model=best_model[1,] #if multiple models just as good, pick simpler
       fc=as.character(best_model$fc)
       maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
                                     P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),

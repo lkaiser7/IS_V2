@@ -12,7 +12,7 @@ library(biomod2)
 library(stringr)
 
 # reset species counter to 1
-sp_nm = all_sp_nm[1] 
+sp_nm = all_sp_nm[9] 
 
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm){  

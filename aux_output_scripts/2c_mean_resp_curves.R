@@ -74,8 +74,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     # myBiomodModelOut
     
     # load the models to extract the predicted response curves (220 runs)
-    bm.mod.names<-BIOMOD_LoadModels(
-      myBiomodModelOut)
+    bm.mod.names<-BIOMOD_LoadModels(myBiomodModelOut)
     
     # get 2D response data (takes ~3 min per species for all 220 runs)
     rp.dat<-response.plot2(
@@ -173,7 +172,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   gbm_data<-all.rp.dat2[which(all.rp.dat2$model_type == "GBM"),]
   # gbm_mean<-aggregate(pred.val ~ expl.name+model_scale, data = gbm_data, mean)
   # names(gbm_mean)[3]<-"pred.mean"
-  # # gbm_mean
+  # # View(gbm_data)
   
   # merge data for line size reference
   gbm_plot_data<-merge(gbm_data, all_var_imp, by =  c("expl.name", "model_scale"), all = T)

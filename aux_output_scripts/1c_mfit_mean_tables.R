@@ -52,6 +52,7 @@ for(s in 1:length(sp_files)){  # s = 1 for debugging
   }
 }
 
+#View(all_sp_count)
 # save species count file
 write.csv(all_sp_count, paste0(dataDir, "all_sp_count.csv"))
 rm(s)

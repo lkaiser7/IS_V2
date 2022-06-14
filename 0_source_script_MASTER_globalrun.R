@@ -13,7 +13,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="global_notHI" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
@@ -22,6 +22,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
+# all_sp_nm = c('Pennisetum_clandestinum', 'Pennisetum_setaceum')
 # all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
@@ -290,7 +291,7 @@ spp_ensemble_type = "wmean"
 # for raster creation and shifted calculations
 comp_projects = c('baseline', 'future')
 # for raster creation 
-plot_spp_ensemble_CV = TRUE 
+plot_spp_ensemble_CV = F
 # for raster creation for future runs only **depreciated**
 masked_spp_ensemble_map = FALSE
 
