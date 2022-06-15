@@ -28,11 +28,18 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   names(mean_maxent_eval_df)=c("Species", "Global", "Local")
   names(mean_GBM_eval_df)=c("Species", "Global", "Local")
   
-  #View(mean_maxent_eval_df)
+  mean_allmodels_eval_df=merge(mean_maxent_eval_df, mean_GBM_eval_df, by="Species")
+  mean_allmodels_eval_df$Global=apply(mean_allmodels_eval_df[,c("Global.x", "Global.y")], 1, FUN=mean, na.rm=T)
+  mean_allmodels_eval_df$Local=apply(mean_allmodels_eval_df[,c("Local.x", "Local.y")], 1, FUN=mean, na.rm=T)
+  mean_allmodels_eval_df=mean_allmodels_eval_df[,c("Species", "Global", "Local")]
+
+    #View(mean_maxent_eval_df)
   file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".csv")
   write.csv(mean_maxent_eval_df, file_name, row.names = F)
   file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".csv")
   write.csv(mean_GBM_eval_df, file_name, row.names = F)
+  file_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_allModels_", eval_stat, ".csv")
+  write.csv(mean_allmodels_eval_df, file_name, row.names = F)
   
   plot(mean_maxent_eval_df$Global, mean_maxent_eval_df$Local)
   plot(mean_GBM_eval_df$Global, mean_GBM_eval_df$Local)
@@ -44,7 +51,7 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   a=ggplot(mean_maxent_eval_df, aes(x=Global, y=Local)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=mean_maxent_eval_df$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")
+    theme(legend.position="none")+geom_smooth(method = "lm", se = TRUE)+xlab("Global model skill")+ylab("Local model skill")
   a
   tiff_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_maxent_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
@@ -53,9 +60,36 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   a=ggplot(mean_GBM_eval_df, aes(x=Global, y=Local)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=mean_GBM_eval_df$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")
+    theme(legend.position="none")+geom_smooth(method = "lm", se = TRUE)+xlab("Global model skill")+ylab("Local model skill")
   a
   tiff_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_GBM_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
+
+  a=ggplot(mean_allmodels_eval_df, aes(x=Global, y=Local)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=mean_maxent_eval_df$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+geom_smooth(method = "lm", se = TRUE)+xlab("Global model skill")+ylab("Local model skill")
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/eval_metric_comparison_allModels_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
+  
+  ######################
+  #now compare match in model skill and variable importance
+  #mean_allmodels_eval_df$skill_deviation=abs(mean_allmodels_eval_df$Global-mean_allmodels_eval_df$Local)
+  mean_allmodels_eval_df$skill_deviation=(mean_allmodels_eval_df$Global-mean_allmodels_eval_df$Local)^2
+  species_var_imp_deviations_df=read.csv("combined_results/mean_VariImp_plots/mean_deviation_in_global_vs_local_variable_importance.csv")
+  #View(species_var_imp_deviations_df)
+  skill_vs_varImp= merge(mean_allmodels_eval_df, species_var_imp_deviations_df, by.x="Species", by.y="species")
+  #View(skill_vs_varImp)
+  #names(skill_vs_varImp)
+  cor(skill_vs_varImp$skill_deviation, skill_vs_varImp$varImp_deviation)
+  a=ggplot(skill_vs_varImp, aes(x=varImp_deviation, y=skill_deviation)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_vs_varImp$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Deviation between global and local model variable importance")+
+    ylab("Deviation between global and local model skill")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/skill_vs_varImp_SSdeviation_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
   
 }

@@ -47,25 +47,48 @@ for (eval_stat in eval_stats){
     long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
     
     # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
-    t_name = paste0(vi_fold, eval_stat, "_", model, "_variable_importance_box_plot.tiff")
+    t_name = paste0(vi_fold, eval_stat, "_", model, "_model_skil_box_plot.tiff")
     # create blank image file
-    tiff(t_name, res = 300, units = "in", pointsize = 12,
-         width = 10, height = 10, compression = "lzw")
+    # tiff(t_name, res = 300, units = "in", pointsize = 12,
+    #      width = 10, height = 10, compression = "lzw")
     # store basic qplot boxplot
     a = qplot(Species, Value, data = long, geom = c("boxplot"), fill = Species, main = "",
               xlab = "", ylab = paste(eval_stat, "model evaluation")) + 
       theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
     # remove legend to plot
     a = a + theme(legend.position = "none")
-    print(a)
+    #print(a)
     
     # save image file output
     ggsave(filename = t_name, plot = a)    
-    dev.off()
+    # dev.off()
     
     # sign-posting of completed box plot for each evaluation statistic and model
-    cat('done with', eval_stat, model, 'variable importance box plot \n')
+    cat('done with', eval_stat, model, 'model_skil box plot \n')
+    
+    if (model == models_to_run[1]){
+      all_model_long=long
+    }else{
+      all_model_long=rbind(all_model_long, long)
+    }
   }
+  # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
+  t_name = paste0(vi_fold, eval_stat, "_allModels_model_skil_box_plot.tiff")
+  # create blank image file
+  # tiff(t_name, res = 300, units = "in", pointsize = 12,
+  #      width = 10, height = 10, compression = "lzw")
+  # store basic qplot boxplot
+  a = qplot(Species, Value, data = all_model_long, geom = c("boxplot"), fill = Species, main = "",
+            xlab = "", ylab = paste(eval_stat, "model evaluation")) + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+  # remove legend to plot
+  a = a + theme(legend.position = "none")
+  a
+  #print(a)
+  
+  # save image file output
+  ggsave(filename = t_name, plot = a)    
+  # dev.off()
 }
 
 # load and format data in loop as done previously done above for violin plots

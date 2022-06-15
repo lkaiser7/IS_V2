@@ -13,7 +13,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="global_notHI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
