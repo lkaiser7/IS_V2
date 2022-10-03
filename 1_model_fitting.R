@@ -586,6 +586,9 @@ sp_parallel_run = function(sp_nm) {
       PA.strategy = PA.strategy,  #how to select PAs
       PA.dist.min = PA.dist.min)  #minimum distance to presences
     
+    file_name_out = paste0(project_path, sp_dir, sp_nm, "_BiomodData.RData")
+    save("myBiomodData", file = file_name_out)   
+    
     # sign-posting of completed biomod data formating
     cat('\n biomod data formatting complete. (Line 335)') 
     # record time and date stamp

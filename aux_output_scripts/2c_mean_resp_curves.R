@@ -168,6 +168,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   # rename variable importance column names
   names(all_var_imp)[3]<-"expl.name"
   
+  ###################################
   # GBM Means
   gbm_data<-all.rp.dat2[which(all.rp.dat2$model_type == "GBM"),]
   # gbm_mean<-aggregate(pred.val ~ expl.name+model_scale, data = gbm_data, mean)
@@ -179,7 +180,98 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   gbm_plot_data$line_size<-gbm_plot_data$GBM_MEAN*3
   # dim(gbm_data); dim (gbm_plot_data); head(gbm_plot_data)
   
-  # GBM Plot
+  ###################################
+  # MaxEnt Means
+  max_data<-all.rp.dat2[which(all.rp.dat2$model_type == "MAXENT.Phillips"),]
+  # max_mean<-aggregate(pred.val ~ expl.name+model_scale, data = max_data, mean)
+  # names(max_mean)[3]<-"pred.mean"
+  # # max_mean
+  
+  # merge data for line size reference
+  max_plot_data<-merge(max_data, all_var_imp, by =  c("expl.name", "model_scale"), all = T)
+  max_plot_data$line_size<-max_plot_data$MAXENT_MEAN*3
+  # dim(max_data); dim (max_plot_data); head(max_plot_data)
+  
+  
+  ############
+  #calculate squared deviation 
+  #View(gbm_plot_data)
+  #dput(names(gbm_plot_data))
+  ooo=1
+  for (ooo in c(1,2)){
+    #View(tmp_df)
+    mean_var_imp_df=gbm_plot_data[,c("expl.name", "model_scale", "MAXENT_MEAN", "GBM_MEAN")]
+    library(reshape2)
+    if (ooo==1){
+      model_plot_data_reformat=gbm_plot_data[, c("SPECIES", "expl.name", "GBM_MEAN", "expl.val", "pred.val", 
+                                                 "model_scale")]
+      mean_var_imp_df=dcast(mean_var_imp_df, expl.name ~ model_scale, mean, value.var="GBM_MEAN")
+      mod_type="GBM"
+    }
+    if (ooo ==2){
+      model_plot_data_reformat=max_plot_data[, c("SPECIES", "expl.name", "GBM_MEAN", "expl.val", "pred.val", 
+                                                 "model_scale")]
+      mean_var_imp_df=dcast(mean_var_imp_df, expl.name ~ model_scale, mean, value.var="MAXENT_MEAN")
+      
+      mod_type="maxent"
+    }
+    names(mean_var_imp_df)=c("expl.name", "GvarImp", "LvarImp", "NvarImp")
+    mean_var_imp_df$GL_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$LvarImp)/2
+    mean_var_imp_df$GN_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$NvarImp)/2
+    mean_var_imp_df$LN_meanImp=(mean_var_imp_df$LvarImp+mean_var_imp_df$NvarImp)/2
+    #first step is to standardize the expl var values as the response curves do not yield equal values!
+    bio = var_names[1]
+    for (bio in var_names){
+      model_plot_data_reformat_single=model_plot_data_reformat[model_plot_data_reformat$expl.name==bio,]
+      #View(model_plot_data_reformat_single)
+      min_expl_val=max(as.matrix(dcast(model_plot_data_reformat_single, formula = . ~ model_scale, min, value.var="expl.val")[,-1]))
+      max_expl_val=min(as.matrix(dcast(model_plot_data_reformat_single, formula = . ~ model_scale, max, value.var="expl.val")[,-1]))
+      #create a sequence only for values common across all 3 scales
+      val_seq=seq(min_expl_val, max_expl_val, length.out=100)
+      
+      model_scale = all_mod_scale[1]
+      for (model_scale in all_mod_scale){
+        model_plot_data_reformat_single_bio_and_scale=model_plot_data_reformat_single[model_plot_data_reformat_single$model_scale==model_scale,]
+        extrapolated_response=approx(model_plot_data_reformat_single_bio_and_scale$expl.val, model_plot_data_reformat_single_bio_and_scale$pred.val, xout=val_seq)
+        if (model_scale == all_mod_scale[1]){
+          extrapolated_response_DF=data.frame(expl=val_seq, model_scale=extrapolated_response$y)
+        }else{
+          extrapolated_response_DF=cbind(extrapolated_response_DF, model_scale=extrapolated_response$y)
+        }
+      }
+      names(extrapolated_response_DF)=c("expl_vals", all_mod_scale)
+      extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)
+      extrapolated_response_DF$GN_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)
+      extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)
+      #View(extrapolated_response_DF)
+      extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models")]
+      extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
+      ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
+      
+      extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "GL_diff", "GN_diff", "LN_diff")]
+      extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
+      ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
+  
+      # SS_G_L_diff=sum(extrapolated_response_DF$G_L_diff^2)
+      # SS_G_N_diff=sum(extrapolated_response_DF$G_N_diff^2)
+      # SS_L_N_diff=sum(extrapolated_response_DF$L_N_diff^2)
+      
+      SS_GL_diff=sum(extrapolated_response_DF$GL_diff)
+      SS_GN_diff=sum(extrapolated_response_DF$GN_diff)
+      SS_LN_diff=sum(extrapolated_response_DF$LN_diff)
+      
+      bio_mean_var_imp_df=mean_var_imp_df[mean_var_imp_df$expl.name==bio,-1]
+      results_row=data.frame(model=mod_type, species=sp.name, bio, SS_GL_diff, SS_GN_diff, SS_LN_diff) 
+      results_row=cbind(results_row, bio_mean_var_imp_df)
+      
+      if (ooo==1 & s==1 & bio==var_names[1]){
+        SS_results_DF=results_row
+      }else{
+        SS_results_DF=rbind(SS_results_DF, results_row)
+      }
+    }
+  }
+  #View(SS_results_DF)
   ggplot(gbm_plot_data,
          aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
     geom_line(lwd = gbm_plot_data$line_size) + #geom_line(lwd = gbm_plot_data$pred.mean) + 
@@ -197,17 +289,6 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
   ggsave(filename = paste0(rc_fold, sp.name, "_GBM_mean_resp_curve.tiff"))
-  
-  # MaxEnt Means
-  max_data<-all.rp.dat2[which(all.rp.dat2$model_type == "MAXENT.Phillips"),]
-  # max_mean<-aggregate(pred.val ~ expl.name+model_scale, data = max_data, mean)
-  # names(max_mean)[3]<-"pred.mean"
-  # # max_mean
-  
-  # merge data for line size reference
-  max_plot_data<-merge(max_data, all_var_imp, by =  c("expl.name", "model_scale"), all = T)
-  max_plot_data$line_size<-max_plot_data$MAXENT_MEAN*3
-  # dim(max_data); dim (max_plot_data); head(max_plot_data)
   
   # MAXENT Plot
   ggplot(max_plot_data,
@@ -229,5 +310,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   ggsave(filename = paste0(rc_fold, sp.name, "_MAXENT_mean_resp_curve.tiff"))
   
 } # END s loop
+write.csv(SS_results_DF, paste0(rc_fold,"_response_deviations.csv"), row.names = F)
+
+
 
 ##### END MEAN RESPONSE CURVES #####

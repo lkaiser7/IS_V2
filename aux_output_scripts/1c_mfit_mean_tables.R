@@ -25,6 +25,7 @@ library(rgdal)
 loc_coast<-readOGR("data/map_data", "Main_Hawaiian_Islands_simple3")
 loc_coast<-loc_coast[which(loc_coast$Island != "NI"),]
 plot(loc_coast)
+graphics.off()
 
 # list species files
 sp_files<-list.files(paste0(dataDir, "merged_data/all_data/"))
@@ -34,6 +35,7 @@ sp_files<-list.files(paste0(dataDir, "merged_data/all_data/"))
 
 s=1
 for(s in 1:length(sp_files)){  # s = 1 for debugging
+  cat("plotting HI spp points for species ", s, "\n")
   # open species file
   sp_rec<-read.csv(paste0(dataDir, "merged_data/all_data/", sp_files[s]))
   # head(sp_rec)
@@ -74,6 +76,7 @@ bc_list = gsub("\\..*", "", env_var_files) #c("bio1", "bio7", "bio12", "bio15")
 # loop through each model type 
 m=1
 for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging 
+  cat("summarizing var imp for ", all_mod_scale[m], "\n")
   # set model scale
   mod_scale<-all_mod_scale[m]
   
@@ -86,10 +89,13 @@ for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging
   # open variable importance file
   var_imp<-read.csv(paste0(outDir, "all_VariImp.csv"))
   # head(var_imp)
+  #View(var_imp)
   
   # loop through each species
   s=1
   for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
+    cat("doing species ", all_sp_nm[s], "\n")
+    
     # select single species name
     sp.name<-all_sp_nm[s]
     

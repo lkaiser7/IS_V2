@@ -13,7 +13,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
@@ -22,7 +22,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
-# all_sp_nm = c('Pennisetum_clandestinum', 'Pennisetum_setaceum')
+#all_sp_nm = c('Miconia_calvescens', 'Ulex_europaeus')
 # all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
@@ -174,7 +174,7 @@ plot_graphs = TRUE
 useRasterDef = TRUE
 interpolateDef = FALSE
 # choose whether to overwrite past results (T) or not (F)
-overwrite = F
+overwrite = T
 
 if (cpucores==1){
   parallel_run = F
@@ -342,7 +342,7 @@ if (baseline_or_future == 1) {
 
 # start the clock to calculate processing time
 ptmStart<-proc.time()
-
+graphics.off()
 # run model fitting, ensemble models, and projections based on settings above
 if (EM_fitting){  # 1 - run fitting code
   source(paste0(codeDir,"1_model_fitting.R")) 
@@ -352,7 +352,7 @@ if (EM_ensemble){  # 2 - run ensemble code
 }
 if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
-  source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
+  #source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
 }
 if (nothing_beyond_projection==F){
   if (raster_output_creation) { # 4 - create output rasters
@@ -364,7 +364,8 @@ if (nothing_beyond_projection==F){
     source(paste0(codeDir, "aux_output_scripts/1a_mfit_tables.R"))
   }
   if (model_fit_graphs) { # 1b - evaluation statiscs/variable importance graphs
-    source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))}
+    source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))
+  }
   if (create_response_curves) { # 2a - response curves
     source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
   }

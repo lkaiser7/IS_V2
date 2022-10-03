@@ -12,7 +12,7 @@ library(biomod2)
 library(stringr)
 
 # reset species counter to 1
-sp_nm = all_sp_nm[9] 
+sp_nm = all_sp_nm[1] 
 
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm){  
@@ -138,8 +138,31 @@ sp_parallel_run = function(sp_nm){
     ########################
     ### ENSEMBLE OUTPUTS ###
     ########################
-    # print enesemble modeling summary
+    # print ensemble modeling summary
     myBiomodEM
+    
+    ##################
+    ##################
+    # # need to complete this below
+    # # return output model evaluation metrics results
+    # myBiomodEMEval<-get_evaluations(myBiomodEM) 
+    # myBiomodEMEval=myBiomodEMEval[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
+    # myBiomodEMEval=myBiomodEMEval[row.names(myBiomodEMEval)==eval_stats,]
+    # # assign file path name for results 
+    # FileName<-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM.csv") 
+    # # create .csv file and save TSS outputs
+    # write.table(myBiomodEMEval, file = FileName, sep = ",", col.names = NA) 
+    # 
+    # load(paste0(project_path, sp_dir, sp_nm, "_BiomodData.RData")) #myBiomodData
+    # 
+    # EM_model=myBiomodEM@em.models[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
+    # EM_var_imp=variables_importance(model = EM_model, data = myBiomodData@data.env.var)
+    # 
+    # FileName00=-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EMVarImp.csv") 
+    # write.table(Spp_VariImp, file = FileName00, sep = ",", col.names = NA)
+    
+    ##################
+    ##################
     
     # get evaluation scores and statistics
     get_evaluations(myBiomodEM)
