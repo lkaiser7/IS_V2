@@ -28,7 +28,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/", "/home/pierc/projects/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM2/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -218,6 +218,7 @@ species_ensemble_maps = F
 ##########################################
 
 ### EM_fitting (script 1)
+only_save_biomod_input_data=T #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
 NbRunEval = 10
 # if the models should use response points weights or not

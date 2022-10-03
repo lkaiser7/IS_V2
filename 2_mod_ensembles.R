@@ -24,6 +24,7 @@ sp_parallel_run = function(sp_nm){
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
+  sp_nm0=sp_nm
   # replace species naming convention of "_" with "." 
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
   # create new folder with species name
@@ -143,23 +144,48 @@ sp_parallel_run = function(sp_nm){
     
     ##################
     ##################
-    # # need to complete this below
-    # # return output model evaluation metrics results
-    # myBiomodEMEval<-get_evaluations(myBiomodEM) 
-    # myBiomodEMEval=myBiomodEMEval[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
-    # myBiomodEMEval=myBiomodEMEval[row.names(myBiomodEMEval)==eval_stats,]
-    # # assign file path name for results 
-    # FileName<-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM.csv") 
-    # # create .csv file and save TSS outputs
-    # write.table(myBiomodEMEval, file = FileName, sep = ",", col.names = NA) 
-    # 
-    # load(paste0(project_path, sp_dir, sp_nm, "_BiomodData.RData")) #myBiomodData
-    # 
-    # EM_model=myBiomodEM@em.models[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
-    # EM_var_imp=variables_importance(model = EM_model, data = myBiomodData@data.env.var)
-    # 
-    # FileName00=-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EMVarImp.csv") 
-    # write.table(Spp_VariImp, file = FileName00, sep = ",", col.names = NA)
+    # need to complete this below
+    # return output model evaluation metrics results
+    myBiomodEMEval<-get_evaluations(myBiomodEM)
+    myBiomodEMEval=myBiomodEMEval[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
+    myBiomodEMEval=myBiomodEMEval[row.names(myBiomodEMEval)==eval_stats,]
+    # assign file path name for results
+    FileName<-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM.csv")
+    # create .csv file and save TSS outputs
+    write.table(myBiomodEMEval, file = FileName, sep = ",", col.names = NA)
+
+    load(paste0(project_path, sp_dir, sp_nm0, "_BiomodData.RData")) #myBiomodData
+
+    EM_model=myBiomodEM@em.models[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
+    # change working directory to project path to save model outputs
+    setwd(project_path)
+    EM_var_imp=variables_importance(model = EM_model, data = myBiomodData@data.env.var, nb_rand =4)
+    EM_var_imp=EM_var_imp$mat
+    EM_var_imp=data.frame(pred=row.names(EM_var_imp), varImp=apply(EM_var_imp, 1, mean))
+    #names(EM_var_imp)=c("pred", "varImp")
+    setwd(rootDir)
+
+    FileName00=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EMVarImp.csv")
+    write.table(EM_var_imp, file = FileName00, sep = ",", col.names = NA)
+    
+    setwd(project_path)
+    curve_models=BIOMOD_LoadModels(myBiomodEM)
+    curve_models=curve_models[grep(pattern = paste0(spp_ensemble_type,"By", eval_stats), x = curve_models)]
+    tiff_name=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curve.tif")
+    FileName00=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curve.csv")
+    
+    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+         width = 10, height = 10, compression = "lzw")
+    response_plot_data=response.plot2(models  = curve_models,
+                   Data = myBiomodData@data.env.var, 
+                   show.variables=names(myBiomodData@data.env.var),
+                   ImageSize = 800, 
+                   plot = T)
+    dev.off()
+    response_plot_data=response_plot_data[,-c(1, 4)]
+    #View(response_plot_data)
+    write.csv(response_plot_data, FileName00, row.names = F)
+    setwd(rootDir)
     
     ##################
     ##################

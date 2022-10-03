@@ -498,84 +498,8 @@ sp_parallel_run = function(sp_nm) {
     # r <- stack_raster(myExpl, myRespXY)
     # r 
     
-    gbm.tree.complexity=7
-    gbm.learning.rate=0.001
-    gbm.bag.fraction=0.5
-    if (optimize_model_params){
-      ##############################
-      cat('\n optimizing gbm parameters \n')
-      #GBM optimization
-      #https://rdrr.io/cran/dismo/man/gbm.step.html
-      library(dismo)
-      index_of_Ps=which(SP_ALL_data$PA==1)
-      index_of_PAs=which(is.na(SP_ALL_data$PA))
-      chosen_PAs=sample(index_of_PAs, size=n_PA_pts*4, replace = F)
-      tmp_SP_ALL_data=SP_ALL_data[c(index_of_Ps,chosen_PAs),]
-      tmp_SP_ALL_data[is.na(tmp_SP_ALL_data$PA),"PA"]=0    
-      #View(tmp_SP_ALL_data)
-      
-      if (is.null(myYweights)){
-        Ywgts=rep(1, nrow(tmp_SP_ALL_data))
-      }else{
-        Ywgts=myYweights[c(index_of_Ps,chosen_PAs)]      
-      }
-      optim_gbm=gbm.step(data=tmp_SP_ALL_data, gbm.x = var_names, gbm.y = "PA", site.weights=Ywgts,
-                         n.trees = 20, max.trees = 2000,
-                         tree.complexity = gbm.tree.complexity, learning.rate = gbm.learning.rate, 
-                         bag.fraction = gbm.bag.fraction, n.folds = 10,) #higher tree complexity leads to more stable number of trees
-      cat("optimum number of GBM trees is ", optim_gbm$n.trees, "\n")
-      
-      #########################
-      #maxent optimization
-      cat('\n optimizing maxent parameters \n')
-      #SDMtune or ENMeval packages
-      library(ENMeval)
-      #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
-      #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
-      #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
-      
-      library(rJava)
-      #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
-      #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
-      #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
-      packages=as.data.frame(installed.packages())$Package
-      if ("rJava" %in% packages){
-        library("rJava")
-        algo_type="maxent.jar"
-      }else{
-        algo_type="maxnet"
-        library(maxnet)
-        library(ecospat)
-      }
-      # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
-      #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-      #                      partitions='randomkfold', algorithm="maxent.jar", 
-      #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
-      eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
-                           bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-                           partitions='randomkfold', algorithm=algo_type, 
-                           tune.args=list(fc = c("L", "LQ", "H", "LQH", "LQHP", "LQHPT", 'LQP'), rm = 1:4))
-      #L = linear, Q = quadratic, H = hinge, P = product and T = threshold
-      #fc are data transforms, rm is regularization
-      #eval3@tune.settings
-      best_model=eval3@results[which(eval3@results$delta.AICc==0),]
-      if (nrow(best_model)>1) best_model=best_model[1,] #if multiple models just as good, pick simpler
-      fc=as.character(best_model$fc)
-      maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
-                                    P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
-                                    gbm.trees=optim_gbm$n.trees)
-      #View(eval3@results)
-      FileName<-paste0(project_path, sp_dir, sp_nm, "_optim_maxent_and_GBM_parameters.csv") 
-      write.csv(maxent_best_params, file = FileName, row.names = F) 
-    }else{
-      maxent_best_params=data.frame(L=T, Q=T, H=T,
-                                    P=T, T=T, rm=1,
-                                    gbm.trees=1, gbm.shrinkage = gbm.learning.rate, #0.001 
-                                    gbm.bag.fraction = gbm.bag.fraction) #0.75
-    }
-    
     ##############################
-    # load BIOMOD2 data for formatting
+    #format  data for biomod
     myBiomodData<-BIOMOD_FormatingData(
       resp.name = sp_nm,  #species name (character)
       resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
@@ -593,158 +517,242 @@ sp_parallel_run = function(sp_nm) {
     cat('\n biomod data formatting complete. (Line 335)') 
     # record time and date stamp
     cat(format(Sys.time(), "%a %b %d %Y %X"))
-    
-    # set different options for selected modeling techniques from source script
-    myBiomodOption<-BIOMOD_ModelingOptions(
-      # GBM: Generalized Boosted Regression                                            
-      GBM = list(distribution = "bernoulli", interaction.depth = gbm.tree.complexity,  shrinkage = maxent_best_params$gbm.shrinkage, 
-                 bag.fraction = maxent_best_params$gbm.bag.fraction, train.fraction = 1, n.trees = maxent_best_params$n.trees, cv.folds = 10,
-                 n.cores = 1), # to avoid parallel problems and models failing
-      # # MARS: Multivariate Adaptive Regression Splines
-      # MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),
-      # # RF: Random Forest Classification and Regression
-      # RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
-      #           max.nodes = 10, corr.bias = TRUE), 
-      # MAXENT: Maximum Entropy
-      # MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
-      #                        maximumiterations = 100, visible = FALSE, linear = TRUE, 
-      #                        quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
-      #                        lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
-      #                        betamultiplier=1,  beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
-      #                        beta_hinge = -1, defaultprevalence = 0.5)
-      MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
-                             maximumiterations = 100, visible = FALSE, 
-                             linear = maxent_best_params$L, quadratic = maxent_best_params$Q, 
-                             product = maxent_best_params$P, threshold = maxent_best_params$T, 
-                             hinge = maxent_best_params$H, 
-                             lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
-                             betamultiplier=maxent_best_params$rm,  beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
-                             beta_hinge = -1, defaultprevalence = 0.5)
-    )
-    
-    # change working directory to project path to save model outputs
-    setwd(project_path)
-    
-    # sign-posting for ensemble model fitting
-    cat('\n model fitting...')
-    
-    
-    if (packageVersion("biomod2")=="4.0"){
-      # create ensemble model from formatting data and modeling options
-      myBiomodModelOut<-BIOMOD_Modeling(
-        myBiomodData,  #formatted biomod data
-        models = models_to_run,  #select models to run
-        #models.options = myBiomodOption,  #biomod options object
-        bm.options = myBiomodOption,  #biomod options object
-        #NbRunEval = NbRunEval,  #number of evaluation runs*** 10
-        nb.rep = NbRunEval,  #number of evaluation runs*** 10
-        #DataSplit = 80,  #amount of data to use for training
-        data.split.perc = 80,  #amount of data to use for training
-        #Yweights = myYweights,  #response points weights
-        weights = myYweights,  #response points weights
-        #Prevalence = NULL, #used to build 'weighted response weights' 
-        prevalence = NULL, #used to build 'weighted response weights' 
-        #VarImport = 4,  #permuations to estimate variable importance*** 10
-        var.import = 4,  #permuations to estimate variable importance*** 10
-        do.full.models = do.full.models,  #calibrate and evaluate to all data
-        #models.eval.meth = eval_stats,  #evaluation metrics
-        metric.eval = eval_stats,  #evaluation metrics
-        #SaveObj = TRUE,  #save output object
-        save.output = TRUE,  #save output object
-        #rescal.all.models = TRUE)  #scale to binomial GLM
-        scale.models = F)  #scale to binomial GLM
+
+    if (!only_save_biomod_input_data){
+      ###################################
+      ###################################
+      #model tunning
+      gbm.tree.complexity=7
+      gbm.learning.rate=0.001
+      gbm.bag.fraction=0.5
+      if (optimize_model_params){
+        ##############################
+        cat('\n optimizing gbm parameters \n')
+        #GBM optimization
+        #https://rdrr.io/cran/dismo/man/gbm.step.html
+        library(dismo)
+        index_of_Ps=which(SP_ALL_data$PA==1)
+        index_of_PAs=which(is.na(SP_ALL_data$PA))
+        chosen_PAs=sample(index_of_PAs, size=n_PA_pts*4, replace = F)
+        tmp_SP_ALL_data=SP_ALL_data[c(index_of_Ps,chosen_PAs),]
+        tmp_SP_ALL_data[is.na(tmp_SP_ALL_data$PA),"PA"]=0    
+        #View(tmp_SP_ALL_data)
+        
+        if (is.null(myYweights)){
+          Ywgts=rep(1, nrow(tmp_SP_ALL_data))
+        }else{
+          Ywgts=myYweights[c(index_of_Ps,chosen_PAs)]      
+        }
+        optim_gbm=gbm.step(data=tmp_SP_ALL_data, gbm.x = var_names, gbm.y = "PA", site.weights=Ywgts,
+                           n.trees = 20, max.trees = 2000,
+                           tree.complexity = gbm.tree.complexity, learning.rate = gbm.learning.rate, 
+                           bag.fraction = gbm.bag.fraction, n.folds = 10,) #higher tree complexity leads to more stable number of trees
+        cat("optimum number of GBM trees is ", optim_gbm$n.trees, "\n")
+        
+        #########################
+        #maxent optimization
+        cat('\n optimizing maxent parameters \n')
+        #SDMtune or ENMeval packages
+        library(ENMeval)
+        #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
+        #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
+        #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
+        
+        library(rJava)
+        #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
+        #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
+        #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
+        packages=as.data.frame(installed.packages())$Package
+        if ("rJava" %in% packages){
+          library("rJava")
+          algo_type="maxent.jar"
+        }else{
+          algo_type="maxnet"
+          library(maxnet)
+          library(ecospat)
+        }
+        # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
+        #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
+        #                      partitions='randomkfold', algorithm="maxent.jar", 
+        #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
+        eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
+                             bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
+                             partitions='randomkfold', algorithm=algo_type, 
+                             tune.args=list(fc = c("L", "LQ", "H", "LQH", "LQHP", "LQHPT", 'LQP'), rm = 1:4))
+        #L = linear, Q = quadratic, H = hinge, P = product and T = threshold
+        #fc are data transforms, rm is regularization
+        #eval3@tune.settings
+        best_model=eval3@results[which(eval3@results$delta.AICc==0),]
+        if (nrow(best_model)>1) best_model=best_model[1,] #if multiple models just as good, pick simpler
+        fc=as.character(best_model$fc)
+        maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
+                                      P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
+                                      gbm.trees=optim_gbm$n.trees)
+        #View(eval3@results)
+        FileName<-paste0(project_path, sp_dir, sp_nm, "_optim_maxent_and_GBM_parameters.csv") 
+        write.csv(maxent_best_params, file = FileName, row.names = F) 
+      }else{
+        maxent_best_params=data.frame(L=T, Q=T, H=T,
+                                      P=T, T=T, rm=1,
+                                      gbm.trees=1, gbm.shrinkage = gbm.learning.rate, #0.001 
+                                      gbm.bag.fraction = gbm.bag.fraction) #0.75
+      }
       
-    }else{
-      # create ensemble model from formatting data and modeling options
-      if (.Platform$OS.type == "unix"){system("export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/")}
-      if (.Platform$OS.type == "unix"){system('export PATH="/usr/lib/jvm/java-1.11.0-openjdk-amd64:$PATH"')}
-      myBiomodModelOut<-BIOMOD_Modeling(
-        myBiomodData,  #formatted biomod data
-        models = models_to_run,  #select models to run
-        models.options = myBiomodOption,  #biomod options object
-        NbRunEval = NbRunEval,  #number of evaluation runs*** 10
-        DataSplit = 80,  #amount of data to use for training
-        Yweights = myYweights,  #response points weights
-        Prevalence = NULL, #used to build 'weighted response weights' 
-        VarImport = 4,  #permuations to estimate variable importance*** 10
-        do.full.models = do.full.models,  #calibrate and evaluate to all data
-        models.eval.meth = eval_stats,  #evaluation metrics
-        SaveObj = TRUE,  #save output object
-        rescal.all.models = TRUE)  #scale to binomial GLM
       
-    } 
-    # reset working directory to root 
-    setwd(rootDir)
-    
-    # return summary output of biomod model runs
-    myBiomodModelOut
-    
-    # sign-posting of completed biomod modeling 
-    cat('\n biomod data modeling complete. (Line 385)') 
-    # record time and date stamp
-    cat(format(Sys.time(), "%a %b %d %Y %X"))
-    
-    # return output model evaluation metrics results
-    myBiomodModelEval<-get_evaluations(myBiomodModelOut) 
-    # return names of model evaluations
-    dimnames(myBiomodModelEval) 
-    # review model evaluations
-    myBiomodModelEval[eval_stats, "Testing.data",,,]
-    
-    # Validate selectec metrics for all tests (TSS, ROC, or KAPPA)
-    if ("TSS" %in% eval_stats){
-      # return variable importance for each model
-      myBiomodModelEval["TSS", "Testing.data",,,] 
-      # create data frame with variable importance values
-      Spp_TSS<-data.frame(myBiomodModelEval["TSS", "Testing.data",,,]) 
-      # assign file path name for results 
-      FileName<-paste0(project_path, sp_dir, sp_nm, "_TSS.csv") 
-      # create .csv file and save TSS outputs
-      write.table(Spp_TSS, file = FileName, sep = ",", col.names = NA) 
+      ###################################
+      ###################################
+      # set different options for selected modeling techniques from source script
+      myBiomodOption<-BIOMOD_ModelingOptions(
+        # GBM: Generalized Boosted Regression                                            
+        GBM = list(distribution = "bernoulli", interaction.depth = gbm.tree.complexity,  shrinkage = maxent_best_params$gbm.shrinkage, 
+                   bag.fraction = maxent_best_params$gbm.bag.fraction, train.fraction = 1, n.trees = maxent_best_params$n.trees, cv.folds = 10,
+                   n.cores = 1), # to avoid parallel problems and models failing
+        # # MARS: Multivariate Adaptive Regression Splines
+        # MARS = list(degree = 2, penalty = 2,thresh = 0.001, prune = TRUE),
+        # # RF: Random Forest Classification and Regression
+        # RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
+        #           max.nodes = 10, corr.bias = TRUE), 
+        # MAXENT: Maximum Entropy
+        # MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
+        #                        maximumiterations = 100, visible = FALSE, linear = TRUE, 
+        #                        quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
+        #                        lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
+        #                        betamultiplier=1,  beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
+        #                        beta_hinge = -1, defaultprevalence = 0.5)
+        MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
+                               maximumiterations = 100, visible = FALSE, 
+                               linear = maxent_best_params$L, quadratic = maxent_best_params$Q, 
+                               product = maxent_best_params$P, threshold = maxent_best_params$T, 
+                               hinge = maxent_best_params$H, 
+                               lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
+                               betamultiplier=maxent_best_params$rm,  beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
+                               beta_hinge = -1, defaultprevalence = 0.5)
+      )
+      
+      # change working directory to project path to save model outputs
+      setwd(project_path)
+      
+      # sign-posting for ensemble model fitting
+      cat('\n model fitting...')
+      
+      
+      if (packageVersion("biomod2")=="4.0"){
+        # create ensemble model from formatting data and modeling options
+        myBiomodModelOut<-BIOMOD_Modeling(
+          myBiomodData,  #formatted biomod data
+          models = models_to_run,  #select models to run
+          #models.options = myBiomodOption,  #biomod options object
+          bm.options = myBiomodOption,  #biomod options object
+          #NbRunEval = NbRunEval,  #number of evaluation runs*** 10
+          nb.rep = NbRunEval,  #number of evaluation runs*** 10
+          #DataSplit = 80,  #amount of data to use for training
+          data.split.perc = 80,  #amount of data to use for training
+          #Yweights = myYweights,  #response points weights
+          weights = myYweights,  #response points weights
+          #Prevalence = NULL, #used to build 'weighted response weights' 
+          prevalence = NULL, #used to build 'weighted response weights' 
+          #VarImport = 4,  #permuations to estimate variable importance*** 10
+          var.import = 4,  #permuations to estimate variable importance*** 10
+          do.full.models = do.full.models,  #calibrate and evaluate to all data
+          #models.eval.meth = eval_stats,  #evaluation metrics
+          metric.eval = eval_stats,  #evaluation metrics
+          #SaveObj = TRUE,  #save output object
+          save.output = TRUE,  #save output object
+          #rescal.all.models = TRUE)  #scale to binomial GLM
+          scale.models = F)  #scale to binomial GLM
+        
+      }else{
+        # create ensemble model from formatting data and modeling options
+        if (.Platform$OS.type == "unix"){system("export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/")}
+        if (.Platform$OS.type == "unix"){system('export PATH="/usr/lib/jvm/java-1.11.0-openjdk-amd64:$PATH"')}
+        myBiomodModelOut<-BIOMOD_Modeling(
+          myBiomodData,  #formatted biomod data
+          models = models_to_run,  #select models to run
+          models.options = myBiomodOption,  #biomod options object
+          NbRunEval = NbRunEval,  #number of evaluation runs*** 10
+          DataSplit = 80,  #amount of data to use for training
+          Yweights = myYweights,  #response points weights
+          Prevalence = NULL, #used to build 'weighted response weights' 
+          VarImport = 4,  #permuations to estimate variable importance*** 10
+          do.full.models = do.full.models,  #calibrate and evaluate to all data
+          models.eval.meth = eval_stats,  #evaluation metrics
+          SaveObj = TRUE,  #save output object
+          rescal.all.models = TRUE)  #scale to binomial GLM
+        
+      } 
+      # reset working directory to root 
+      setwd(rootDir)
+      
+      # return summary output of biomod model runs
+      myBiomodModelOut
+      
+      # sign-posting of completed biomod modeling 
+      cat('\n biomod data modeling complete. (Line 385)') 
+      # record time and date stamp
+      cat(format(Sys.time(), "%a %b %d %Y %X"))
+      
+      # return output model evaluation metrics results
+      myBiomodModelEval<-get_evaluations(myBiomodModelOut) 
+      # return names of model evaluations
+      dimnames(myBiomodModelEval) 
+      # review model evaluations
+      myBiomodModelEval[eval_stats, "Testing.data",,,]
+      
+      # Validate selectec metrics for all tests (TSS, ROC, or KAPPA)
+      if ("TSS" %in% eval_stats){
+        # return variable importance for each model
+        myBiomodModelEval["TSS", "Testing.data",,,] 
+        # create data frame with variable importance values
+        Spp_TSS<-data.frame(myBiomodModelEval["TSS", "Testing.data",,,]) 
+        # assign file path name for results 
+        FileName<-paste0(project_path, sp_dir, sp_nm, "_TSS.csv") 
+        # create .csv file and save TSS outputs
+        write.table(Spp_TSS, file = FileName, sep = ",", col.names = NA) 
+      }
+      if ("ROC" %in% eval_stats){
+        # return variable importance for each model
+        myBiomodModelEval["ROC", "Testing.data",,,]
+        # create data frame with variable importance values
+        Spp_ROC<-data.frame(myBiomodModelEval["ROC", "Testing.data",,,])
+        # assign file path name for results 
+        FileName<-paste0(project_path, sp_dir, sp_nm, "_ROC.csv")
+        # create .csv file and save ROC outputs
+        write.table(Spp_ROC, file = FileName, sep = ",", col.names = NA)
+      }
+      if ("KAPPA" %in% eval_stats){
+        # return variable importance for each model
+        myBiomodModelEval["KAPPA", "Testing.data",,,]
+        # create data frame with variable importance values
+        Spp_KAP<-data.frame(myBiomodModelEval["KAPPA", "Testing.data",,,])
+        # assign file path name for results 
+        FileName<-paste0(project_path, sp_dir, sp_nm, "_KAPPA.csv")
+        # save .csv file and save KAPPA outputs
+        write.table(Spp_KAP, file = FileName, sep = ",", col.names = NA)
+      }
+      
+      # get variable importance of selected bioclim variables
+      get_variables_importance(myBiomodModelOut) 
+      # create data frame with model variable importances
+      Spp_VariImp <- data.frame(get_variables_importance(myBiomodModelOut)) 
+      # save .csv file of variable importances
+      write.table(Spp_VariImp, file = FileName00, sep = ",", col.names = NA)
+      
+      # save BIOMOD modeling output from workspace
+      save("myBiomodModelOut", file = workspace_name)   
+      
+      # sign-posting of completed biomod fitting for species 
+      cat('\n all model fitting, modeling, and evaluation complete. (Line 440)')
+      # record time and date stamp
+      cat(format(Sys.time(), "%a %b %d %Y %X"))
+      
+      # calculate total processing time
+      ptm1 = proc.time() - ptm0 
+      # store time elapsed and convert to minutes
+      p_time = as.numeric(ptm1[3])/60 
+      # report processing time to log file
+      cat('\n It took ', p_time, "minutes to model", sp_nm)
     }
-    if ("ROC" %in% eval_stats){
-      # return variable importance for each model
-      myBiomodModelEval["ROC", "Testing.data",,,]
-      # create data frame with variable importance values
-      Spp_ROC<-data.frame(myBiomodModelEval["ROC", "Testing.data",,,])
-      # assign file path name for results 
-      FileName<-paste0(project_path, sp_dir, sp_nm, "_ROC.csv")
-      # create .csv file and save ROC outputs
-      write.table(Spp_ROC, file = FileName, sep = ",", col.names = NA)
-    }
-    if ("KAPPA" %in% eval_stats){
-      # return variable importance for each model
-      myBiomodModelEval["KAPPA", "Testing.data",,,]
-      # create data frame with variable importance values
-      Spp_KAP<-data.frame(myBiomodModelEval["KAPPA", "Testing.data",,,])
-      # assign file path name for results 
-      FileName<-paste0(project_path, sp_dir, sp_nm, "_KAPPA.csv")
-      # save .csv file and save KAPPA outputs
-      write.table(Spp_KAP, file = FileName, sep = ",", col.names = NA)
-    }
-    
-    # get variable importance of selected bioclim variables
-    get_variables_importance(myBiomodModelOut) 
-    # create data frame with model variable importances
-    Spp_VariImp <- data.frame(get_variables_importance(myBiomodModelOut)) 
-    # save .csv file of variable importances
-    write.table(Spp_VariImp, file = FileName00, sep = ",", col.names = NA)
-    
-    # save BIOMOD modeling output from workspace
-    save("myBiomodModelOut", file = workspace_name)   
-    
-    # sign-posting of completed biomod fitting for species 
-    cat('\n all model fitting, modeling, and evaluation complete. (Line 440)')
-    # record time and date stamp
-    cat(format(Sys.time(), "%a %b %d %Y %X"))
-    
-    # calculate total processing time
-    ptm1 = proc.time() - ptm0 
-    # store time elapsed and convert to minutes
-    p_time = as.numeric(ptm1[3])/60 
-    # report processing time to log file
-    cat('\n It took ', p_time, "minutes to model", sp_nm)
-    sink(NULL)
+  sink(NULL)
   }else{
     # sign-posting if file for variable importance has already been created 
     cat('\n fitting for', sp_nm, 'already done...') 
