@@ -16,7 +16,7 @@ require(tools)
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[1]
+sp_nm=all_sp_nm[2]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages

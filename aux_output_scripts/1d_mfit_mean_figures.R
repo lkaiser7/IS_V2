@@ -14,6 +14,9 @@ dir.create(vi_fold, showWarnings = FALSE, recursive = T)
 global_vi<-read.csv("global_notHI_models/outputs/all_VariImp_model_mean.csv")
 local_vi<-read.csv("local_HI_models/outputs/all_VariImp_model_mean.csv")
 nested_vi<-read.csv("nested_HI_models/outputs/all_VariImp_model_mean.csv")
+global_vi$MODEL_RUN="Global"
+local_vi$MODEL_RUN="Local"
+nested_vi$MODEL_RUN="Nested"
 
 # loop through each species and format data to plot
 s=1
@@ -27,7 +30,7 @@ for(s in 1:length(all_sp_nm)){
                  local_vi[which(local_vi$SPECIES == sp_nm),],
                  nested_vi[which(nested_vi$SPECIES == sp_nm),])
   # add column for model runs
-  sp_data$MODEL_RUN<-c(rep("Global", 4), rep("Local", 4), rep("Nested", 4))
+  #sp_data$MODEL_RUN<-c(rep("Global", 4), rep("Local", 4), rep("Nested", 4))
   
   #View(sp_data)
   sp_data_match=sp_data

@@ -5,14 +5,13 @@
 ##################
 ##### SET UP #####
 ##################
-
 # load necessary packages
 require(snowfall)
 library(biomod2)
 library(stringr)
 
 # reset species counter to 1
-sp_nm = all_sp_nm[1] 
+sp_nm = all_sp_nm[7] 
 
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm){  
@@ -57,7 +56,7 @@ sp_parallel_run = function(sp_nm){
   cat(format(Sys.time(), "%a %b %d %Y %X"))
   # print sign posting of ongoing model fitting
   cat('\n', sp_nm, 'ENSEMBLE CREATION:') 
-
+  
   # set name of file to load workspace data from model runs
   workspace_name = paste0(project_path, sp_dir, sp_nm,"_modelfitting.RData") 
   # set name of file to save all workspace data after ensemble creation
@@ -74,10 +73,10 @@ sp_parallel_run = function(sp_nm){
     load(workspace_name)
     # replace any "_" with "." in the species name
     sp_nm = str_replace_all(sp_nm,"_", ".") 
-
+    
     # MODELING SUMMARY: return summary of BIOMOD2 model fitting for species
     myBiomodModelOut
-
+    
     # MODEL EVALUATION: get array of all model evaluations for each species
     myBiomodModelEval<-get_evaluations(myBiomodModelOut) 
     
@@ -127,9 +126,9 @@ sp_parallel_run = function(sp_nm){
         prob.mean.weight = TRUE,  #estimate weighted sums
         prob.mean.weight.decay = 'proportional' ) #define relative importance of weights
     }
-
+    
     # reset working directory to root 
-    setwd(rootDir)
+    # setwd(rootDir)
     
     # sign-posting of completed ensemble model creation
     cat('\n', sp_nm, 'ensemble complete.') 
@@ -140,10 +139,15 @@ sp_parallel_run = function(sp_nm){
     ### ENSEMBLE OUTPUTS ###
     ########################
     # print ensemble modeling summary
+    cat('\n', sp_nm, ': start ensemble outputs') 
+    
     myBiomodEM
     
     ##################
     ##################
+    cat('\n', sp_nm, ': create varImp for entire ensemble') 
+    cat('\n', sp_nm, ': get ensemble model name') 
+    
     # need to complete this below
     # return output model evaluation metrics results
     myBiomodEMEval<-get_evaluations(myBiomodEM)
@@ -153,48 +157,122 @@ sp_parallel_run = function(sp_nm){
     FileName<-paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM.csv")
     # create .csv file and save TSS outputs
     write.table(myBiomodEMEval, file = FileName, sep = ",", col.names = NA)
-
+    
+    cat('\n', sp_nm, ': calculate variable importance') 
+    
     load(paste0(project_path, sp_dir, sp_nm0, "_BiomodData.RData")) #myBiomodData
-
+    
     EM_model=myBiomodEM@em.models[[paste0(sp_nm, "_EM",spp_ensemble_type,"By",eval_stats,"_mergedAlgo_mergedRun_mergedData")]]
     # change working directory to project path to save model outputs
-    setwd(project_path)
-    EM_var_imp=variables_importance(model = EM_model, data = myBiomodData@data.env.var, nb_rand =4)
+    #setwd(project_path)
+    EM_var_imp=variables_importance(model = EM_model, data = myBiomodData@data.env.var, nb_rand =2)
     EM_var_imp=EM_var_imp$mat
     EM_var_imp=data.frame(pred=row.names(EM_var_imp), varImp=apply(EM_var_imp, 1, mean))
     #names(EM_var_imp)=c("pred", "varImp")
-    setwd(rootDir)
-
+    #setwd(rootDir)
+    
     FileName00=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EMVarImp.csv")
     write.table(EM_var_imp, file = FileName00, sep = ",", col.names = NA)
     
-    setwd(project_path)
+    #############################
+    cat('\n', sp_nm, ': create ensemble response curve') 
+    #setwd(project_path)
     curve_models=BIOMOD_LoadModels(myBiomodEM)
     curve_models=curve_models[grep(pattern = paste0(spp_ensemble_type,"By", eval_stats), x = curve_models)]
-    tiff_name=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curve.tif")
-    FileName00=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curve.csv")
+    #curve_models
     
-    tiff(tiff_name, res = 300, units = "in", pointsize = 12,
-         width = 10, height = 10, compression = "lzw")
-    response_plot_data=response.plot2(models  = curve_models,
-                   Data = myBiomodData@data.env.var, 
-                   show.variables=names(myBiomodData@data.env.var),
-                   ImageSize = 800, 
-                   plot = T)
-    dev.off()
-    response_plot_data=response_plot_data[,-c(1, 4)]
+    tiff_name=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curveV2.tif")
+    
+    # tiff(tiff_name, res = 300, units = "in", pointsize = 12,
+    #      width = 10, height = 10, compression = "lzw")
+    # response_plot_data=response.plot2(models  = curve_models,
+    #                                   Data = myBiomodData@data.env.var, 
+    #                                   show.variables=names(myBiomodData@data.env.var),
+    #                                   ImageSize = 1200, plot = T,
+    #                                   save.file = "tiff", name=tiff_name)
+    # response_plot_data=response.plot2(models  = curve_models,
+    #                                   Data = myBiomodData@data.env.var, 
+    #                                   show.variables=names(myBiomodData@data.env.var),
+    #                                   do.bivariate = FALSE,
+    #                                   fixed.var.metric = 'mean',
+    #                                   ImageSize = 1200, plot = F,
+    #                                   save.file = "no")
+    
+    create_response_plots_fx=function(regression_mat=myBiomodData@data.env.var, fit=get(curve_models[1]), tiff_name){
+      #response curve data using transformed matrix
+      resp_curve_data0=regression_mat
+      df_classes=sapply(resp_curve_data0, class)
+      numeric_cols=names(resp_curve_data0)[df_classes %in% c("numeric", "integer")]
+      
+      numeric_col=numeric_cols[1]
+      unique_factor_val=1
+      for (numeric_col in numeric_cols){
+        cat("doing ", numeric_col, "\n")
+        
+        #create median matrix
+        jnk=as.data.frame(t(as.matrix(apply(resp_curve_data0[,c(numeric_cols)], 2, FUN = median))))
+        resp_curve_data_frst_row=resp_curve_data0[1,]
+        col_match=match(names(jnk), names(resp_curve_data_frst_row))
+        resp_curve_data_frst_row[,col_match]=jnk
+        resp_curve_data=resp_curve_data_frst_row[rep(1, times=100),]
+        
+        #now add the sequence of values from the target response variable
+        #use the untransformed sequence!
+        response_var_Q99_notTrans=quantile(resp_curve_data0[,numeric_col], 0.99)
+        response_var_Q01_notTrans=quantile(resp_curve_data0[,numeric_col], 0.01)
+        resp_var_seq=seq(from=min(resp_curve_data0[,numeric_col],na.rm=T), to=max(resp_curve_data0[,numeric_col],na.rm=T), length.out=100)
+        resp_curve_data[,numeric_col]=resp_var_seq
+        
+        #now the df to use for prediction is ready
+        resp_curve_vals=predict(fit, newdata = resp_curve_data)
+        resp_curve_results=cbind(resp_curve_data, response=resp_curve_vals)
+        resp_curve_results=resp_curve_results[,c(numeric_col, "response")]
+        
+        resp_curve_results = aggregate(resp_curve_results,
+                                       by = list(resp_curve_results[, numeric_col]),
+                                       FUN = mean)
+        resp_curve_results=resp_curve_results[, c(numeric_col, "response")]
+        resp_curve_results$pred_name=numeric_col
+        names(resp_curve_results)[1]="pred"
+        
+        if (numeric_col == numeric_cols[1]){
+          all_resp_curve_results=resp_curve_results
+        }else{
+          all_resp_curve_results=rbind(all_resp_curve_results, resp_curve_results)
+        }
+      }
+      
+      tiff(tiff_name,
+           width = 8, height = 8, units = "in",
+           pointsize = 12, compress="lzw", bg = "white", res = 300)
+      par(mfrow=c(2,2))
+      for (numeric_col in numeric_cols){
+        tmp_all_resp_curve_results=all_resp_curve_results[all_resp_curve_results$pred_name==numeric_col,]
+        plot(tmp_all_resp_curve_results$pred, tmp_all_resp_curve_results$response, xlab=numeric_col, ylab="", ylim=c(0,1), type="l", col="darkblue", lwd=2)  
+      }
+      graphics.off()
+      return(all_resp_curve_results)
+    }
+    # graphics.off()
+    response_plot_data=create_response_plots_fx(regression_mat=myBiomodData@data.env.var, fit=get(curve_models[1]), tiff_name)
+    
+    cat('\n', sp_nm, ': write response curve data') 
+    #response_plot_data=response_plot_data[,-c(1, 4)]
     #View(response_plot_data)
+    FileName00=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curve.csv")
     write.csv(response_plot_data, FileName00, row.names = F)
-    setwd(rootDir)
+    #setwd(rootDir)
     
     ##################
     ##################
+    #reset working directory to root 
+    setwd(rootDir)
     
     # get evaluation scores and statistics
     get_evaluations(myBiomodEM)
     # save BIOMOD2 enesmble modeling outputs from workspace
     save("myBiomodEM", "myBiomodModelOut", "remaining_models", file = workspace_name_out)
-        
+    
     # sign-posting of completed ensemble modeling
     cat('\n all ensemble modeling complete.')
     # record time and date stamp
@@ -247,6 +325,7 @@ system.time((sfLapply(all_sp_nm, fun = sp_parallel_run)))
 sfRemoveAll()
 # end parallel computing on other cpu cores
 sfStop()
+
 
 #################################
 ##### END ENSEMBLE MODELING #####
