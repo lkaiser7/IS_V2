@@ -58,6 +58,71 @@ for (model_scale in model_scales){
 }
 write.csv(all_sp_varImpDF, paste0(rootDir, "combined_results/all_EM_var_imp.csv"))
 
+#reformat
+library(reshape2)
+all_sp_varImpDF_short=dcast(all_sp_varImpDF, species ~ pred + scale, value.var="varImp")
+all_sp_varImpDF_short_GL=dcast(all_sp_varImpDF[all_sp_varImpDF$scale!="nested_HI",], species ~ pred + scale, value.var="varImp")
+
+all_sp_varImpDF_S_short_GL=dcast(all_sp_varImpDF[all_sp_varImpDF$scale!="nested_HI",], pred + species ~ scale, value.var="varImp")
+all_sp_varImpDF_S_short_GL$SS=(all_sp_varImpDF_S_short_GL$global_notHI-all_sp_varImpDF_S_short_GL$local_HI)^2
+all_sp_varImpDF_S_short_GL=all_sp_varImpDF_S_short_GL[,c("pred", "species", "SS")]
+all_sp_varImpDF_SS_short_GL=dcast(all_sp_varImpDF_S_short_GL, species ~ pred, value.var="SS")
+all_sp_varImpDF_SS_short_GL$SS=apply(all_sp_varImpDF_SS_short_GL[,-1], 1, sum)
+all_sp_varImpDF_SS_short_GL=all_sp_varImpDF_SS_short_GL[, c("species", "SS")]
+all_sp_varImpDF_short_GL=merge(all_sp_varImpDF_short_GL, all_sp_varImpDF_SS_short_GL, by="species")
+
+write.csv(all_sp_varImpDF_short, paste0(rootDir, "combined_results/all_sp_varImpDF_short.csv"))
+write.csv(all_sp_varImpDF_short_GL, paste0(rootDir, "combined_results/all_sp_varImpDF_short_GL.csv"))
+
+#####################################################
+######################
+#second  collect EM model eval
+sp.name = all_sp_nm[1]
+model_scales=c("global_notHI", "local_HI", "nested_HI")
+model_scale=model_scales[1]
+for (model_scale in model_scales){
+  tmp_project_path=paste0(rootDir, model_scale, "_models/")
+  cat("doing ", model_scale, "\n")
+  for (sp_nm in all_sp_nm){
+    cat("doing ", sp_nm, "\n")
+    
+    # replace species naming convention of "_" with "." 
+    sp.name_period=str_replace_all(sp_nm, "_", ".")
+    sp_dir = paste0(sp.name_period, "/")
+    
+    FileName00=paste0(tmp_project_path, sp_dir, sp.name_period, "_",eval_stats,"_EM.csv")
+    sp_evalDF=read.csv(FileName00)
+    sp_evalDF=sp_evalDF[,-1]
+    sp_evalDF=as.data.frame(t(matrix(sp_evalDF)))
+    names(sp_evalDF)=c("eval", "cutoff", "sensitivity", "specificity")
+    sp_evalDF$scale=model_scale
+    sp_evalDF$species=sp_nm
+    if (sp_nm == all_sp_nm[1] & model_scale==model_scales[1]){
+      all_sp_evalDF=sp_evalDF
+    }else{
+      all_sp_evalDF=rbind(all_sp_evalDF, sp_evalDF)
+    }
+  }  
+}
+#View(all_sp_evalDF)
+write.csv(all_sp_evalDF, paste0(rootDir, "combined_results/all_EM_eval.csv"))
+
+library(reshape2)
+all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="eval")
+all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
+write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
+
+all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="sensitivity")
+all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
+write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_sensitivity_short.csv"))
+
+all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="specificity")
+all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
+write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_specificity_short.csv"))
+
+
+#####################################################
+#####################################################
 # create folder in output directory for mean response curve plots
 rc_fold<-paste0(rootDir, "combined_results/EM_mean_response_curves/")
 dir.create(rc_fold, showWarnings = FALSE, recursive = T) 

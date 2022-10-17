@@ -218,7 +218,7 @@ species_ensemble_maps = F
 ##########################################
 
 ### EM_fitting (script 1)
-only_save_biomod_input_data=T #only for saving data necessary for ensemble model diagnostics
+only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
 NbRunEval = 10
 # if the models should use response points weights or not
@@ -379,11 +379,13 @@ if (nothing_beyond_projection==F){
   }
   if (create_response_curves) { # 2a - response curves
     source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
+    source(paste0(codeDir, "aux_output_scripts/2d_EM_mean_resp_curves.R"))
   }
   
   source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
   source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
   source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
+  source(paste0(codeDir, "aux_output_scripts/EM_global_vs_local_model_eval.r"))
   
 }
 
