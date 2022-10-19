@@ -7,7 +7,6 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
 
-optimize_model_params=T
 apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
 cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
@@ -218,7 +217,8 @@ species_ensemble_maps = F
 ##########################################
 
 ### EM_fitting (script 1)
-only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
+optimize_model_params=T
+#only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
 NbRunEval = 5
 # if the models should use response points weights or not
