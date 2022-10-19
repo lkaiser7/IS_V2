@@ -13,7 +13,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
 nothing_beyond_projection=T
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
@@ -28,7 +28,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM2/", "/home/pierc/projects/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM4/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -159,7 +159,7 @@ rm(world_map, hawaii_map)
 #############################
 
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
-models_to_run = c("MAXENT.Phillips", "GBM")  #("GAM", "GBM", "GLM", "MAXENT", "RF")
+models_to_run = c("MAXENT.Phillips", "GAM", "GLM", "MARS", "FDA")  #"GBM", , "SRE"("GAM", "GBM", "GLM", "MAXENT", "RF")
 # for raster creation and shifted calculations for mapping
 spp_ensemble_eval_stats = eval_stats #c('ROC', 'TSS', 'KAPPA')
 
@@ -220,7 +220,7 @@ species_ensemble_maps = F
 ### EM_fitting (script 1)
 only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
-NbRunEval = 10
+NbRunEval = 5
 # if the models should use response points weights or not
 if (run_type=="nested_HI"){
   useYweights = T
@@ -232,7 +232,7 @@ PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 10
+PA.nb.rep = 5
 # select number of PAs to determine point density
 number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 #if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 
@@ -384,7 +384,7 @@ if (nothing_beyond_projection==F){
   
   source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
   source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
-  source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r"))
+  #source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r")) #does not make sense to make this comparison without ensemble
   source(paste0(codeDir, "aux_output_scripts/EM_global_vs_local_model_eval.r"))
   
 }

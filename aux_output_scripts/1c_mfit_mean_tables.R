@@ -102,15 +102,27 @@ for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging
     # select species variable importance data
     sp_var_imp<-var_imp[which(var_imp[,1] == sp.name),]
     
-    # separate maxent and gbm runs
-    sp_var_max<-sp_var_imp[grep("MAXENT", names(sp_var_imp))]
-    sp_var_gbm<-sp_var_imp[grep("GBM", names(sp_var_imp))]
+    # # separate maxent and gbm runs
+    # sp_var_max<-sp_var_imp[grep("MAXENT", names(sp_var_imp))]
+    # sp_var_gbm<-sp_var_imp[grep("GBM", names(sp_var_imp))]
+    for (model_type in models_to_run){
+      sp_var_mod<-sp_var_imp[grep(model_type, names(sp_var_imp))]
+      sp_var_mod= rowMeans(sp_var_mod)
+      if (model_type == models_to_run[1]){
+        sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
+                               sp_var_mod)
+      }else{
+        sp_bc_vars=cbind(sp_bc_vars, sp_var_mod)
+      }
+    }
+    
+    names(sp_bc_vars)=c("SPECIES", "VAR", paste0(models_to_run, "_MEAN"))
     
     # calculate means per variable
     # sp_bc_vars<-cbind(sp.name, bc_list, rowMeans(sp_var_max), rowMeans(sp_var_gbm))
-    sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
-                           MAXENT_MEAN = rowMeans(sp_var_max), 
-                           GBM_MEAN = rowMeans(sp_var_gbm))
+    # sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
+    #                        MAXENT_MEAN = rowMeans(sp_var_max), 
+    #                        GBM_MEAN = rowMeans(sp_var_gbm))
     if(s == 1){
       all_bc_vars<-sp_bc_vars
     }else{

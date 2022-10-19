@@ -33,8 +33,10 @@ for(s in 1:length(all_sp_nm)){
   #sp_data$MODEL_RUN<-c(rep("Global", 4), rep("Local", 4), rep("Nested", 4))
   
   #View(sp_data)
+  mean_cols=grep("_MEAN$", names(sp_data_match))
   sp_data_match=sp_data
-  sp_data_match$mean_var_imp=apply(sp_data_match[, c("MAXENT_MEAN", "GBM_MEAN")], MARGIN = 1, FUN = mean, na.rm=T)
+  #sp_data_match$mean_var_imp=apply(sp_data_match[, c("MAXENT_MEAN", "GBM_MEAN")], MARGIN = 1, FUN = mean, na.rm=T)
+  sp_data_match$mean_var_imp=apply(sp_data_match[, mean_cols], MARGIN = 1, FUN = mean, na.rm=T)
   #dput(names(sp_data_match))
   sp_data_match=sp_data_match[,c("VAR", "MODEL_RUN", "mean_var_imp")]
   library(reshape2)
@@ -57,24 +59,25 @@ for(s in 1:length(all_sp_nm)){
   # color blind palette
   cb_palette<-c("#009E73", "#E69F00", "#CC79a7", "#56B4E9")
   
-  # plot variable importance by model run per species
-  # MAXENT Plot
-  maxent_vi<-ggplot(sp_data, aes(VAR, MAXENT_MEAN, fill = VAR)) + 
-    geom_col() + facet_wrap(~ MODEL_RUN) + ylim(0, 1) +
-    scale_fill_manual(values = cb_palette) + 
-    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp_nm, "MaxEnt Models")) + 
-    theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
-  # GBM Plot
-  gbm_vi<-ggplot(sp_data, aes(VAR, GBM_MEAN, fill = VAR)) + 
-    geom_col() + facet_wrap(~ MODEL_RUN) + ylim(0, 1) +
-    scale_fill_manual(values = cb_palette) + 
-    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp_nm, "GBM Models")) + 
-    theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
-  
-  
-  # arrange plots and save
-  plot_grid(maxent_vi, gbm_vi, ncol = 1)
-  ggsave(filename = paste0(vi_fold, sp_nm, "_mean_variable_importance_bar_plot.tiff"))
+  #MUST CHANGE SO THIS IS A COMPOUND BAR PLOT!!!
+  # # plot variable importance by model run per species
+  # # MAXENT Plot
+  # maxent_vi<-ggplot(sp_data, aes(VAR, MAXENT_MEAN, fill = VAR)) + 
+  #   geom_col() + facet_wrap(~ MODEL_RUN) + ylim(0, 1) +
+  #   scale_fill_manual(values = cb_palette) + 
+  #   labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp_nm, "MaxEnt Models")) + 
+  #   theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
+  # # GBM Plot
+  # gbm_vi<-ggplot(sp_data, aes(VAR, GBM_MEAN, fill = VAR)) + 
+  #   geom_col() + facet_wrap(~ MODEL_RUN) + ylim(0, 1) +
+  #   scale_fill_manual(values = cb_palette) + 
+  #   labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp_nm, "GBM Models")) + 
+  #   theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
+  # 
+  # 
+  # # arrange plots and save
+  # plot_grid(maxent_vi, gbm_vi, ncol = 1)
+  # ggsave(filename = paste0(vi_fold, sp_nm, "_mean_variable_importance_bar_plot.tiff"))
 }
 
 #save deviation
