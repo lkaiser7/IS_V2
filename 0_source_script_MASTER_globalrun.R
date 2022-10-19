@@ -7,10 +7,10 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
 
-optimize_model_params=F
+optimize_model_params=T
 apply_biomod2_fixes = T # apply fixes to solve memory issues (script 3b)
 cpucores = 5 # select number of computer cores for processing (max = 32)
-run_type="local_HI_wFix_noOptim" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="local_HI_Fix_Optim" # global_notHI local_HI nested_HI # select name for project and create directory
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
