@@ -7,7 +7,7 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
 
-apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
+# apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
 cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
@@ -278,12 +278,12 @@ if (baseline_or_future == 4) {
 # temporary folder for files during processing to avoid memory errors
 #dir_for_temp_files<-paste0(rootDir, project_run, "/temp/", baseline_or_future, "/") 
 # conditions if applying fixes to BIOMOD2 (script 3b)
-if (apply_biomod2_fixes) {
-  # name model run based on scenario 
-  maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
-  # create temporary directory file
-  #dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
-}
+# if (apply_biomod2_fixes) {
+#   # name model run based on scenario 
+#   maxentWDtmp = paste0("maxentWDtmp_", baseline_or_future)
+#   # create temporary directory file
+#   #dir.create(dir_for_temp_files, showWarnings = F, recursive = T)
+# }
 
 ### raster_output_creation (script 4)
 # number of projections to create raster - 1 for baseline, 2 for both

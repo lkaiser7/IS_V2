@@ -45,10 +45,10 @@ sp_parallel_run = function(sp_nm){
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
-  if(apply_biomod2_fixes) {
-    # all model projection fixes to BIOMOD2 code created by Adam Vorsino
-    source(paste0(codeDir,"3a_project_mod.R")) 
-  }
+  # if(apply_biomod2_fixes) {
+  #   # all model projection fixes to BIOMOD2 code created by Adam Vorsino
+  #   source(paste0(codeDir,"3a_project_mod.R")) 
+  # }
   
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
@@ -193,13 +193,13 @@ sp_parallel_run = function(sp_nm){
     }
     
     # run BIOMOD2 fixes if TRUE in source script
-    if (apply_biomod2_fixes){
-      # load baseline projections manually from directory
-      myBiomodProjection<-LoadProjectionManually(myBiomodProj_baseline)        
-    } else {
+    # if (apply_biomod2_fixes){
+    #   # load baseline projections manually from directory
+    #   myBiomodProjection<-LoadProjectionManually(myBiomodProj_baseline)        
+    # } else {
       # use previously created baseline projections
       myBiomodProjection<-myBiomodProj_baseline
-    }
+    # }
     
     # sign-posting to run forecasting of ensemble models
     cat('\n run ensemble forecasting...')
