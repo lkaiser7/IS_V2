@@ -378,7 +378,7 @@ if (nothing_beyond_projection==F){
     source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
   }
   if (create_response_curves) { # 2a - response curves
-    source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
+    #source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
     source(paste0(codeDir, "aux_output_scripts/2d_EM_mean_resp_curves.R"))
   }
   
