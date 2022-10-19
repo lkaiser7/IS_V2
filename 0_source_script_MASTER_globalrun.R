@@ -376,7 +376,7 @@ if (nothing_beyond_projection==F){
   #only run these after having the global, local and nested models ready
   if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
     source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
-    source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
+    #source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
   }
   if (create_response_curves) { # 2a - response curves
     #source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
