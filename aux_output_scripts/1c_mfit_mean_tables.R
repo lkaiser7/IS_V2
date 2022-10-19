@@ -25,6 +25,7 @@ library(rgdal)
 loc_coast<-readOGR("data/map_data", "Main_Hawaiian_Islands_simple3")
 loc_coast<-loc_coast[which(loc_coast$Island != "NI"),]
 plot(loc_coast)
+graphics.off()
 
 # list species files
 sp_files<-list.files(paste0(dataDir, "merged_data/all_data/"))
@@ -34,6 +35,7 @@ sp_files<-list.files(paste0(dataDir, "merged_data/all_data/"))
 
 s=1
 for(s in 1:length(sp_files)){  # s = 1 for debugging
+  cat("plotting HI spp points for species ", s, "\n")
   # open species file
   sp_rec<-read.csv(paste0(dataDir, "merged_data/all_data/", sp_files[s]))
   # head(sp_rec)
@@ -52,6 +54,7 @@ for(s in 1:length(sp_files)){  # s = 1 for debugging
   }
 }
 
+#View(all_sp_count)
 # save species count file
 write.csv(all_sp_count, paste0(dataDir, "all_sp_count.csv"))
 rm(s)
@@ -73,6 +76,7 @@ bc_list = gsub("\\..*", "", env_var_files) #c("bio1", "bio7", "bio12", "bio15")
 # loop through each model type 
 m=1
 for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging 
+  cat("summarizing var imp for ", all_mod_scale[m], "\n")
   # set model scale
   mod_scale<-all_mod_scale[m]
   
@@ -85,25 +89,40 @@ for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging
   # open variable importance file
   var_imp<-read.csv(paste0(outDir, "all_VariImp.csv"))
   # head(var_imp)
+  #View(var_imp)
   
   # loop through each species
   s=1
   for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
+    cat("doing species ", all_sp_nm[s], "\n")
+    
     # select single species name
     sp.name<-all_sp_nm[s]
     
     # select species variable importance data
     sp_var_imp<-var_imp[which(var_imp[,1] == sp.name),]
     
-    # separate maxent and gbm runs
-    sp_var_max<-sp_var_imp[grep("MAXENT", names(sp_var_imp))]
-    sp_var_gbm<-sp_var_imp[grep("GBM", names(sp_var_imp))]
+    # # separate maxent and gbm runs
+    # sp_var_max<-sp_var_imp[grep("MAXENT", names(sp_var_imp))]
+    # sp_var_gbm<-sp_var_imp[grep("GBM", names(sp_var_imp))]
+    for (model_type in models_to_run){
+      sp_var_mod<-sp_var_imp[grep(model_type, names(sp_var_imp))]
+      sp_var_mod= rowMeans(sp_var_mod)
+      if (model_type == models_to_run[1]){
+        sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
+                               sp_var_mod)
+      }else{
+        sp_bc_vars=cbind(sp_bc_vars, sp_var_mod)
+      }
+    }
+    
+    names(sp_bc_vars)=c("SPECIES", "VAR", paste0(models_to_run, "_MEAN"))
     
     # calculate means per variable
     # sp_bc_vars<-cbind(sp.name, bc_list, rowMeans(sp_var_max), rowMeans(sp_var_gbm))
-    sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
-                           MAXENT_MEAN = rowMeans(sp_var_max), 
-                           GBM_MEAN = rowMeans(sp_var_gbm))
+    # sp_bc_vars<-data.frame(SPECIES = sp.name, VAR = bc_list, 
+    #                        MAXENT_MEAN = rowMeans(sp_var_max), 
+    #                        GBM_MEAN = rowMeans(sp_var_gbm))
     if(s == 1){
       all_bc_vars<-sp_bc_vars
     }else{

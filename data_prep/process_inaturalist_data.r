@@ -4,7 +4,7 @@ rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 # set working directory to main analysis folder
 setwd(rootDir)
 
-inat_df=read.csv("data/inat_data/inaturalist_gbif_simple.csv")
+inat_df=read.csv("data/inat_data/inaturalist_gbif_simple2.csv")
 inat_sp_list=read.csv("data/inat_data/species_list.csv")
 
 #View(inat_df)

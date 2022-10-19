@@ -16,7 +16,7 @@ require(tools)
 
 # set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
-sp_nm=all_sp_nm[1]
+sp_nm=all_sp_nm[2]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
   # load necessary packages
@@ -325,7 +325,7 @@ sp_parallel_run = function(sp_nm) {
       # load suitability score raster for species from global models 
       sp_scores<-raster(paste0(suitscores, sp_nm, "_suitability_baseline_TSS_wmean.tif"))
       # create matrix with extracted suitability scores to use as weights
-      suitability_scores<-extract(sp_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
+      suitability_scores<-raster::extract(sp_scores, mySpeciesData[, 1:2], cellnumbers = TRUE)
       # create column for weights calculated from suitability scores
       suit_weights<-matrix(0, nrow = length(suitability_scores[, 2]), ncol = 1)
       # use eq(1) from Gallien et al. (2012) to calculate Yweights
@@ -498,6 +498,30 @@ sp_parallel_run = function(sp_nm) {
     # r <- stack_raster(myExpl, myRespXY)
     # r 
     
+    ##############################
+    #format  data for biomod
+    myBiomodData<-BIOMOD_FormatingData(
+      resp.name = sp_nm,  #species name (character)
+      resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
+      expl.var = stack(predictors), #myExpl,  #bioclim values (df)
+      resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
+      PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
+      PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
+      PA.strategy = PA.strategy,  #how to select PAs
+      PA.dist.min = PA.dist.min)  #minimum distance to presences
+    
+    file_name_out = paste0(project_path, sp_dir, sp_nm, "_BiomodData.RData")
+    save("myBiomodData", file = file_name_out)   
+    
+    # sign-posting of completed biomod data formating
+    cat('\n biomod data formatting complete. (Line 335)') 
+    # record time and date stamp
+    cat(format(Sys.time(), "%a %b %d %Y %X"))
+    
+    # if (!only_save_biomod_input_data){
+    ###################################
+    ###################################
+    #model tunning
     gbm.tree.complexity=7
     gbm.learning.rate=0.001
     gbm.bag.fraction=0.5
@@ -559,6 +583,7 @@ sp_parallel_run = function(sp_nm) {
       #fc are data transforms, rm is regularization
       #eval3@tune.settings
       best_model=eval3@results[which(eval3@results$delta.AICc==0),]
+      if (nrow(best_model)>1) best_model=best_model[1,] #if multiple models just as good, pick simpler
       fc=as.character(best_model$fc)
       maxent_best_params=data.frame(L=grepl("L", fc), Q=grepl("Q", fc), H=grepl("H", fc),
                                     P=grepl("P", fc), T=grepl("T", fc), rm=as.numeric(as.character(best_model$rm)),
@@ -573,23 +598,9 @@ sp_parallel_run = function(sp_nm) {
                                     gbm.bag.fraction = gbm.bag.fraction) #0.75
     }
     
-    ##############################
-    # load BIOMOD2 data for formatting
-    myBiomodData<-BIOMOD_FormatingData(
-      resp.name = sp_nm,  #species name (character)
-      resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
-      expl.var = stack(predictors), #myExpl,  #bioclim values (df)
-      resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
-      PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
-      PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
-      PA.strategy = PA.strategy,  #how to select PAs
-      PA.dist.min = PA.dist.min)  #minimum distance to presences
     
-    # sign-posting of completed biomod data formating
-    cat('\n biomod data formatting complete. (Line 335)') 
-    # record time and date stamp
-    cat(format(Sys.time(), "%a %b %d %Y %X"))
-    
+    ###################################
+    ###################################
     # set different options for selected modeling techniques from source script
     myBiomodOption<-BIOMOD_ModelingOptions(
       # GBM: Generalized Boosted Regression                                            
@@ -740,6 +751,7 @@ sp_parallel_run = function(sp_nm) {
     p_time = as.numeric(ptm1[3])/60 
     # report processing time to log file
     cat('\n It took ', p_time, "minutes to model", sp_nm)
+    # }
     sink(NULL)
   }else{
     # sign-posting if file for variable importance has already been created 
@@ -783,6 +795,19 @@ sfStop()
 
 file.remove(list.files(tempdir(), full.names = T, pattern = "^file")) #https://stackoverflow.com/questions/45894133/deleting-tmp-files
 
+tryCatch({options(warn=-1); detach(package:rworldmap)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:rworldxtra)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maps)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maptools)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:spThin)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:terra)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:ENMeval)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:rJava)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:maxnet)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+tryCatch({options(warn=-1); detach(package:ecospat)}, error = function(err) {print(paste("MY_ERROR:  ",err))}) 
+
+
+# END tryCatch
 #############################
 ##### END MODEL FITTING #####
 #############################
