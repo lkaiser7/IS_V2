@@ -30,6 +30,7 @@ sp_parallel_run = function(sp_nm){
   
   # convert species name to character object (in case the species are numbered)
   sp_nm = as.character(sp_nm) 
+  sp.nm=sub("_", ".", sp_nm)
   
   # replace species naming convention of "_" with "." 
   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
@@ -75,7 +76,7 @@ sp_parallel_run = function(sp_nm){
   # load workspace from previous step
   load(workspace_name)   
   # set name of file to save workspace data from ensemble projections
-  workspace_name_out = paste0(sp_nm, "_", proj_nm, "_projections.RData") 
+  workspace_name_out = paste0(project_path, sp_dir, sp_nm, "_", proj_nm, "_projections.RData") 
   
   # if species file already exists, skip to end, otherwise begin ensemble projections
   if(file.exists(workspace_name_out) == FALSE | overwrite == TRUE) {
@@ -121,7 +122,7 @@ sp_parallel_run = function(sp_nm){
     
     # set projection name to scenario (for baseline or future)
     projection_name = proj_nm
-  
+    
     # set location to save R workspace data after all ensemble model projections
     workspace_name_out0 = paste0(project_path, sp_dir, sp_nm, 
                                  "_", proj_nm, "_all_models_proj.RData") 
@@ -197,116 +198,108 @@ sp_parallel_run = function(sp_nm){
     #   # load baseline projections manually from directory
     #   myBiomodProjection<-LoadProjectionManually(myBiomodProj_baseline)        
     # } else {
-      # use previously created baseline projections
-      myBiomodProjection<-myBiomodProj_baseline
+    # use previously created baseline projections
+    myBiomodProjection<-myBiomodProj_baseline
     # }
     
     # sign-posting to run forecasting of ensemble models
     cat('\n run ensemble forecasting...')
     
     # set location to save R workspace data and ensemble projections
-    workspace_name_out1 = paste0(project_path, sp_dir, sp_nm, 
-                                 "_", proj_nm, "_all_model_ensemble_proj.RData") 
+    # workspace_name_out1 = paste0(project_path, sp_dir, sp_nm, 
+    #                              "_", proj_nm, "_all_model_ensemble_proj.RData") 
     # check if ensemble projections workspace already exists or not
-    if (file.exists(workspace_name_out1) == FALSE | overwrite == TRUE) { 
+    
+    
+    ################################
+    ##### ensemble_forecasting #####
+    ################################
+    
+    # change working directory to project path to save model outputs
+    setwd(project_path)
+    # run ensemble projections for species
+    # myBiomodEF <- BIOMOD_EnsembleForecasting(
+    #   projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
+    #   total.consensus = TRUE,  #mean of all combined model projections
+    #   EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
+    #   proj.name=sp_nm,
+    #   binary.meth = eval_stats,  #evaluation method statistics 
+    #   keep.in.memory = memory)  #if output should be saved to hard disk or not
+    
+    # setMethod('writeValues', signature(object = 'RasterBrick'),
+    #           writeRaster(...))
+    myBiomodEF <- BIOMOD_EnsembleForecasting(
+      projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
+      total.consensus = TRUE,  #mean of all combined model projections
+      selected.models= "all", #remaining_models,
+      #new.env = predictors,
+      EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
+      proj.name=proj_nm,
+      binary.meth = eval_stats,  #evaluation method statistics 
+      keep.in.memory = memory) #,
+    
+    #keep.in.memory = memory)  #if output should be saved to hard disk or not
+    # sign-posting of completed ensemble projections
+    cat('\n', 'BIOMOD_EnsembleForecasting function complete.') 
+    
+    #################################
+    #create binary projections
+    #load ensemble stack
+    cat('\n', 'Now creating binary projections') 
+    EM_stack=paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble.grd")
+    EM_stack=stack(EM_stack)
+    EM_stack_names=names(EM_stack)
+    
+    #get threshold values and apply to appropriate ensemble layer
+    scores_all=get_evaluations(myBiomodEM)
+    eval_stat = eval_stats[1]
+    WMwmean_ensemble_cutoffs=c()
+    for (eval_stat in eval_stats){
+      cat("doing ", eval_stat, " ensemble bin rasters \n")
+      index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
+      jnk=scores_all[[index]]
+      #jnk=scores_all[index]
+      cutoff=jnk[eval_stat, "Cutoff"]
+      WMwmean_ensemble_cutoffs=c(WMwmean_ensemble_cutoffs, cutoff)
       
+      stack_index=grep(pattern = paste0("EMwmeanBy", eval_stat), EM_stack_names)
+      EMwmean_raster=EM_stack[[stack_index]]
+      EMwmeanBin_raster=BinaryTransformation(EMwmean_raster, cutoff)
+      #plot(EMwmean_raster)
+      #plot(EMwmeanBin_raster)
       
-      ################################
-      ##### ensemble_forecasting #####
-      ################################
-      
-      # change working directory to project path to save model outputs
-      setwd(project_path)
-      sp.nm=sub("_", ".", sp_nm)
-      # run ensemble projections for species
-      # myBiomodEF <- BIOMOD_EnsembleForecasting(
-      #   projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
-      #   total.consensus = TRUE,  #mean of all combined model projections
-      #   EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
-      #   proj.name=sp_nm,
-      #   binary.meth = eval_stats,  #evaluation method statistics 
-      #   keep.in.memory = memory)  #if output should be saved to hard disk or not
-      
-      # setMethod('writeValues', signature(object = 'RasterBrick'),
-      #           writeRaster(...))
-      myBiomodEF <- BIOMOD_EnsembleForecasting(
-        projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
-        total.consensus = TRUE,  #mean of all combined model projections
-        selected.models= "all", #remaining_models,
-        #new.env = predictors,
-        EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
-        proj.name=proj_nm,
-        binary.meth = eval_stats,  #evaluation method statistics 
-        keep.in.memory = memory) #,
-      
-      #keep.in.memory = memory)  #if output should be saved to hard disk or not
-      # sign-posting of completed ensemble projections
-      cat('\n', 'BIOMOD_EnsembleForecasting function complete.') 
-      
-      #################################
-      #create binary projections
-      #load ensemble stack
-      cat('\n', 'Now creating binary projections') 
-      EM_stack=paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble.grd")
-      EM_stack=stack(EM_stack)
-      EM_stack_names=names(EM_stack)
-      
-      #get threshold values and apply to appropriate ensemble layer
-      scores_all=get_evaluations(myBiomodEM)
-      eval_stat = eval_stats[1]
-      WMwmean_ensemble_cutoffs=c()
-      for (eval_stat in eval_stats){
-        cat("doing ", eval_stat, " ensemble bin rasters \n")
-        index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
-        jnk=scores_all[[index]]
-        #jnk=scores_all[index]
-        cutoff=jnk[eval_stat, "Cutoff"]
-        WMwmean_ensemble_cutoffs=c(WMwmean_ensemble_cutoffs, cutoff)
-        
-        stack_index=grep(pattern = paste0("EMwmeanBy", eval_stat), EM_stack_names)
-        EMwmean_raster=EM_stack[[stack_index]]
-        EMwmeanBin_raster=BinaryTransformation(EMwmean_raster, cutoff)
-        #plot(EMwmean_raster)
-        #plot(EMwmeanBin_raster)
-        
-        #save raster
-        writeRaster(EMwmeanBin_raster, 
-                    paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmeanBy", eval_stat, "_bin.tif"),
-                    overwrite=T,
-                    compress="LZW")
-      }
-      #save cutoffs
-      write.csv(WMwmean_ensemble_cutoffs, 
-                paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmean_cutoffs.csv"), row.names = F)
-      
-      
-      
-      # reset working directory to root 
-      setwd(rootDir)
-      
-      # sign-posting of completed ensemble projections
-      cat('\n', sp_nm, 'ensemble projection done.') 
-      
-      # save ensemble projections R workspace environement 
-      save("myBiomodProjection", "myBiomodEF", file = workspace_name_out1)
-      
-      # remove any temporary files
-      removeTmpFiles(h = 1) 
-    } else {
-      # sign-posting if projection for species is already done
-      cat('\n', sp_nm, 'projections previously done.')
+      #save raster
+      writeRaster(EMwmeanBin_raster, 
+                  paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmeanBy", eval_stat, "_bin.tif"),
+                  overwrite=T,
+                  compress="LZW")
     }
+    #save cutoffs
+    write.csv(WMwmean_ensemble_cutoffs, 
+              paste0(sp_dir, "proj_baseline/proj_baseline_", sp.nm, "_ensemble_EMwmean_cutoffs.csv"), row.names = F)
+    
+    
+    
+    # reset working directory to root 
+    setwd(rootDir)
+    
+    # sign-posting of completed ensemble projections
+    cat('\n', sp_nm, 'ensemble projection done.') 
+    
+    
+    # remove any temporary files
+    removeTmpFiles(h = 1) 
     ######################
     ######################
     cat('\n', 'converting grd to tiff files.')
     eval_stat = spp_ensemble_eval_stats[1]
     for (eval_stat in spp_ensemble_eval_stats){
-      # convert species name to character
-      sp_nm = as.character(sp_nm)  
-      # store species name as character
-      sp_nm0 = sp_nm
+      # # convert species name to character
+      # sp_nm = as.character(sp_nm)  
+      # # store species name as character
+      # sp_nm0 = sp_nm
       # replace species naming convention of "_" with "."
-      sp_nm = str_replace_all(sp_nm, "_", ".")
+      # sp_nm = str_replace_all(sp_nm, "_", ".") #sp.nm
       
       # print sign posting of ongoing modeling per species 
       cat('\n',sp_nm,'grid conversion')
@@ -354,27 +347,30 @@ sp_parallel_run = function(sp_nm){
           }
         }
         
-        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                            proj_nm, "_", sp_nm, "_ensemble.grd")
+        file_name1 = paste0(project_run, "/", sp.nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp.nm, "_ensemble.grd")
         replace_grd_fx(file_name1)
         
-        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                            proj_nm, "_", sp_nm, "_ensemble_", eval_stat, "bin.grd")
+        file_name1 = paste0(project_run, "/", sp.nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp.nm, "_ensemble_", eval_stat, "bin.grd")
         replace_grd_fx(file_name1)
         
         ####delete unused grids
-        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                            proj_nm, "_", sp_nm, "_", eval_stat, "bin.grd")
+        file_name1 = paste0(project_run, "/", sp.nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp.nm, "_", eval_stat, "bin.grd")
         unlink(file_name1, recursive=T, force=T)
         unlink(sub(pattern = ".grd$", replacement = ".gri", file_name1), recursive=T, force=T)
         
-        file_name1 = paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/proj_", 
-                            proj_nm, "_", sp_nm, ".grd")
+        file_name1 = paste0(project_run, "/", sp.nm, "/proj_", proj_nm, "/proj_", 
+                            proj_nm, "_", sp.nm, ".grd")
         unlink(file_name1, recursive=T, force=T)
         unlink(sub(pattern = ".grd$", replacement = ".gri", file_name1), recursive=T, force=T)
         
       }
     }
+    
+    # save ensemble projections R workspace environement 
+    save("myBiomodProjection", "myBiomodEF", file = workspace_name_out)
     
     # delete select temporary files per species once processing is finished
     unlink(paste0(temp_sp_files_to_delete, "*"), recursive=T, force=T) #delete previous frames
@@ -382,10 +378,11 @@ sp_parallel_run = function(sp_nm){
     gc()
     
     #delete individual projection files
-    unlink(paste0(project_run, "/", sp_nm, "/proj_", proj_nm, "/individual_projections/*"), recursive=T, force=T) #delete previous frames
+    unlink(paste0(project_run, "/", sp.nm, "/proj_", proj_nm, "/individual_projections/*"), recursive=T, force=T) #delete previous frames
     
     # return output to console
     sink(NULL) 
+    
   }else{
     cat('\n', sp_nm, 'projection already done...')
     sink(NULL)

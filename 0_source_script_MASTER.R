@@ -8,7 +8,7 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 3 # select number of computer cores for processing (max = 32)
+cpucores = 6 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
@@ -174,7 +174,7 @@ plot_graphs = TRUE
 useRasterDef = TRUE
 interpolateDef = FALSE
 # choose whether to overwrite past results (T) or not (F)
-overwrite = T
+overwrite = F
 
 if (cpucores==1){
   parallel_run = F
