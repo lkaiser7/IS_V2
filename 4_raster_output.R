@@ -14,6 +14,13 @@ library(raster)
 ######################
 ##### FUNCTIONS ######
 ######################
+all_dev_off=function() {
+  if (length(dev.list())>0){
+    for (i in dev.list()[1]:dev.list()[length(dev.list())]) {dev.off()}
+  }else{
+    cat("no open devices \n")
+  }
+}
 
 # function to save display and save raster image
 save_raster_fx = function(raster_img, out_nm) {
@@ -25,7 +32,7 @@ save_raster_fx = function(raster_img, out_nm) {
   # plot image
   plot(raster_img)
   # save image file
-  dev.off() 
+  all_dev_off()
   
   # save name of tiff file to be created
   tiff_name = paste0(out_nm, ".tif")
@@ -37,7 +44,7 @@ save_raster_fx = function(raster_img, out_nm) {
   # plot image
   plot(raster_img)
   # save image file
-  dev.off()  
+  all_dev_off() 
   
   # save raster data file
   writeRaster(raster_img, out_raster_name, format="GTiff", overwrite = TRUE)        
@@ -82,7 +89,7 @@ Process_raster_data_BadtoGood = function(raster_var, out_nm, min_lim = NULL,
     plot(mask_data, add = TRUE)    
   }
   # save jpeg image file
-  dev.off()  
+  all_dev_off() 
   # save raster data file
   writeRaster(raster_var, out_raster_name, format = "GTiff", overwrite = TRUE)
 }
@@ -125,7 +132,7 @@ Process_raster_data_NeutraltoGood = function(raster_var, out_nm, min_lim = NULL,
     plot(mask_data, add = TRUE)    
   }
   # save jpeg image file
-  dev.off()  
+  all_dev_off()
   # save raster data file
   writeRaster(raster_var, out_raster_name, format = "GTiff", overwrite=TRUE)
 }
@@ -168,7 +175,7 @@ Process_raster_data_NeutraltoBad = function(raster_var, out_nm, min_lim = NULL,
     plot(mask_data, add = TRUE)    
   }
   # save jpeg image file
-  dev.off()  
+  all_dev_off()
   # save raster data file
   writeRaster(raster_var, out_raster_name, format = "GTiff", overwrite = TRUE)
 }

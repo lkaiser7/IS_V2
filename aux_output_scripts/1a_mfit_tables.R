@@ -33,6 +33,7 @@ for (sp_nm in all_sp_nm){
   #################################
   
   # loop to combine all evaluations statistics from each model per species 
+  eval_stat = eval_stats[1]
     for (eval_stat in eval_stats){ # set eval_stat = eval_stats for debugging
       # save all eval_stat values from model evaluation as a data frame
       Spp_eval<-data.frame(myBiomodModelEval[eval_stat, "Testing.data",,,])
@@ -74,6 +75,7 @@ for (sp_nm in all_sp_nm){
   # add 1 to counter (i) to go to next species in loop
   i = i + 1
 }
+#View(all_var_imp_mat)
 # create file name for all model variable importance values
 FileName<-paste0(outDir, "all_VariImp.csv")
 # save variable importance as csv file
@@ -89,10 +91,12 @@ all_var_imp_mean = cbind(all_var_imp_mean, meanVarImp)
 names(all_var_imp_mean) = c("species", "var", "meanVarImp")
 # remove row assigned names
 row.names(all_var_imp_mean)<-NULL 
+#View(all_var_imp_mean)
 # create file name for mean of variable importance values
 FileName<-paste0(outDir, "all_VariImp_mean.csv")
 # save variable importance means as csv file
 write.csv(all_var_imp_mean, file = FileName, row.names = FALSE)
+
 
 # loop through and save each evaluation statistic type
 for (eval_stat in eval_stats){
@@ -115,6 +119,8 @@ for (eval_stat in eval_stats){
   tmp_eval_map2 = data.frame(species = tmp_eval_map2, meanEval)
   # remove row assigned names
   row.names(tmp_eval_map2)<-NULL 
+  
+  #View(tmp_eval_map2)
   
   # create file name for mean evaluations of statistics
   FileName<-paste0(outDir, "all_eval_mean_mat_", eval_stat, ".csv")

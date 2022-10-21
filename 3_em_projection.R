@@ -382,6 +382,7 @@ sp_parallel_run = function(sp_nm){
     
     # return output to console
     sink(NULL) 
+    cat('\n', sp_nm, 'projection done...')
     
   }else{
     cat('\n', sp_nm, 'projection already done...')

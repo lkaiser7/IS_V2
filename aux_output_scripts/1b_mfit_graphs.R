@@ -61,7 +61,7 @@ for (eval_stat in eval_stats){
     
     # save image file output
     ggsave(filename = t_name, plot = a)    
-    # dev.off()
+    graphics.off()
     
     # sign-posting of completed box plot for each evaluation statistic and model
     cat('done with', eval_stat, model, 'model_skil box plot \n')
@@ -88,51 +88,10 @@ for (eval_stat in eval_stats){
   
   # save image file output
   ggsave(filename = t_name, plot = a)    
-  # dev.off()
+  graphics.off()
+  
 }
 
-# load and format data in loop as done previously done above for violin plots
-for (eval_stat in eval_stats){
-  evalMat0=read.csv(paste0(outDir, 'all_eval_mat_',eval_stat,'.csv'))
-  for (model in models_to_run){
-    evalMat=evalMat0[evalMat0[,2]==model,3:ncol(evalMat0)]
-    evalMat=as.data.frame(t(evalMat))
-    names(evalMat)=evalMat0[evalMat0[,2]==model,1]
-    long=melt(evalMat)
-    names(long)=c("Species", "Value")
-    long=long[long[,1] %in% all_sp_nm,]
-    long=long[order(long[,1]),]
-    long$Species <- factor(long$Species, levels = sort(levels(long$Species)))
-    
-    # name output image file
-    t_name = paste0(vi_fold, eval_stat, "_", model, "_variable_importance_violin_plot.tiff")
-    # create blank image file
-    tiff(t_name, res = 300, units = "in", pointsize = 12,
-         width = 10, height = 10, compression = "lzw")
-    # store violin qplot
-    a = qplot(Species, Value, data = long, geom = c("violin"), fill = Species, main="",
-            xlab = "", ylab = paste(eval_stat, "model evaluation"))
-    # + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-    # add scale
-    a = a + geom_violin(scale = "width")
-    # add legend
-    a = a + guides(fill = guide_legend(keywidth = 1, keyheight = 1.2))
-    # remove axis elelments
-    a = a + theme(axis.ticks.y = element_blank(), axis.text.y = element_blank())
-    # rotate graph horizontally
-    a = a + coord_flip()
-    # resize plot and add corresponding legend
-    a = a + guides(fill = guide_legend(reverse = TRUE), guide = guide_legend(title = NULL))
-    # plot final graph with all previously stored adjustments
-    print(a)
-    # save image file output
-    ggsave(filename = t_name, plot = a)  
-    dev.off()
-    
-    # sign-posting of completed violin plot for each evaluation statistic and model
-    cat('done with', eval_stat, model, 'variable importance box plot \n')
-  }
-}
 
 ###############################
 ##### VARIABLE IMPORTANCE #####
@@ -185,45 +144,14 @@ for (sp_nm in all_sp_nm){
     
     # save image file output
     ggsave(filename = t_name, plot = a)    
-    dev.off()
+    graphics.off()
+    
     
     # sign-posting of completed box plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance box plot \n')
   }
 }
 
-# load and format data in loop as done previously done above for violin plot
-for (sp_nm in all_sp_nm){
-  for (model in models_to_run){
-    model_n = which(models_to_run==model)
-    varImp = varImp0[varImp0[,1]==sp_nm,model_cols[[model_n]]]
-    varImp = as.data.frame(t(varImp))
-    names(varImp) = varImp0[varImp0[,1]==sp_nm,"rownames.Spp_VariImp."]
-    long = melt(varImp)
-    names(long) = c("Predictor", "Value")
-    
-    # name output image file
-    t_name=paste0(vi_fold, sp_nm, "_", model, "_variable_importance_violin_plot.tiff")
-    # create blank image file
-    tiff(t_name, res = 300, units = "in", pointsize = 12,
-         width = 10, height = 10, compression = "lzw")
-    # store violin qplot
-    a = qplot(Predictor, Value, data = long, geom = c("violin"),
-            fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
-    # add scale
-    a = a + geom_violin(scale = "width")
-    # remove axis elements 
-    a = a+theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
-    print(a)
-    
-    # save image file output
-    ggsave(filename = t_name, plot = a) 
-    dev.off()
-    
-    # sign-posting of completed violin plot for bioclimatic variables    
-    cat('done with', sp_nm, model, 'variable importance violin plot \n')
-  }
-}
 
 ####################################
 ##### END MODEL FITTING GRAPHS #####
