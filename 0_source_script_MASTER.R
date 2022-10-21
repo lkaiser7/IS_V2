@@ -8,12 +8,13 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 3 # select number of computer cores for processing (max = 32)
+cpucores = 6 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
-nothing_beyond_projection=T
+run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_scripts_beyond_projection=T
+run_scripts_after_3_model_scales_done=F
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
@@ -28,7 +29,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 
 # set root path to source files
 project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM4/", 
-               "~/projects/invasives_SDM4/", "/home/pierc/projects/invasives_SDM/")
+               "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -159,7 +160,7 @@ rm(world_map, hawaii_map)
 #############################
 
 # select BIOMOD2 models to run (ANN, CTA, FDA,  GAM, GBM, GLM, MARS, MAXENT, RF, SRE)
-models_to_run = c("MAXENT.Phillips", "GAM", "GLM", "MARS", "FDA")  #"GBM", , "SRE"("GAM", "GBM", "GLM", "MAXENT", "RF")
+models_to_run = c("GAM", "GLM", "MARS", "FDA")  #"GBM", , "SRE"("GAM", "GBM", "GLM", "MAXENT", "RF")
 # for raster creation and shifted calculations for mapping
 spp_ensemble_eval_stats = eval_stats #c('ROC', 'TSS', 'KAPPA')
 
@@ -225,7 +226,7 @@ if (!any(c("GBM", "MAXENT.Phillips") %in% models_to_run)){
 }
 #only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
-NbRunEval = 5
+NbRunEval = 10
 # if the models should use response points weights or not
 if (run_type=="nested_HI"){
   useYweights = T
@@ -237,7 +238,7 @@ PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 5
+PA.nb.rep = 10
 # select number of PAs to determine point density
 number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 #if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 
@@ -360,10 +361,11 @@ if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
   #source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
 }
-if (nothing_beyond_projection==F){
-  if (raster_output_creation) { # 4 - create output rasters
-    source(paste0(codeDir,"4_raster_output.R"))}
-  
+
+if (raster_output_creation) { # 4 - create output rasters
+  source(paste0(codeDir,"4_raster_output.R"))}
+
+if (run_scripts_beyond_projection){
   ############################################
   # auxiliary scripts based on settings above
   if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
@@ -376,21 +378,23 @@ if (nothing_beyond_projection==F){
     source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
   }
   
-  ####################################
-  #only run these after having the global, local and nested models ready
-  if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
-    source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
-    #source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
+  if (run_scripts_after_3_model_scales_done){
+    ####################################
+    #only run these after having the global, local and nested models ready
+    if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
+      source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
+      #source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
+    }
+    if (create_response_curves) { # 2a - response curves
+      #source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
+      source(paste0(codeDir, "aux_output_scripts/2d_EM_mean_resp_curves.R"))
+    }
+    
+    source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
+    source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
+    #source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r")) #does not make sense to make this comparison without ensemble
+    source(paste0(codeDir, "aux_output_scripts/EM_global_vs_local_model_eval.r"))
   }
-  if (create_response_curves) { # 2a - response curves
-    #source(paste0(codeDir, "aux_output_scripts/2c_mean_resp_curves.R"))
-    source(paste0(codeDir, "aux_output_scripts/2d_EM_mean_resp_curves.R"))
-  }
-  
-  source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
-  source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
-  #source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r")) #does not make sense to make this comparison without ensemble
-  source(paste0(codeDir, "aux_output_scripts/EM_global_vs_local_model_eval.r"))
   
 }
 

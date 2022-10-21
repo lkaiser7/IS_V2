@@ -11,7 +11,7 @@ library(biomod2)
 library(stringr)
 
 # reset species counter to 1
-sp_nm = all_sp_nm[7] 
+sp_nm = all_sp_nm[1] 
 
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm){  
@@ -308,12 +308,13 @@ sp_parallel_run = function(sp_nm){
 ##### SNOWFALL FUNCTION SCRIPT RUN #####
 ########################################
 
+library(parallel)
 if (is.null(cpucores)){
   # determine total number of processors available
-  cpucores = as.integer(Sys.getenv('NUMBER_OF_PROCESSORS'))  
+  cpucores = detectCores(all.tests = FALSE, logical = TRUE) #as.integer(Sys.getenv('NUMBER_OF_PROCESSORS'))  
 }else{
   # determine minimum number of processors available
-  cpucores = min(cpucores, as.integer(Sys.getenv('NUMBER_OF_PROCESSORS')))
+  cpucores = min(cpucores, detectCores(all.tests = FALSE, logical = TRUE))
 }
 # initialize parallel computing on minimum number of cpu cores
 sfInit(parallel = parallel_run, cpus = cpucores)
