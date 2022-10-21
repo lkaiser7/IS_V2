@@ -219,6 +219,10 @@ species_ensemble_maps = F
 
 ### EM_fitting (script 1)
 optimize_model_params=T
+if (!any(c("GBM", "MAXENT.Phillips") %in% models_to_run)){
+  optimize_model_params=F # no need to optimize if models with optimization routines are not used
+  cat("not optimizing since gbm and maxent not being run \n")
+}
 #only_save_biomod_input_data=F #only for saving data necessary for ensemble model diagnostics
 # number of ensemble modeling evaluation runs (set to 10 for full runs)
 NbRunEval = 5
