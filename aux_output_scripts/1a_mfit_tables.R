@@ -105,6 +105,29 @@ for (eval_stat in eval_stats){
   # save model evaluations per statistic as csv file
   write.csv(get(paste0("all_eval_mat_", eval_stat)), file = FileName, row.names = FALSE)
   
+  ####################
+  all_eval_mat=get(paste0("all_eval_mat_", eval_stat))
+  #View(all_eval_mat)
+  #names(all_eval_mat)
+  jnk=apply(all_eval_mat[,-c(1,2)], 1, mean, na.rm=T)
+  mean_all_eval_mat=all_eval_mat[,c(1,2)]
+  mean_all_eval_mat$mean_eval=jnk
+  row.names(mean_all_eval_mat)=NULL
+  names(mean_all_eval_mat)=c("species", "model_type", "mean_eval")
+  #View(mean_all_eval_mat)
+  library(reshape2)
+  library(ggplot2)
+  mean_all_eval_mat_short=dcast(mean_all_eval_mat, formula = species ~ model_type, value.var="mean_eval")
+  #View(mean_all_eval_mat_short)
+  a=ggplot(mean_all_eval_mat, aes(fill=model_type, y=mean_eval, x=species)) + ylab("Model evaluation score")+xlab("")+
+    geom_bar(position="dodge", stat="identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.title=element_blank())
+  FileName<-paste0(outDir, "all_eval_mat_", eval_stat, "_short.csv")
+  write.csv(mean_all_eval_mat_short, FileName, row.names = F)
+  PlotFileName<-paste0(outDir, "all_eval_mat_", eval_stat, ".tiff")
+  ggsave(filename = PlotFileName, plot = a)    
+  #graphics.off()
+  
+  
   # create temporary file for evalutation statistic
   tmp_eval_map = get(paste0("all_eval_mat_", eval_stat))
   # rename first two columns
