@@ -56,6 +56,7 @@ for (model_scale in model_scales){
   }  
   #View(all_sp_varImpDF)
 }
+dir.create(paste0(rootDir, "combined_results/"), showWarnings = F)
 write.csv(all_sp_varImpDF, paste0(rootDir, "combined_results/all_EM_var_imp.csv"))
 
 #reformat
