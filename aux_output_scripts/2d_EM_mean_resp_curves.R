@@ -113,14 +113,28 @@ all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="eval")
 all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
 write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
 
-all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="sensitivity")
-all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
-write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_sensitivity_short.csv"))
+all_sp_sensDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="sensitivity")
+all_sp_sensDF_short$GL_diff=abs(all_sp_sensDF_short$global_notHI-all_sp_sensDF_short$local_HI)
+write.csv(all_sp_sensDF_short, paste0(rootDir, "combined_results/all_EM_sensitivity_short.csv"))
 
-all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="specificity")
-all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
-write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_specificity_short.csv"))
+all_sp_specDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="specificity")
+all_sp_specDF_short$GL_diff=abs(all_sp_specDF_short$global_notHI-all_sp_specDF_short$local_HI)
+write.csv(all_sp_specDF_short, paste0(rootDir, "combined_results/all_EM_specificity_short.csv"))
 
+#combined
+tmp1=all_sp_evalDF_short[,-5]
+names(tmp1)[2:4]=paste0("eval_", names(tmp1)[2:4])
+
+tmp2=all_sp_sensDF_short[,-5]
+names(tmp2)[2:4]=paste0("sens_", names(tmp2)[2:4])
+
+tmp3=all_sp_specDF_short[,-5]
+names(tmp3)[2:4]=paste0("spec_", names(tmp3)[2:4])
+
+tmp1=merge(tmp1, tmp2, by="species")
+tmp1=merge(tmp1, tmp3, by="species")
+write.csv(tmp1, paste0(rootDir, "combined_results/all_EM_eval_table.csv"), row.names = F)
+apply(tmp1[,-1], 2, mean, na.rm=T)
 
 #####################################################
 #####################################################
@@ -130,6 +144,8 @@ dir.create(rc_fold, showWarnings = FALSE, recursive = T)
 
 emVI_fold<-paste0(rootDir, "combined_results/EM_mean_VariImp_plots/")
 dir.create(emVI_fold, showWarnings = FALSE, recursive = T) 
+dir.create(paste0(rc_fold, "individual_plots/"), showWarnings = FALSE, recursive = T) 
+dir.create(paste0(rc_fold, "GL_scld/"), showWarnings = FALSE, recursive = T) 
 
 # loop through each species
 s=1
@@ -160,25 +176,37 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     names(rp.dat2)=c("expl.name", "expl.val", "pred.val")
     #View(rp.dat2)
     
+    scld_rp.dat2=rp.dat2
+    bio = var_names[1]
+    for (bio in var_names){
+      jnk=scld_rp.dat2[scld_rp.dat2$expl.name==bio,"pred.val"]
+      scld_rp.dat2[scld_rp.dat2$expl.name==bio,"pred.val"]=c(scale(jnk))
+    }
     # save tables per model scale run
     if(mod_scale == "local_HI"){ #"global_notHI", "local_HI", "nested_HI"
       local_tab<-rp.dat2
+      scld_local_tab<-scld_rp.dat2
     }else if(mod_scale == "global_notHI"){
       global_tab<-rp.dat2
+      scld_global_tab<-scld_rp.dat2
     }else{
       nested_tab<-rp.dat2
+      scld_nested_tab<-scld_rp.dat2
     }
     
     # then merge to make a the panel figure
     
     # add model scale column
     rp.dat2$model_scale=mod_scale
+    scld_rp.dat2$model_scale=mod_scale
     # merge data for plotting
     if(m == 1){
       all.rp.dat2<-rp.dat2
+      scld_all.rp.dat2<-scld_rp.dat2
       #all_var_imp<-sp_var_imp
     }else{
       all.rp.dat2<-rbind(all.rp.dat2, rp.dat2)
+      scld_all.rp.dat2<-rbind(scld_all.rp.dat2, scld_rp.dat2)
       #all_var_imp<-rbind(all_var_imp, sp_var_imp)
     }
     
@@ -197,6 +225,10 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   sp_varImpDF$model_scale=paste0(sp_varImpDF$model_scale, "_models")
   plot_data<-merge(all.rp.dat2, sp_varImpDF, by =  c("expl.name", "model_scale"), all = T)
   plot_data$line_size<-plot_data$varImp*3
+  
+  scld_plot_data<-merge(scld_all.rp.dat2, sp_varImpDF, by =  c("expl.name", "model_scale"), all = T)
+  scld_plot_data$line_size<-scld_plot_data$varImp*3
+  
   #View(plot_data)
   
   ############
@@ -210,7 +242,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
                                          "model_scale")]
   mean_var_imp_df=dcast(mean_var_imp_df, expl.name ~ model_scale, mean, value.var="varImp")
   mod_type="EM"
-  
+  #View(mean_var_imp_df)
   names(mean_var_imp_df)=c("expl.name", "GvarImp", "LvarImp", "NvarImp")
   mean_var_imp_df$GL_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$LvarImp)/2
   mean_var_imp_df$GN_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$NvarImp)/2
@@ -236,17 +268,45 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       }
     }
     names(extrapolated_response_DF)=c("expl_vals", all_mod_scale)
-    extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)
-    extrapolated_response_DF$GN_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)
-    extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)
+    extrapolated_response_DF$GL_diff=(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)^2
+    extrapolated_response_DF$GN_diff=(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)^2
+    extrapolated_response_DF$LN_diff=(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)^2
+    # extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)
+    # extrapolated_response_DF$GN_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)
+    # extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)
+    extrapolated_response_DF$scld_global_notHI_models=c(scale(extrapolated_response_DF$global_notHI_models))
+    extrapolated_response_DF$scld_local_HI_models=c(scale(extrapolated_response_DF$local_HI_models))
+    extrapolated_response_DF$scld_nested_HI_models=c(scale(extrapolated_response_DF$nested_HI_models))
+    # names(extrapolated_response_DF)=c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models", 
+    #                                   "GL_diff", "GN_diff", "LN_diff", "scld_global_notHI_models", 
+    #                                   "scld_local_HI_models", "scld_nested_HI_models")
+    extrapolated_response_DF$scld_GL_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_local_HI_models)^2
+    extrapolated_response_DF$scld_GN_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_nested_HI_models)^2
+    extrapolated_response_DF$scld_LN_diff=(extrapolated_response_DF$scld_local_HI_models-extrapolated_response_DF$scld_nested_HI_models)^2
     #View(extrapolated_response_DF)
     extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models")]
     extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
+    extrapolated_response_DF_tmp$pred=bio
+    extrapolated_response_DF_tmp$species=sp.name
     ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
+    #View(extrapolated_response_DF_tmp)
     
-    extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "GL_diff", "GN_diff", "LN_diff")]
-    extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
-    ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
+    ###create_extrapolated scaled response df
+    scld_extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "scld_global_notHI_models", "scld_local_HI_models", "scld_GL_diff")]
+    names(scld_extrapolated_response_DF_tmp)=c("expl_vals", "global_notHI_models", "local_HI_models", "squared_distance")
+    scld_extrapolated_response_DF_tmp=melt(scld_extrapolated_response_DF_tmp,id.vars = "expl_vals")
+    scld_extrapolated_response_DF_tmp$pred=bio
+    scld_extrapolated_response_DF_tmp$species=sp.name
+    a=ggplot(scld_extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()+xlab(bio)+ylab("scaled suitability")
+    ggsave(a, filename = paste0(rc_fold, "individual_plots/", sp.name, "_", bio, "_EM_scaled_GL_resp_curve.tiff"))
+    
+    # extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "GL_diff", "GN_diff", "LN_diff")]
+    # extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
+    # ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
+    
+    # scld_extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "scld_GL_diff", "scld_GN_diff", "scld_LN_diff")]
+    # scld_extrapolated_response_DF_tmp=melt(scld_extrapolated_response_DF_tmp,id.vars = "expl_vals")
+    # ggplot(scld_extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
     
     # SS_G_L_diff=sum(extrapolated_response_DF$G_L_diff^2)
     # SS_G_N_diff=sum(extrapolated_response_DF$G_N_diff^2)
@@ -256,19 +316,45 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     SS_GN_diff=sum(extrapolated_response_DF$GN_diff)
     SS_LN_diff=sum(extrapolated_response_DF$LN_diff)
     
+    scld_SS_GL_diff=sum(extrapolated_response_DF$scld_GL_diff)
+    scld_SS_GN_diff=sum(extrapolated_response_DF$scld_GN_diff)
+    scld_SS_LN_diff=sum(extrapolated_response_DF$scld_LN_diff)
+    
     bio_mean_var_imp_df=mean_var_imp_df[mean_var_imp_df$expl.name==bio,-1]
-    results_row=data.frame(model=mod_type, species=sp.name, bio, SS_GL_diff, SS_GN_diff, SS_LN_diff) 
+    results_row=data.frame(model=mod_type, species=sp.name, bio, SS_GL_diff, SS_GN_diff, SS_LN_diff, scld_SS_GL_diff, scld_SS_GN_diff, scld_SS_LN_diff) 
     results_row=cbind(results_row, bio_mean_var_imp_df)
     
     if (s==1 & bio==var_names[1]){
       SS_results_DF=results_row
+      all_extrapolated_response_DF=extrapolated_response_DF_tmp
+      all_scld_extrapolated_response_DF=scld_extrapolated_response_DF_tmp
     }else{
       SS_results_DF=rbind(SS_results_DF, results_row)
+      all_extrapolated_response_DF=rbind(all_extrapolated_response_DF, extrapolated_response_DF_tmp)
+      all_scld_extrapolated_response_DF=rbind(all_scld_extrapolated_response_DF, scld_extrapolated_response_DF_tmp)
     }
   }
 
   #View(SS_results_DF)
-  ggplot(plot_data,
+  # ggplot(plot_data,
+  #        aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+  #   geom_line(lwd = plot_data$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
+  #   facet_wrap(~ expl.name, scales = 'free_x') +
+  #   # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
+  #   facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
+  #     scale_override(1, scale_x_continuous(limits = c(0, 50))),
+  #     scale_override(3, scale_x_continuous(limits = c(0, 150))),
+  #     scale_override(4, scale_x_continuous(limits = c(0, 40)))
+  #   )) +
+  #   labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
+  #   # scale_color_brewer(type = 'qual', palette = 4) + 
+  #   scale_color_manual(values = cb_palette) + 
+  #   ggtitle(paste(sub("_", " ", sp.name))) + 
+  #   theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # 
+  # ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve.tiff"))
+  
+  ggplot(scld_plot_data,
          aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
     geom_line(lwd = plot_data$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
     facet_wrap(~ expl.name, scales = 'free_x') +
@@ -278,13 +364,13 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       scale_override(3, scale_x_continuous(limits = c(0, 150))),
       scale_override(4, scale_x_continuous(limits = c(0, 40)))
     )) +
-    labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
+    labs(x = '', y = 'Scaled response', colour = 'model scale') + 
     # scale_color_brewer(type = 'qual', palette = 4) + 
     scale_color_manual(values = cb_palette) + 
     ggtitle(paste(sub("_", " ", sp.name))) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
-  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve.tiff"))
+  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"))
   
   ##############################
   #no nested:
@@ -309,6 +395,26 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   
   ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"))
   
+  #######
+  #scaled
+  scld_plot_data_no_nested=scld_plot_data[scld_plot_data$model_scale!="nested_HI_models",]
+  ggplot(scld_plot_data_no_nested,
+         aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+    geom_line(lwd = plot_data_no_nested$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
+    facet_wrap(~ expl.name, scales = 'free_x') +
+    # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
+    facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
+      scale_override(1, scale_x_continuous(limits = c(0, 50))),
+      scale_override(3, scale_x_continuous(limits = c(0, 150))),
+      scale_override(4, scale_x_continuous(limits = c(0, 40)))
+    )) +
+    labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
+    # scale_color_brewer(type = 'qual', palette = 4) + 
+    scale_color_manual(values = cb_palette) + 
+    ggtitle(paste(sub("_", " ", sp.name))) + 
+    theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  
+  ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"))
   
   ########
   #revised var imp plots
@@ -344,8 +450,11 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   
   
 }
-dput(names(SS_results_DF))
+
+#View(SS_results_DF_scld_SS_GL_diff_short)
+
 SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_meanImp
+SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_meanImp
 write.csv(SS_results_DF, paste0(rc_fold,"response_deviations.csv"), row.names = F)
 #View(SS_results_DF)
 
@@ -354,5 +463,18 @@ SS_results_DF_spp=aggregate(SS_results_DF_spp[,2], by=list(SS_results_DF_spp$spe
 names(SS_results_DF_spp)=c("species", "weighted_SS_GL_diff")
 write.csv(SS_results_DF_spp, paste0(rc_fold,"species_mean_response_deviations.csv"), row.names = F)
 #View(SS_results_DF_spp)
+
+SS_results_DF_scld_SS_GL_diff=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff", "bio")]
+library(reshape2)
+#View(SS_results_DF_scld_SS_GL_diff)
+SS_results_DF_scld_SS_GL_diff_short=dcast(SS_results_DF_scld_SS_GL_diff, species ~ bio, value.var="scld_weighted_SS_GL_diff")
+
+scld_SS_results_DF_spp=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff")]
+scld_SS_results_DF_spp=aggregate(scld_SS_results_DF_spp[,2], by=list(scld_SS_results_DF_spp$species), FUN=mean)
+names(scld_SS_results_DF_spp)=c("species", "scld_weighted_SS_GL_diff")
+scld_SS_results_DF_spp=merge(SS_results_DF_scld_SS_GL_diff_short, scld_SS_results_DF_spp, by= "species")
+write.csv(scld_SS_results_DF_spp, paste0(rc_fold,"scld_species_mean_response_deviations.csv"), row.names = F)
+#View(scld_SS_results_DF_spp)
+
 
 ##### END MEAN RESPONSE CURVES #####

@@ -8,11 +8,11 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 6 # select number of computer cores for processing (max = 32)
+cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="local_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -28,7 +28,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM4/", 
+project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
                "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
@@ -238,7 +238,7 @@ PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 10
+PA.nb.rep = 5
 # select number of PAs to determine point density
 number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 #if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 

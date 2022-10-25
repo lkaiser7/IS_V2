@@ -40,8 +40,8 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   a=ggplot(skill_vs_varImp, aes(x=varImp_deviation, y=Skill_deviation)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=skill_vs_varImp$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")+xlab("Deviation between global and regional model variable importance")+
-    ylab("Deviation between global and regional model skill")+geom_smooth(method = "lm", se = TRUE)
+    theme(legend.position="none")+xlab("Variable importance deviation between global and regional scales")+
+    ylab("Skill deviation between global and regional models")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/EM_skill_vs_varImp_SSdeviation_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
@@ -51,7 +51,7 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   a=ggplot(skill_vs_varImp, aes(x=varImp_deviation, y=Global)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=skill_vs_varImp$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")+xlab("Deviation between global and regional model variable importance")+
+    theme(legend.position="none")+xlab("Variable importance deviation between global and regional scales")+
     ylab("Global model skill")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/EM_global_skill_vs_varImp_SSdeviation_", eval_stat, ".tiff")
@@ -60,7 +60,7 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   a=ggplot(skill_vs_varImp, aes(x=varImp_deviation, y=Regional)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=skill_vs_varImp$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")+xlab("Deviation between global and regional model variable importance")+
+    theme(legend.position="none")+xlab("Variable importance deviation between global and regional scales")+
     ylab("Regional model skill")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/EM_regional_skill_vs_varImp_SSdeviation_", eval_stat, ".tiff")
@@ -68,8 +68,10 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   
   #now compare model skill and response curve deviation
   rc_fold<-paste0(rootDir, "combined_results/EM_mean_response_curves/")
-  rc_dev_DF=read.csv(paste0(rc_fold,"species_mean_response_deviations.csv"))
+  rc_dev_DF=read.csv(paste0(rc_fold,"scld_species_mean_response_deviations.csv"))
+  rc_dev_DF=rc_dev_DF[,c("species", "scld_weighted_SS_GL_diff")]
   names(rc_dev_DF)=c("Species", "RC_dev")
+  
   skill_varImp_RC_DF= merge(skill_vs_varImp, rc_dev_DF, by="Species")
   
   #View(skill_varImp_RC_DF)
@@ -88,14 +90,25 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   
   cor(skill_varImp_RC_DF$varImp, skill_varImp_RC_DF$Skill_deviation)
   
+  cor(skill_varImp_RC_DF$RC_dev, skill_varImp_RC_DF$Skill_deviation)
   a=ggplot(skill_varImp_RC_DF, aes(x=RC_dev, y=Skill_deviation)) + 
     geom_point(aes(size=1.25)) +
     geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
-    theme(legend.position="none")+xlab("Deviation between global and regional model responses")+
-    ylab("Deviation between global and regional model skill")+geom_smooth(method = "lm", se = TRUE)
+    theme(legend.position="none")+xlab("Response deviation between global and regional scales")+
+    ylab("Skill deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/EM_skill_vs_RC_SSdeviation_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 4, units = "in", compress="lzw")
+  
+  cor(skill_varImp_RC_DF$varImp_deviation, skill_varImp_RC_DF$RC_dev)
+  a=ggplot(skill_varImp_RC_DF, aes(x=RC_dev, y=varImp_deviation)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Variable importance deviation between global and regional scales")+
+    ylab("Response deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/varImpDev_vs_RC_SSdeviation_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
   
   write.csv(skill_varImp_RC_DF, paste0("combined_results/model_eval_metric/skill_varImp_RC_DF_", eval_stat, ".csv"), row.names = F)
 }
