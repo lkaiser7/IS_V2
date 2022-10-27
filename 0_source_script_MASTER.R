@@ -6,13 +6,13 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
-
+seed=9214621 #NULL
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
 cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
+run_type="regional_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -28,8 +28,8 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
-               "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM6/", 
+               "~/projects/invasives_SDM6/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 

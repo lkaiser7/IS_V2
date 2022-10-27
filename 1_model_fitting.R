@@ -458,8 +458,12 @@ sp_parallel_run = function(sp_nm) {
     # sign-posting defining variable to be used in BIOMOD2 package
     cat('\n biomod model configuration...') 
     
-    # store number of random seed to ensure random sampling and reproducibility 
-    rng_seed<-as.numeric(round(Sys.time(), 0))
+    if (is.null(seed)){
+      # store number of random seed to ensure random sampling and reproducibility 
+      rng_seed<-as.numeric(round(Sys.time(), 0))
+    }else{
+      rng_seed=seed
+    }
     # print random seed number for record
     cat('\n biomod formating and fitting using random seed', rng_seed )
     # set seed
