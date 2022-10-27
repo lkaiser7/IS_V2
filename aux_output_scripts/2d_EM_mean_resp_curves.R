@@ -244,9 +244,14 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   mod_type="EM"
   #View(mean_var_imp_df)
   names(mean_var_imp_df)=c("expl.name", "GvarImp", "LvarImp", "NvarImp")
-  mean_var_imp_df$GL_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$LvarImp)/2
-  mean_var_imp_df$GN_meanImp=(mean_var_imp_df$GvarImp+mean_var_imp_df$NvarImp)/2
-  mean_var_imp_df$LN_meanImp=(mean_var_imp_df$LvarImp+mean_var_imp_df$NvarImp)/2
+  # mean_var_imp_df$GL_Imp=min(mean_var_imp_df$GvarImp, mean_var_imp_df$LvarImp)
+  # mean_var_imp_df$GN_Imp=min(mean_var_imp_df$GvarImp,mean_var_imp_df$NvarImp)
+  # mean_var_imp_df$LN_Imp=min(mean_var_imp_df$LvarImp,mean_var_imp_df$NvarImp)
+  
+  mean_var_imp_df$GL_Imp=(mean_var_imp_df$GvarImp+mean_var_imp_df$LvarImp)/2
+  mean_var_imp_df$GN_Imp=(mean_var_imp_df$GvarImp+mean_var_imp_df$NvarImp)/2
+  mean_var_imp_df$LN_Imp=(mean_var_imp_df$LvarImp+mean_var_imp_df$NvarImp)/2
+  
   #first step is to standardize the expl var values as the response curves do not yield equal values!
   bio = var_names[1]
   for (bio in var_names){
@@ -298,7 +303,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     scld_extrapolated_response_DF_tmp$pred=bio
     scld_extrapolated_response_DF_tmp$species=sp.name
     a=ggplot(scld_extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()+xlab(bio)+ylab("scaled suitability")
-    ggsave(a, filename = paste0(rc_fold, "individual_plots/", sp.name, "_", bio, "_EM_scaled_GL_resp_curve.tiff"))
+    ggsave(a, filename = paste0(rc_fold, "individual_plots/", sp.name, "_", bio, "_EM_scaled_GL_resp_curve.tiff"), compression = "lzw")
     
     # extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "GL_diff", "GN_diff", "LN_diff")]
     # extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
@@ -370,7 +375,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     ggtitle(paste(sub("_", " ", sp.name))) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
-  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"))
+  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
   
   ##############################
   #no nested:
@@ -393,7 +398,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     ggtitle(paste(sub("_", " ", sp.name))) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
-  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"))
+  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
   
   #######
   #scaled
@@ -414,7 +419,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     ggtitle(paste(sub("_", " ", sp.name))) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
-  ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"))
+  ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
   
   ########
   #revised var imp plots
@@ -435,7 +440,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     scale_fill_manual(values = cb_palette) + 
     labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp.name)) + 
     theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
-  ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot.tiff"))
+  ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot.tiff"), compression = "lzw")
   
   ##########################
   #no nested
@@ -446,15 +451,15 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     scale_fill_manual(values = cb_palette) + 
     labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp.name)) + 
     theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
-  ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot_GL.tiff"))
+  ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot_GL.tiff"), compression = "lzw")
   
   
 }
 
 #View(SS_results_DF_scld_SS_GL_diff_short)
 
-SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_meanImp
-SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_meanImp
+SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_Imp
+SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_Imp
 write.csv(SS_results_DF, paste0(rc_fold,"response_deviations.csv"), row.names = F)
 #View(SS_results_DF)
 

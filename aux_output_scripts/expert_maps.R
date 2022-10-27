@@ -122,7 +122,7 @@ for (eval_stat in eval_stats){
     #only global regional and nested
     # create image file
     png(paste0(outDir2, "suitability_maps/", eval_stat, "_", sp_nm, "_baseline_clipped_suitability.png"), 
-        width = 1500, height = 600, units = "px", pointsize = 12, bg = "white", res = 82)
+        width = 1500, height = 600, units = "px", pointsize = 26, bg = "white", res = 82)
     # format plot area
     par(mfrow = c(1, 3), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
     # suitability model results
@@ -137,7 +137,7 @@ for (eval_stat in eval_stats){
     legend("bottomleft", bty = "n", fill = c("white", rev(inferno(4))), border = "black", cex = 1.25,
            legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
     # add species name as main title 
-    title(sub("_", " ", sp_nm), outer = T, cex.main = 2) #, line = 2)
+    # title(sub("_", " ", sp_nm), outer = T, cex.main = 2) #, line = 2)
     # # LEGEND OPTION 2: under title
     # # overlay plot area to add legend 
     # par(fig = c(0, 1, 0, 1), oma = c(0, 0, 1.5, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -167,15 +167,64 @@ for (eval_stat in eval_stats){
     n_bin<-n_clip
     n_bin[n_bin > 0]<-1
     
+    ###################
+    #calculate some range metrics
+    
+    #calculate area
     pixel_area_sqkm=summary(area(l_bin))[3]
     g_bin_sqkm_area=freq(g_bin)[1,2]*pixel_area_sqkm
     l_bin_sqkm_area=freq(l_bin)[1,2]*pixel_area_sqkm
     n_bin_sqkm_area=freq(n_bin)[1,2]*pixel_area_sqkm
     area_DF_row=data.frame(eval_stat, sp_nm, g_bin_sqkm_area, l_bin_sqkm_area, n_bin_sqkm_area)
+    
+    #calculate niche overlap
+    #clipped suitability
+    library(ENMeval)
+    g_clip0=g_clip
+    g_clip0[is.na(g_clip0)]=0
+    
+    l_clip0=l_clip
+    l_clip0[is.na(l_clip0)]=0
+    
+    n_clip0=n_clip
+    n_clip0[is.na(n_clip0)]=0
+    
+    GL_clipSuit_D=calc.niche.overlap(stack(g_clip0, l_clip0), "D")[2,1]
+    GL_clipSuit_I=calc.niche.overlap(stack(g_clip0, l_clip0), "I")[2,1]
+    LN_clipSuit_D=calc.niche.overlap(stack(l_clip0, n_clip0), "D")[2,1]
+    LN_clipSuit_I=calc.niche.overlap(stack(l_clip0, n_clip0), "I")[2,1]
+    GN_clipSuit_D=calc.niche.overlap(stack(g_clip0, n_clip0), "D")[2,1]
+    GN_clipSuit_I=calc.niche.overlap(stack(g_clip0, n_clip0), "I")[2,1]
+    
+    #binary
+    g_bin0=g_bin
+    g_bin0[is.na(g_bin0)]=0
+    
+    l_bin0=l_bin
+    l_bin0[is.na(l_bin0)]=0
+    
+    n_bin0=n_bin
+    n_bin0[is.na(n_bin0)]=0
+    
+    GL_bin_D=calc.niche.overlap(stack(g_bin0, l_bin0), "D")[2,1]
+    GL_bin_I=calc.niche.overlap(stack(g_bin0, l_bin0), "I")[2,1]
+    LN_bin_D=calc.niche.overlap(stack(l_bin0, n_bin0), "D")[2,1]
+    LN_bin_I=calc.niche.overlap(stack(l_bin0, n_bin0), "I")[2,1]
+    GN_bin_D=calc.niche.overlap(stack(g_bin0, n_bin0), "D")[2,1]
+    GN_bin_I=calc.niche.overlap(stack(g_bin0, n_bin0), "I")[2,1]
+    
+    overlap_DF_row=data.frame(eval_stat, sp_nm, 
+                              GL_clipSuit_D, LN_clipSuit_D, GN_clipSuit_D, 
+                              GL_clipSuit_I, LN_clipSuit_I, GN_clipSuit_I,
+                              GL_bin_D, LN_bin_D, GN_bin_D, 
+                              GL_bin_I, LN_bin_I, GN_bin_I)
+    
     if (s==1 & eval_stat==eval_stats[1]){
       area_DF=area_DF_row
+      overlap_DF=overlap_DF_row
     }else{
       area_DF=rbind(area_DF, area_DF_row)
+      overlap_DF=rbind(overlap_DF, overlap_DF_row)
     }
     
     # create image file
@@ -213,7 +262,7 @@ for (eval_stat in eval_stats){
     
     # create image file
     png(paste0(outDir2, "binary_maps/", eval_stat, "_", sp_nm, "_baseline_occurrence.png"), 
-        width = 1500, height = 600, units = "px", pointsize = 12, bg = "white", res = 82)
+        width = 1500, height = 600, units = "px", pointsize = 26, bg = "white", res = 82)
     # format plot area
     par(mfrow = c(1, 3), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
     # suitability model results
@@ -244,4 +293,5 @@ for (eval_stat in eval_stats){
   }
 }
 write.csv(area_DF, paste0(outDir2, "projection_area_DF.csv"), row.names = F)
+write.csv(overlap_DF, paste0(outDir2, "niche_overlap_metric_DF.csv"), row.names = F)
 

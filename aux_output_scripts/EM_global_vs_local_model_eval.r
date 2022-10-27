@@ -74,6 +74,20 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
   
   skill_varImp_RC_DF= merge(skill_vs_varImp, rc_dev_DF, by="Species")
   
+  #now merge standard niche overlap
+  niche_overlap_DF=read.csv(paste0("combined_results/combined_maps/niche_overlap_metric_DF.csv"))
+  niche_overlap_DF=niche_overlap_DF[,c("sp_nm", "GL_clipSuit_I")]
+  names(niche_overlap_DF)=c("Species", "GL_clipSuit_I")
+  skill_varImp_RC_DF= merge(skill_varImp_RC_DF, niche_overlap_DF, by="Species")
+  
+  #merge species introduction year
+  spp_establishment_DF=read.csv(paste0(rootDir, "data/spp_establishment_year.csv"))
+  names(spp_establishment_DF)=c("Species", "establishment")
+  
+  skill_varImp_RC_DF= merge(skill_varImp_RC_DF, spp_establishment_DF, by="Species")
+  
+  library(ggcorrplot)
+  ggcorrplot(cor(skill_varImp_RC_DF[, -1]))
   #View(skill_varImp_RC_DF)
   
   plot(skill_varImp_RC_DF$varImp_deviation, skill_varImp_RC_DF$RC_dev)
@@ -108,6 +122,36 @@ for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
     ylab("Response deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/varImpDev_vs_RC_SSdeviation_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
+  
+  cor(skill_varImp_RC_DF$RC_dev, skill_varImp_RC_DF$GL_clipSuit_I)
+  a=ggplot(skill_varImp_RC_DF, aes(x=GL_clipSuit_I, y=RC_dev)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Niche overlap (Warren's I) between global and reg. projections")+
+    ylab("Response deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/RC_SSdeviation_vs_warrenIoverlap_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
+
+  cor(skill_varImp_RC_DF$varImp_deviation, skill_varImp_RC_DF$GL_clipSuit_I)
+  a=ggplot(skill_varImp_RC_DF, aes(x=GL_clipSuit_I, y=varImp_deviation)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Niche overlap (Warren's I) between global and reg. projections")+
+    ylab("Variable importance deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/varImpdeviation_vs_warrenIoverlap_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
+  
+  cor(skill_varImp_RC_DF$RC_dev, skill_varImp_RC_DF$establishment)
+  a=ggplot(skill_varImp_RC_DF, aes(x=establishment, y=RC_dev)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Establishment year")+
+    ylab("Response deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/establishment_vs_RC_SSdeviation_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
   
   write.csv(skill_varImp_RC_DF, paste0("combined_results/model_eval_metric/skill_varImp_RC_DF_", eval_stat, ".csv"), row.names = F)
