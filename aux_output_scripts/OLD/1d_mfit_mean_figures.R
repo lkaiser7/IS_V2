@@ -1,6 +1,6 @@
 ##############################
 ##############################
-#run this only after running 1c for all global, local and nested models
+#run this only after running 1c for all global, regional and nested models
 
 # load necessary packages
 library(ggplot2)
@@ -12,10 +12,10 @@ dir.create(vi_fold, showWarnings = FALSE, recursive = T)
 
 # LOAD FILES
 global_vi<-read.csv("global_notHI_models/outputs/all_VariImp_model_mean.csv")
-local_vi<-read.csv("local_HI_models/outputs/all_VariImp_model_mean.csv")
+regional_vi<-read.csv("regional_HI_models/outputs/all_VariImp_model_mean.csv")
 nested_vi<-read.csv("nested_HI_models/outputs/all_VariImp_model_mean.csv")
 global_vi$MODEL_RUN="Global"
-local_vi$MODEL_RUN="Local"
+regional_vi$MODEL_RUN="Regional"
 nested_vi$MODEL_RUN="Nested"
 
 # loop through each species and format data to plot
@@ -27,10 +27,10 @@ for(s in 1:length(all_sp_nm)){
   
   # select species data
   sp_data<-rbind(global_vi[which(global_vi$SPECIES == sp_nm),],
-                 local_vi[which(local_vi$SPECIES == sp_nm),],
+                 regional_vi[which(regional_vi$SPECIES == sp_nm),],
                  nested_vi[which(nested_vi$SPECIES == sp_nm),])
   # add column for model runs
-  #sp_data$MODEL_RUN<-c(rep("Global", 4), rep("Local", 4), rep("Nested", 4))
+  #sp_data$MODEL_RUN<-c(rep("Global", 4), rep("Regional", 4), rep("Nested", 4))
   
   #View(sp_data)
   mean_cols=grep("_MEAN$", names(sp_data_match))
@@ -45,8 +45,8 @@ for(s in 1:length(all_sp_nm)){
   sp_data_match=sweep(x=sp_data_match, MARGIN = 2, 
                       STATS = apply(sp_data_match, 2, sum, na.rm=T),
                       FUN= "/")
-  sp_data_match_val=sum((sp_data_match$Local-sp_data_match$Global)^2)
-  #sp_data_match_val=sum(abs(sp_data_match$Local-sp_data_match$Global))
+  sp_data_match_val=sum((sp_data_match$Regional-sp_data_match$Global)^2)
+  #sp_data_match_val=sum(abs(sp_data_match$Regional-sp_data_match$Global))
   sp_data_match_sp_df=data.frame(species=sp_nm, varImp_deviation=sp_data_match_val)
   if (s==1){
     sp_data_match_spp_df=sp_data_match_sp_df
@@ -81,5 +81,5 @@ for(s in 1:length(all_sp_nm)){
 }
 
 #save deviation
-filename = paste0(vi_fold, "mean_deviation_in_global_vs_local_variable_importance.csv")
+filename = paste0(vi_fold, "mean_deviation_in_global_vs_regional_variable_importance.csv")
 write.csv(sp_data_match_spp_df, filename, row.names = F)

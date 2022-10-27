@@ -1,6 +1,6 @@
 rm(list = ls()) # clear the environment, temp files, and all other variables
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
                "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
@@ -21,10 +21,10 @@ global_bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 bioclims_dirs=c("/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   paste0(dataDir, "bioclim_vars/")) #in order of priority
-local_bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
+regional_bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 
 fitting_bios_global<-paste0(global_bioclims_dir, "all_baseline/current_30s/")
-fitting_bios_HIs<-c(paste0(local_bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/",
+fitting_bios_HIs<-c(paste0(regional_bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/",
                     "/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
 fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 
@@ -32,8 +32,8 @@ fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 # select current data and bioclims to use for model approach
 global_biofitRun<-fitting_bios_global     # for model fitting
 global_bioclim_scaling_factors=c(1/10, 1/10, 1, 1/10) #rasters were saved as integers
-local_biofitRun<-fitting_bios_HI     # for model fitting
-local_bioclim_scaling_factors=c(1, 1, 1, 1)
+regional_biofitRun<-fitting_bios_HI     # for model fitting
+regional_bioclim_scaling_factors=c(1, 1, 1, 1)
 
 library("terra")
 
@@ -50,12 +50,12 @@ for (env_var_file in env_var_files){
     global_predictor = rast(paste0(global_biofitRun, env_var_file)) 
     global_predictor=global_predictor*global_bioclim_scaling_factors[j]
     
-    local_predictor = rast(paste0(local_biofitRun, env_var_file)) 
-    local_predictor=local_predictor*local_bioclim_scaling_factors[j]
+    regional_predictor = rast(paste0(regional_biofitRun, env_var_file)) 
+    regional_predictor=regional_predictor*regional_bioclim_scaling_factors[j]
     g_min=c(global(global_predictor, min, na.rm=T))[[1]]
     g_max=global(global_predictor, max, na.rm=T)[[1]]
-    l_min=global(local_predictor, min, na.rm=T)[[1]]
-    l_max=global(local_predictor, max, na.rm=T)[[1]]
+    l_min=global(regional_predictor, min, na.rm=T)[[1]]
+    l_max=global(regional_predictor, max, na.rm=T)[[1]]
     if (l_min>g_min) {
       min_seq=seq(l_min, g_min, length.out=10)
     }else{

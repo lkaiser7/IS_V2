@@ -12,12 +12,12 @@ rm(list = ls())
 # set root path to source files
 # rootDir<-"D:/projects/Invasives_modeling/Invasive_SDMs/"
 # rootDir<-"E:/Invasive_SDMs/"
-rootDir<-"C:/Users/lkaiser-local/Desktop/Phase1_SDMs/"
+rootDir<-"C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/"
 # set working directory to main analysis folder
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"local_HI_models"
+project_run<-"regional_HI_models"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -129,7 +129,7 @@ map_to_use<-hawaii_map
 
 # list global extent from world_map
 all_ext<-extent(world_map)
-# create local extent for Hawaii
+# create regional extent for Hawaii
 hi_ext<-extent(hawaii_map)
 # set crop extent for project run
 crop_ext<-hi_ext

@@ -12,7 +12,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI local_HI nested_HI # select name for project and create directory
+run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -28,7 +28,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
                "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
@@ -144,7 +144,7 @@ if (run_type=="global_notHI"){
 
 # list global extent from world_map
 all_ext<-extent(world_map)
-# create local extent for Hawaii
+# create regional extent for Hawaii
 hi_ext<-extent(hawaii_map)
 
 # set crop extent for project run
@@ -380,7 +380,7 @@ if (run_scripts_beyond_projection){
   
   if (run_scripts_after_3_model_scales_done){
     ####################################
-    #only run these after having the global, local and nested models ready
+    #only run these after having the global, regional and nested models ready
     if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics
       source(paste0(codeDir, "aux_output_scripts/1c_mfit_mean_tables.R"))
       #source(paste0(codeDir, "aux_output_scripts/1d_mfit_mean_figures.R")) #mean var importance figs
@@ -392,8 +392,8 @@ if (run_scripts_beyond_projection){
     
     source(paste0(codeDir, "aux_output_scripts/summary_plots.R"))
     source(paste0(codeDir, "aux_output_scripts/expert_maps.R"))
-    #source(paste0(codeDir, "aux_output_scripts/global_vs_local_model_eval.r")) #does not make sense to make this comparison without ensemble
-    source(paste0(codeDir, "aux_output_scripts/EM_global_vs_local_model_eval.r"))
+    #source(paste0(codeDir, "aux_output_scripts/global_vs_regional_model_eval.r")) #does not make sense to make this comparison without ensemble
+    source(paste0(codeDir, "aux_output_scripts/EM_global_vs_regional_model_eval.r"))
   }
   
 }

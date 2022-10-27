@@ -1,5 +1,5 @@
 ### combining all collected species data ###
-### gbif, local & bison data collections ###
+### gbif, regional & bison data collections ###
 ### species location data to be analyzed ###
 
 # set root path to source files
@@ -17,8 +17,8 @@ dataDir<-paste0(rootDir, "data/")
 gbifDir<-paste0(dataDir, "raw_data/gbif_data/")
 # regional BISON data
 bisonDir<-paste0(dataDir, "raw_data/bison_data/")
-# local internal data
-localDir<-paste0(dataDir, "raw_data/local_data/")
+# regional internal data
+regionalDir<-paste0(dataDir, "raw_data/regional_data/")
 
 # output folder for all combinded data 
 allDir<-paste0(dataDir, "all_data/")
@@ -44,8 +44,8 @@ for(k in 1:length(all_sp_nm)) {  # set k = 1 for debugging
   names(g_data)[1]<-"Species"  # column name formatting
   # open bison species data file
   b_data<-read.csv(paste0(bisonDir, all_sp_nm[k], ".csv"), header = TRUE)
-  # open local species data file
-  l_data<-read.csv(paste0(localDir, all_sp_nm[k], ".csv"), header = TRUE)
+  # open regional species data file
+  l_data<-read.csv(paste0(regionalDir, all_sp_nm[k], ".csv"), header = TRUE)
   
   # keep selected columns of data from each dataset
   g_data<-with(g_data, { # Species[2], decimalLatitude[4], decimalLongitude[5]

@@ -64,10 +64,10 @@ rm(s)
 ###############################
 
 # list model scales
-all_mod_scale = c("global_notHI", "local_HI", "nested_HI")#c("local", "global", "nested")
+all_mod_scale = c("global_notHI", "regional_HI", "nested_HI")#c("regional", "global", "nested")
 all_mod_scale=paste0(all_mod_scale, "_models")
 
-#all_mod_scale = c("local", "global", "nested")
+#all_mod_scale = c("regional", "global", "nested")
 
 # list bioclims selected
 bc_list = gsub("\\..*", "", env_var_files) #c("bio1", "bio7", "bio12", "bio15")

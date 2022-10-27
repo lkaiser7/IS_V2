@@ -8,7 +8,7 @@
 setwd(rootDir)
 
 # list model scales
-all_mod_scale = c("global_notHI", "local_HI", "nested_HI")#c("local", "global", "nested")
+all_mod_scale = c("global_notHI", "regional_HI", "nested_HI")#c("regional", "global", "nested")
 all_mod_scale=paste0(all_mod_scale, "_models")
 # load necessary packages
 library(biomod2)
@@ -31,7 +31,7 @@ source(paste0(codeDir, "aux_output_scripts/facet_scale_fix.R"))
 ######################
 #first collect EM var imp
 sp.name = all_sp_nm[1]
-model_scales=c("global_notHI", "local_HI", "nested_HI")
+model_scales=c("global_notHI", "regional_HI", "nested_HI")
 model_scale=model_scales[1]
 for (model_scale in model_scales){
   tmp_project_path=paste0(rootDir, model_scale, "_models/")
@@ -65,7 +65,7 @@ all_sp_varImpDF_short=dcast(all_sp_varImpDF, species ~ pred + scale, value.var="
 all_sp_varImpDF_short_GL=dcast(all_sp_varImpDF[all_sp_varImpDF$scale!="nested_HI",], species ~ pred + scale, value.var="varImp")
 
 all_sp_varImpDF_S_short_GL=dcast(all_sp_varImpDF[all_sp_varImpDF$scale!="nested_HI",], pred + species ~ scale, value.var="varImp")
-all_sp_varImpDF_S_short_GL$SS=(all_sp_varImpDF_S_short_GL$global_notHI-all_sp_varImpDF_S_short_GL$local_HI)^2
+all_sp_varImpDF_S_short_GL$SS=(all_sp_varImpDF_S_short_GL$global_notHI-all_sp_varImpDF_S_short_GL$regional_HI)^2
 all_sp_varImpDF_S_short_GL=all_sp_varImpDF_S_short_GL[,c("pred", "species", "SS")]
 all_sp_varImpDF_SS_short_GL=dcast(all_sp_varImpDF_S_short_GL, species ~ pred, value.var="SS")
 all_sp_varImpDF_SS_short_GL$SS=apply(all_sp_varImpDF_SS_short_GL[,-1], 1, sum)
@@ -79,7 +79,7 @@ write.csv(all_sp_varImpDF_short_GL, paste0(rootDir, "combined_results/all_sp_var
 ######################
 #second  collect EM model eval
 sp.name = all_sp_nm[1]
-model_scales=c("global_notHI", "local_HI", "nested_HI")
+model_scales=c("global_notHI", "regional_HI", "nested_HI")
 model_scale=model_scales[1]
 for (model_scale in model_scales){
   tmp_project_path=paste0(rootDir, model_scale, "_models/")
@@ -110,15 +110,15 @@ write.csv(all_sp_evalDF, paste0(rootDir, "combined_results/all_EM_eval.csv"))
 
 library(reshape2)
 all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="eval")
-all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$local_HI)
+all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$regional_HI)
 write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
 
 all_sp_sensDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="sensitivity")
-all_sp_sensDF_short$GL_diff=abs(all_sp_sensDF_short$global_notHI-all_sp_sensDF_short$local_HI)
+all_sp_sensDF_short$GL_diff=abs(all_sp_sensDF_short$global_notHI-all_sp_sensDF_short$regional_HI)
 write.csv(all_sp_sensDF_short, paste0(rootDir, "combined_results/all_EM_sensitivity_short.csv"))
 
 all_sp_specDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="specificity")
-all_sp_specDF_short$GL_diff=abs(all_sp_specDF_short$global_notHI-all_sp_specDF_short$local_HI)
+all_sp_specDF_short$GL_diff=abs(all_sp_specDF_short$global_notHI-all_sp_specDF_short$regional_HI)
 write.csv(all_sp_specDF_short, paste0(rootDir, "combined_results/all_EM_specificity_short.csv"))
 
 #combined
@@ -183,9 +183,9 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       scld_rp.dat2[scld_rp.dat2$expl.name==bio,"pred.val"]=c(scale(jnk))
     }
     # save tables per model scale run
-    if(mod_scale == "local_HI"){ #"global_notHI", "local_HI", "nested_HI"
-      local_tab<-rp.dat2
-      scld_local_tab<-scld_rp.dat2
+    if(mod_scale == "regional_HI"){ #"global_notHI", "regional_HI", "nested_HI"
+      regional_tab<-rp.dat2
+      scld_regional_tab<-scld_rp.dat2
     }else if(mod_scale == "global_notHI"){
       global_tab<-rp.dat2
       scld_global_tab<-scld_rp.dat2
@@ -273,23 +273,23 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       }
     }
     names(extrapolated_response_DF)=c("expl_vals", all_mod_scale)
-    extrapolated_response_DF$GL_diff=(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)^2
+    extrapolated_response_DF$GL_diff=(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$regional_HI_models)^2
     extrapolated_response_DF$GN_diff=(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)^2
-    extrapolated_response_DF$LN_diff=(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)^2
-    # extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)
+    extrapolated_response_DF$LN_diff=(extrapolated_response_DF$regional_HI_models-extrapolated_response_DF$nested_HI_models)^2
+    # extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$regional_HI_models)
     # extrapolated_response_DF$GN_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)
-    # extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)
+    # extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$regional_HI_models-extrapolated_response_DF$nested_HI_models)
     extrapolated_response_DF$scld_global_notHI_models=c(scale(extrapolated_response_DF$global_notHI_models))
-    extrapolated_response_DF$scld_local_HI_models=c(scale(extrapolated_response_DF$local_HI_models))
+    extrapolated_response_DF$scld_regional_HI_models=c(scale(extrapolated_response_DF$regional_HI_models))
     extrapolated_response_DF$scld_nested_HI_models=c(scale(extrapolated_response_DF$nested_HI_models))
-    # names(extrapolated_response_DF)=c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models", 
+    # names(extrapolated_response_DF)=c("expl_vals", "global_notHI_models", "regional_HI_models", "nested_HI_models", 
     #                                   "GL_diff", "GN_diff", "LN_diff", "scld_global_notHI_models", 
-    #                                   "scld_local_HI_models", "scld_nested_HI_models")
-    extrapolated_response_DF$scld_GL_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_local_HI_models)^2
+    #                                   "scld_regional_HI_models", "scld_nested_HI_models")
+    extrapolated_response_DF$scld_GL_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_regional_HI_models)^2
     extrapolated_response_DF$scld_GN_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_nested_HI_models)^2
-    extrapolated_response_DF$scld_LN_diff=(extrapolated_response_DF$scld_local_HI_models-extrapolated_response_DF$scld_nested_HI_models)^2
+    extrapolated_response_DF$scld_LN_diff=(extrapolated_response_DF$scld_regional_HI_models-extrapolated_response_DF$scld_nested_HI_models)^2
     #View(extrapolated_response_DF)
-    extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models")]
+    extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "regional_HI_models", "nested_HI_models")]
     extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
     extrapolated_response_DF_tmp$pred=bio
     extrapolated_response_DF_tmp$species=sp.name
@@ -297,8 +297,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     #View(extrapolated_response_DF_tmp)
     
     ###create_extrapolated scaled response df
-    scld_extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "scld_global_notHI_models", "scld_local_HI_models", "scld_GL_diff")]
-    names(scld_extrapolated_response_DF_tmp)=c("expl_vals", "global_notHI_models", "local_HI_models", "squared_distance")
+    scld_extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "scld_global_notHI_models", "scld_regional_HI_models", "scld_GL_diff")]
+    names(scld_extrapolated_response_DF_tmp)=c("expl_vals", "global_notHI_models", "regional_HI_models", "squared_distance")
     scld_extrapolated_response_DF_tmp=melt(scld_extrapolated_response_DF_tmp,id.vars = "expl_vals")
     scld_extrapolated_response_DF_tmp$pred=bio
     scld_extrapolated_response_DF_tmp$species=sp.name
@@ -427,8 +427,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   cb_palette<-c("#009E73", "#E69F00", "#CC79a7", "#56B4E9")
   sp_varImpDF_for_graph=sp_varImpDF
   
-  to_replace=c("global_notHI_models", "local_HI_models", "nested_HI_models")
-  replacement=c("Global", "Local", "Nested")
+  to_replace=c("global_notHI_models", "regional_HI_models", "nested_HI_models")
+  replacement=c("Global", "Regional", "Nested")
   vector_to_apply=sp_varImpDF_for_graph$model_scale
   library(plyr)
   sp_varImpDF_for_graph$model_scale <- mapvalues(vector_to_apply, from=to_replace, to=replacement)

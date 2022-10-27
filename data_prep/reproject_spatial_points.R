@@ -1,6 +1,6 @@
 ### reprojection of spatial data points ###
 ### changing UTM to Lat/Lon WGS84 datum ###
-### for local species location datasets ###
+### for regional species location datasets ###
 
 # set root path to source files
 rootDir<-"Y:/PICCC_analysis/IS_analysis/"
@@ -15,7 +15,7 @@ codeDir<-"C:/Users/Lauren/Dropbox/GitHub/IS_V2/"
 dataDir<-paste0(rootDir, "data/")
 
 # load all raw species data
-all_data<-read.csv(paste0(dataDir, "all_sp_local_occ.csv"), header = T, stringsAsFactors = F)
+all_data<-read.csv(paste0(dataDir, "all_sp_regional_occ.csv"), header = T, stringsAsFactors = F)
 
 # combine eastings and northings data
 coords<-cbind(all_data$X, all_data$Y)

@@ -1,4 +1,4 @@
-project_dirs=c("C:/Users/lkaiser-local/Desktop/Phase1_SDMs/", "E:/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 
 # set working directory to main analysis folder

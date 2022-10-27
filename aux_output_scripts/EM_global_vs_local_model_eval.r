@@ -4,7 +4,7 @@ dir.create("combined_results/model_eval_metric/", showWarnings = F, recursive = 
 #eval_metrics=c("TSS", "ROC", "KAPPA") #
 
 eval_stat = eval_stats[1]
-for (eval_stat in eval_stats){ #global_notHI local_HI nested_HI
+for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
 
   all_sp_evalDF_short=read.csv(paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
   all_sp_evalDF_short=all_sp_evalDF_short[,-1]

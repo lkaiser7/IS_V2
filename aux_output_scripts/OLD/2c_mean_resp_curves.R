@@ -15,7 +15,7 @@
 setwd(rootDir)
 
 # list model scales
-all_mod_scale = c("global_notHI", "local_HI", "nested_HI")#c("local", "global", "nested")
+all_mod_scale = c("global_notHI", "regional_HI", "nested_HI")#c("regional", "global", "nested")
 all_mod_scale=paste0(all_mod_scale, "_models")
 # load necessary packages
 library(biomod2)
@@ -118,12 +118,12 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     # create folder in output directory for mean response curve plots
     rt_fold<-paste0(outDir, "mean_response_tables/")
     dir.create(rt_fold, showWarnings = FALSE)
-    # save table for the global, local and nested run
+    # save table for the global, regional and nested run
     write.csv(rp.dat2, paste0(rt_fold, sp.name, "_pred_val_by_model.csv"))
     
     # save tables per model scale run
-    if(mod_scale == "local_HI"){ #"global_notHI", "local_HI", "nested_HI"
-      local_tab<-rp.dat2
+    if(mod_scale == "regional_HI"){ #"global_notHI", "regional_HI", "nested_HI"
+      regional_tab<-rp.dat2
     }else if(mod_scale == "global_notHI"){
       global_tab<-rp.dat2
     }else{
@@ -158,7 +158,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   
   # ORIGINAL CODE: this is not totally fixed, but nearly there
   # TO FIX, COLOR VARIABLE WILL BE MODEL_SCALE VARIABLE DENOTING GLOBAL, LOCAL, OR NESTED
-  # ggplot(local_tab, 
+  # ggplot(regional_tab, 
   #        aes(x = expl.val, y = pred.val, colour = model_type, group = expl.name)) + 
   #   geom_line(size = 1) + facet_wrap(~ expl.name, scales = 'free_x') +
   #   labs(x = '', y = 'probability of occurrence', colour = 'model type') + 
@@ -240,11 +240,11 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
         }
       }
       names(extrapolated_response_DF)=c("expl_vals", all_mod_scale)
-      extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$local_HI_models)
+      extrapolated_response_DF$GL_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$regional_HI_models)
       extrapolated_response_DF$GN_diff=abs(extrapolated_response_DF$global_notHI_models-extrapolated_response_DF$nested_HI_models)
-      extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$local_HI_models-extrapolated_response_DF$nested_HI_models)
+      extrapolated_response_DF$LN_diff=abs(extrapolated_response_DF$regional_HI_models-extrapolated_response_DF$nested_HI_models)
       #View(extrapolated_response_DF)
-      extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "local_HI_models", "nested_HI_models")]
+      extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "regional_HI_models", "nested_HI_models")]
       extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
       ggplot(extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()
       

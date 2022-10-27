@@ -1,4 +1,4 @@
-### script to format species data at a local scale ###
+### script to format species data at a regional scale ###
 ### parse data for every species from a given file ###
 ### all species location data for Hawaiian Islands ###
 
@@ -15,9 +15,9 @@ codeDir<-"C:/Users/Lauren/Dropbox/GitHub/IS_V2/"
 
 # location of all data 
 dataDir<-paste0(rootDir, "data/")
-# local data
-outDir<-paste0(dataDir, "raw_data/local_data/")
-# create directory for local data
+# regional data
+outDir<-paste0(dataDir, "raw_data/regional_data/")
+# create directory for regional data
 dir.create(outDir, showWarnings = FALSE)
 
 # open raw data file with all species presences location data
@@ -55,7 +55,7 @@ for (n in 1:length(sp_files)) {  # set n = 2 for debugging (skip raw data file)
 }
 
 # save output file of species records 
-write.csv(all_dat, file = paste0(dataDir, "sp_local_count.csv"))
+write.csv(all_dat, file = paste0(dataDir, "sp_regional_count.csv"))
 
 # format BISON data downloaded from: http://bison.usgs.ornl.gov/#home
 bisonDir<-paste0(dataDir, "raw_data/bison_data/")
@@ -95,11 +95,11 @@ for (j in 1:length(b_files)) {  # set j = 1 for debugging
 # merge with GBIF data count records
 gbif_dat<-read.csv("data/sp_gbif_count.csv", header = TRUE)
 count_dat<-merge(gbif_dat, all_dat, by = "sp_nm.i.")
-names(count_dat)<-c("Species", "X", "Key", "GBIF", "Local")
+names(count_dat)<-c("Species", "X", "Key", "GBIF", "Regional")
 
 # save combinde output data count
 write.csv(count_dat, "data/sp_count_rec.csv")
 
 #############################
-### END local_data SCRIPT ###
+### END regional_data SCRIPT ###
 #############################

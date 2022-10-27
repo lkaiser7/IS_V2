@@ -63,7 +63,7 @@ current_2015_bios<-paste0(bioclims, "all_HRCM/current_500m/")
 # future updated bioclimatic variables @ 500 m 
 future_2015_bios<-paste0(bioclims, "all_HRCM/future_500m/")
 
-# select current data and bioclims to use for model approach (ex: local)
+# select current data and bioclims to use for model approach (ex: regional)
 baseData<-hiDir                # baseline species data (scripts 1 & 2)
 futureData<-hiDir              # future species data (scripts 3 & 5)
 biofitRun<-fitting_2015_bios         # for model fitting
@@ -102,7 +102,7 @@ map_to_use<-hawaii_map
 
 # list global extent from world_map
 all_ext<-extent(world_map)
-# create local extent for Hawaii
+# create regional extent for Hawaii
 hi_ext<-extent(hawaii_map)
 # set crop extent for project run
 crop_ext<-hi_ext

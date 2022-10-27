@@ -15,7 +15,7 @@ rootDir<-"D:/projects/D:/projects/Abundance modeling/abundance_shifts_code//"
 setwd(rootDir)
 
 # select name for project and create directory
-project_run<-"local_model"
+project_run<-"regional_model"
 # set path of ongoing project run for all outputs
 project_path<-paste0(rootDir, project_run, "/")
 # create project folder path
@@ -122,7 +122,7 @@ map_to_use<-hawaii_map
 
 # list global extent from world_map
 all_ext<-extent(world_map)
-# create local extent for Hawaii
+# create regional extent for Hawaii
 hi_ext<-extent(hawaii_map)
 # set crop extent for project run
 crop_ext<-hi_ext

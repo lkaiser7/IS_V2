@@ -1,6 +1,6 @@
 # Phase 1 SDMs for Invasive Species
 # additional figures for model runs
-# global, local, & weighted outputs
+# global, regional, & weighted outputs
 
 ### SET UP ####
 
@@ -20,7 +20,7 @@ hi_map<-hi_map[which(hi_map$Island != "NI"),]
 plot(hi_map)
 
 # models
-m_type<-c("global_notHI", "local_HI", "nested_HI")
+m_type<-c("global_notHI", "regional_HI", "nested_HI")
 
 g_mod<-paste0(m_type[1], "_models/")
 l_mod<-paste0(m_type[2], "_models/")
@@ -55,7 +55,7 @@ for (eval_stat in eval_stats){
     # species name
     print(all_sp_nm[s])
     
-    # species local points
+    # species regional points
     sp_pts<-read.csv(paste0(wdDir, "data/merged_data/hi_data/", all_sp_nm[s], ".csv"))
     
     ### BIN ROC PLOTS ###
@@ -63,7 +63,7 @@ for (eval_stat in eval_stats){
     
     # global
     g_bin<-raster(paste0(wdDir, g_mod, "output_rasters/", all_sp_nm[s], "_BIN_baseline_", eval_stat, "_wmean.tif"))
-    # local
+    # regional
     l_bin<-raster(paste0(wdDir, l_mod, "output_rasters/", all_sp_nm[s], "_BIN_baseline_", eval_stat, "_wmean.tif"))
     # nested
     n_bin<-raster(paste0(wdDir, n_mod, "output_rasters/", all_sp_nm[s], "_BIN_baseline_", eval_stat, "_wmean.tif"))
@@ -76,18 +76,18 @@ for (eval_stat in eval_stats){
     # par(mfrow = c(2, 2), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 4, 0))
     # binary model results
     plot(g_bin, main = "Global Model", box = F, axes = F, legend = F); plot(hi_map, add = T)
-    plot(l_bin, main = "Local Model", box = F, axes = F, legend = F); plot(hi_map, add = T)
+    plot(l_bin, main = "Regional Model", box = F, axes = F, legend = F); plot(hi_map, add = T)
     plot(n_bin, main = "Nested Model", box = F, axes = F, legend = F); plot(hi_map, add = T)
     # LEGEND OPTION 1: bottom left
     legend("bottomleft", legend = c("Unsuitable", "Suitable"),
            bty = "n", fill = bin_col(2), border = "black", cex = 1.5)
     # species point data
-    plot(hi_map, main = "Local Occurrences")
+    plot(hi_map, main = "Regional Occurrences")
     points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
            pch = 21, col = "black", bg = "red") #sp_pts$dataColor)
-    # legend("bottomleft", legend = c("Global Data", "National Data", "Local Data"),
+    # legend("bottomleft", legend = c("Global Data", "National Data", "Regional Data"),
     #        pch = 19, col = c("blue", "yellow3", "green4"), bty = "n", cex = 1.5)
-    # legend("bottomleft", legend = c("Global Data", "National Data", "Local Data"),
+    # legend("bottomleft", legend = c("Global Data", "National Data", "Regional Data"),
     #        pch = 1, col = "black", bty = "n", cex = 1.5)
     # add species name as main title 
     title(sub("_", " ", all_sp_nm[s]), outer = T, cex.main = 2) #, line = 2)
@@ -107,7 +107,7 @@ for (eval_stat in eval_stats){
     # global
     g_suit<-raster(paste0(wdDir, g_mod, "output_rasters/", all_sp_nm[s], "_suitability_baseline_", eval_stat, "_wmean.tif"))
     g_suit[g_suit == 0]<-NA
-    # local
+    # regional
     l_suit<-raster(paste0(wdDir, l_mod, "output_rasters/", all_sp_nm[s], "_suitability_baseline_", eval_stat, "_wmean.tif"))
     l_suit[l_suit == 0]<-NA
     # nested
@@ -125,7 +125,7 @@ for (eval_stat in eval_stats){
     # suitability model results
     plot(g_suit, main ="Global Model", box = F, axes = F, legend = F, 
          zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, add = T)
-    plot(l_suit, main = "Local Model", box = F, axes = F, legend = F, 
+    plot(l_suit, main = "Regional Model", box = F, axes = F, legend = F, 
          zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, add = T)
     plot(n_suit, main = "Nested Model", box = F, axes = F, legend = F, 
          zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, add = T)
@@ -133,7 +133,7 @@ for (eval_stat in eval_stats){
     legend("bottomleft", bty = "n", fill = c(clip_col(5)), border = "black", cex = 1.25,
            legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
     # species point data
-    plot(hi_map, main = "Local Occurrences")
+    plot(hi_map, main = "Regional Occurrences")
     points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
            pch = 21, col = "black", bg = "red")
     # add species name as main title 
@@ -157,7 +157,7 @@ for (eval_stat in eval_stats){
     # g_clip<-g_suit*g_bin
     g_clip<-raster(paste0(wdDir, g_mod, "output_rasters/", all_sp_nm[s], "_clipped_suitability_baseline_", eval_stat, "_wmean.tif"))
     # g_0<-g_clip; g_0[g_0 != 0]<-NA
-    # local
+    # regional
     # l_clip<-l_suit*l_bin
     l_clip<-raster(paste0(wdDir, l_mod, "output_rasters/", all_sp_nm[s], "_clipped_suitability_baseline_", eval_stat, "_wmean.tif"))
     # nested
@@ -176,7 +176,7 @@ for (eval_stat in eval_stats){
     plot(g_clip, main = "Global Model", box = F, axes = F, legend = F,  
          zlim = c(0, zlim_clip), col = clip_col(30)); plot(hi_map, add = T)
     # plot(g_0, add = T, col = "white", box = F, axes = F, legend = F); plot(hi_map, add = T)
-    plot(l_clip, main = "Local Model", box = F, axes = F, legend = F,  
+    plot(l_clip, main = "Regional Model", box = F, axes = F, legend = F,  
          zlim = c(0, zlim_clip), col = clip_col(30)); plot(hi_map, add = T)
     plot(n_clip, main = "Nested Model", box = F, axes = F, legend = F,  
          zlim = c(0, zlim_clip), col = clip_col(30)); plot(hi_map, add = T)
@@ -184,7 +184,7 @@ for (eval_stat in eval_stats){
     legend("bottomleft", bty = "n", fill = c(clip_col(5)), border = "black", cex = 1.25,
            legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
     # species point data
-    plot(hi_map, main = "Local Occurrences")
+    plot(hi_map, main = "Regional Occurrences")
     points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
            pch = 21, col = "black", bg = "red")
     # add species name as main title 
@@ -216,7 +216,7 @@ for (eval_stat in eval_stats){
   cat("doing ", eval_stat, "\n")
   
   g_eval<-read.csv(paste0(wdDir, g_mod, "outputs/all_eval_mat_", eval_stat, ".csv"))
-  # local
+  # regional
   l_eval<-read.csv(paste0(wdDir, l_mod, "outputs/all_eval_mat_", eval_stat, ".csv"))
   # nested
   n_eval<-read.csv(paste0(wdDir, n_mod, "outputs/all_eval_mat_", eval_stat, ".csv"))
@@ -234,9 +234,9 @@ for (eval_stat in eval_stats){
     # loop ticker
     print(all_sp_nm[r])
     
-    # select species records c("global_notHI", "local_HI", "nested_HI")
+    # select species records c("global_notHI", "regional_HI", "nested_HI")
     g_sp<-cbind(model = "global_notHI", g_eval[which(g_eval[1] == all_sp_nm[r]),])
-    l_sp<-cbind(model = "local_HI", l_eval[which(l_eval[1] == all_sp_nm[r]),])
+    l_sp<-cbind(model = "regional_HI", l_eval[which(l_eval[1] == all_sp_nm[r]),])
     n_sp<-cbind(model = "nested_HI", n_eval[which(n_eval[1] == all_sp_nm[r]),])
     
     # combine records to loop
@@ -315,7 +315,7 @@ for(r in 1:length(all_sp_nm)){  # set r = 1 for debugging
   
   # global
   g_var<-read.csv(paste0(wdDir, g_mod, "outputs/all_VariImp.csv"))
-  # local
+  # regional
   l_var<-read.csv(paste0(wdDir, l_mod, "outputs/all_VariImp.csv"))
   # nested
   n_var<-read.csv(paste0(wdDir, n_mod, "outputs/all_VariImp.csv"))

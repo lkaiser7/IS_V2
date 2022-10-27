@@ -1,6 +1,6 @@
 # Phase 1 SDMs for Invasive Species
 # additional figure for expert analysis
-# global, local, nested & original maps
+# global, regional, nested & original maps
 
 ### SET UP ####
 # working directory
@@ -19,7 +19,7 @@ hi_map<-hi_map[which(hi_map$Island != "NI"),]
 plot(hi_map)
 
 # models
-m_type<-c("global_notHI", "local_HI", "nested_HI")# c("global", "local", "nested")
+m_type<-c("global_notHI", "regional_HI", "nested_HI")# c("global", "regional", "nested")
 m_type=paste0(m_type, "_models")
 
 g_mod<-m_type[1]
@@ -73,7 +73,7 @@ for (eval_stat in eval_stats){
     # global
     g_clip<-raster(paste0(wdDir, g_mod, "/output_rasters/", sp_nm, "_clipped_suitability_baseline_", eval_stat, "_wmean.tif"))
     g_clip[g_clip == 0]<-NA
-    # local
+    # regional
     l_clip<-raster(paste0(wdDir, l_mod, "/output_rasters/", sp_nm, "_clipped_suitability_baseline_", eval_stat, "_wmean.tif"))
     l_clip[l_clip == 0]<-NA
     # nested
@@ -160,7 +160,7 @@ for (eval_stat in eval_stats){
     # global
     g_bin<-g_clip
     g_bin[g_bin > 0]<-1
-    # local
+    # regional
     l_bin<-l_clip
     l_bin[l_bin > 0]<-1
     # nested
