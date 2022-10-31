@@ -183,21 +183,7 @@ sp_parallel_run = function(sp_nm){
     
     tiff_name=paste0(project_path, sp_dir, sp_nm, "_",eval_stats,"_EM_response_curveV2.tif")
     
-    # tiff(tiff_name, res = 300, units = "in", pointsize = 12,
-    #      width = 10, height = 10, compression = "lzw")
-    # response_plot_data=response.plot2(models  = curve_models,
-    #                                   Data = myBiomodData@data.env.var, 
-    #                                   show.variables=names(myBiomodData@data.env.var),
-    #                                   ImageSize = 1200, plot = T,
-    #                                   save.file = "tiff", name=tiff_name)
-    # response_plot_data=response.plot2(models  = curve_models,
-    #                                   Data = myBiomodData@data.env.var, 
-    #                                   show.variables=names(myBiomodData@data.env.var),
-    #                                   do.bivariate = FALSE,
-    #                                   fixed.var.metric = 'mean',
-    #                                   ImageSize = 1200, plot = F,
-    #                                   save.file = "no")
-    
+
     create_response_plots_fx=function(regression_mat=myBiomodData@data.env.var, fit=get(curve_models[1]), tiff_name){
       #response curve data using transformed matrix
       resp_curve_data0=regression_mat
@@ -332,14 +318,3 @@ sfStop()
 ##### END ENSEMBLE MODELING #####
 #################################
 
-# #############################
-# #delete temp raster files
-# sp_nm = all_sp_nm[1]
-# for (sp_nm in all_sp_nm){
-#   sp_nm = as.character(sp_nm) 
-#   sp_dir = paste0(str_replace_all(sp_nm,"_", "."), "/")
-#   temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-#   unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-#   #Loc <- "mydir"
-#   #system(paste0("rm -r ", temp_sp_files_to_delete))
-# }

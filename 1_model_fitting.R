@@ -10,11 +10,6 @@
 require(snowfall)
 require(tools)
 
-# # copy maxent jar and batch files to project path for processing
-# file.copy(c(paste0(dataDir, "maxent/maxent.jar"), paste0(dataDir, "maxent/maxent.bat")),
-#           project_path, overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
-
-# set sp_nm = 'Clidemia_hirta' for testing and debugging (all_sp_nm[1])
 
 sp_nm=all_sp_nm[1]
 # initialize snowfall parallel computing function
@@ -95,20 +90,6 @@ sp_parallel_run = function(sp_nm) {
     } 
     rm(j, temp) # remove temporary files
     
-    # # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
-    # predictors = rast(paste0(biofitRun, env_var_files[1])) 
-    # predictors=predictors*bioclim_scaling_factors[1]
-    # # crop predictor to selected extent 
-    # #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
-    # 
-    # # creates raster stack all bioclimate variables to use
-    # for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
-    #   temp = rast(paste0(biofitRun, env_var_files[j]))
-    #   temp=temp*bioclim_scaling_factors[j]
-    #   #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
-    #   predictors = c(predictors, temp)
-    # } 
-    
     predictors=rast(paste0(biofitRun, env_var_files)) #try
     predictors=predictors*bioclim_scaling_factors #try
     
@@ -151,7 +132,6 @@ sp_parallel_run = function(sp_nm) {
     cell_numbers_df<-terra::extract(predictors[[1]], mySpeciesOcc[, 1:2], cells = TRUE) 
     #View(cell_numbers_df)
     #remove repeats
-    #unique_cells=!duplicated(cell_numbers_df[,1])
     unique_cells=!duplicated(cell_numbers_df[,3])
     #n_pres_wDups=nrow(mySpeciesOcc)
     mySpeciesOcc=mySpeciesOcc[unique_cells,]
@@ -201,43 +181,6 @@ sp_parallel_run = function(sp_nm) {
     cat('\n defining candidate PA points... (Line 131)')
     cat('\n begin selecting points from bioclimatic predictors:')
     
-    # ####################
-    # #alternative approach:
-    # ac=mySpeciesOcc[,-3]
-    # names(ac)=c("x", "y")
-    # y=ac$y
-    # x=ac$x
-    # coordinates(ac) <- ~x+y
-    # projection(ac) <- CRS('+proj=longlat +datum=WGS84')
-    # #We first create a 'circles' model (see the chapter about geographic models), using an arbitrary radius of 50 km
-    # 
-    # library(sf)
-    # m <- st_distance(st_as_sf(ac))
-    # mean(m, na.rm=T)
-    # hist(c(m))
-    # # circles with a radius of 50 km
-    # x <- circles(ac, d=100000, lonlat=TRUE)
-    # pol <- polygons(x)
-    # #Note that you need to have the rgeos package installed for the circles function to 'dissolve' the circles (remove boundaries were circles overlap).
-    # #And then we take a random sample of points within the polygons. We only want one point per grid cell.
-    # 
-    # # sample randomly from all circles
-    # samp1 <- spsample(pol, n_Occ_pts, type='random', iter=25)
-    # # get unique cells
-    # mask=predictors[[1]]
-    # cells <- cellFromXY(mask, samp1)
-    # length(cells)
-    # ## [1] 250
-    # cells <- unique(cells)
-    # length(cells)
-    # ## [1] 161
-    # xy <- xyFromCell(mask, cells)
-    # #Plot to inspect the results:
-    #   
-    # plot(pol, axes=TRUE)
-    # points(xy, cex=0.75, pch=20, col='blue')
-    
-    
     # create raster layer based on environmental response variable cells
     #mySREresp<-reclassify(predictors[[1]], c(-Inf, Inf, 0))
     mySREresp<-classify(predictors[[1]], matrix(c(-Inf, Inf, 0), ncol = 3, byrow = T))
@@ -245,20 +188,6 @@ sp_parallel_run = function(sp_nm) {
     mySREresp[cellFromXY(mySREresp, mySpeciesOcc[,1:2])]<-NA 
     # calculate number of real absences (generally presence-only data) - should be 0
     act_abs = dim(mySpeciesOcc[mySpeciesOcc$PA == 0,])[1] 
-    # create raster area outside of all known cells with data points
-    #mySREresp[mySREresp==1]=NA
-    #neg_mySREresp = mySREresp == 0 
-    # create matrix of potential candidate pseudo-absence points
-    #potential_PAs = rasterToPoints(mySREresp) 
-    #potential_PAs = as.points(mySREresp) 
-    
-    # assign number of pseudo-absences to be selected
-    # if(useYweights) { #not sure why using different number of pa's by run
-    #   # limit selection of PA points to same number of presence points 
-    # } else {
-    #   # use selected number of PA points from master script
-    #   n_PA_pts = number_of_PAs 
-    # }
     if (number_of_PAs<100){
       n_PA_pts<-n_Occ_pts*number_of_PAs 
     }else{
@@ -278,26 +207,7 @@ sp_parallel_run = function(sp_nm) {
     head(true_potential_PAs) 
     #View(true_potential_PAs)
     
-    # 
-    # 
-    # # extract geographic xy data from potential candidate pseudo-absences
-    # potential_PAs = as.data.frame(potential_PAs[,1:2]) 
-    # # remove any data with missing geographic information or NAs
-    # true_potential_PAs = potential_PAs[complete.cases(potential_PAs),] 
-    # 
-    # #remove some PAs if there is a ridiculously large amount
-    # jnk=dim(true_potential_PAs)[1]
-    # if (jnk>(candidatePAperPA*n_PA_pts)){
-    #   true_potential_PAs=true_potential_PAs[sample(x=jnk,size=candidatePAperPA*n_PA_pts, replace=F),]
-    # }
-    # # add PA column to data frame and assign 'NA' to all rows for pseudo-absences
-    # #true_potential_PAs=cbind(true_potential_PAs, pa=rep('NA', dim(true_potential_PAs)[1],1)) 
-    # true_potential_PAs$PA=NA 
-    # # rename column headers
-    # names(true_potential_PAs) = c('X', 'Y', 'PA') 
-    # # check header of new pseudo-absences data formatting
-    # head(true_potential_PAs) 
-    
+
     # merge real species occurrence data with created candidate pseudo-absence points
     mySpeciesData<-data.frame(rbind(mySpeciesOcc, true_potential_PAs))
     rm(true_potential_PAs, mySpeciesOcc, mySREresp)
@@ -488,20 +398,6 @@ sp_parallel_run = function(sp_nm) {
       myYweights = NULL 
     }
     
-    # stack_raster <- function(ENV, resp.xy ) {
-    #   r <- stack()
-    #   for (col in 1:ncol(ENV)) {
-    #     ENV_col <- rasterFromXYZ(cbind(resp.xy, ENV[, col]), digits = 5 )
-    #     r <- stack(r , ENV_col)
-    #     
-    #   }
-    #   names(r) = colnames(ENV)
-    #   return(r)
-    # }
-    # 
-    # r <- stack_raster(myExpl, myRespXY)
-    # r 
-    
     ##############################
     #format  data for biomod
     myBiomodData<-BIOMOD_FormatingData(
@@ -561,11 +457,7 @@ sp_parallel_run = function(sp_nm) {
       #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
       #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
       #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
-      
       library(rJava)
-      #https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261
-      #http://cran.nexr.com/web/packages/ENMeval/vignettes/ENMeval-vignette.html
-      #https://cran.r-project.org/web/packages/ENMeval/ENMeval.pdf
       packages=as.data.frame(installed.packages())$Package
       if ("rJava" %in% packages){
         library("rJava")
@@ -575,10 +467,6 @@ sp_parallel_run = function(sp_nm) {
         library(maxnet)
         #library(ecospat)
       }
-      # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
-      #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
-      #                      partitions='randomkfold', algorithm="maxent.jar", 
-      #                      tune.args=list(fc = c("L","Q", 'LQP'), rm = 1:3))
       eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
                            bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 
                            partitions='randomkfold', algorithm=algo_type, 
@@ -617,12 +505,6 @@ sp_parallel_run = function(sp_nm) {
       # RF = list(do.classif = TRUE, ntree = 100, mtry = 'default', 
       #           max.nodes = 10, corr.bias = TRUE), 
       # MAXENT: Maximum Entropy
-      # MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
-      #                        maximumiterations = 100, visible = FALSE, linear = TRUE, 
-      #                        quadratic = TRUE, product = TRUE, threshold = TRUE, hinge = TRUE, 
-      #                        lq2lqptthreshold = 80, l2lqthreshold = 10, hingethreshold = 15, 
-      #                        betamultiplier=1,  beta_threshold = -1, beta_categorical = -1, beta_lqp = -1, 
-      #                        beta_hinge = -1, defaultprevalence = 0.5)
       MAXENT.Phillips = list(path_to_maxent.jar = paste0(dataDir,"maxent/"),
                              maximumiterations = 100, visible = FALSE, 
                              linear = maxent_best_params$L, quadratic = maxent_best_params$Q, 
@@ -772,8 +654,6 @@ sp_parallel_run = function(sp_nm) {
 }
 # END snowfall function
 
-#sp_nm=all_sp_nm[16]
-#sp_parallel_run(sp_nm)
 
 ########################################
 ##### SNOWFALL FUNCTION SCRIPT RUN #####
@@ -815,16 +695,3 @@ tryCatch({options(warn=-1); detach(package:ecospat)}, error = function(err) {pri
 #############################
 ##### END MODEL FITTING #####
 #############################
-
-
-# #############################
-# #delete temp raster files
-# sp_nm = all_sp_nm[1]
-# for (sp_nm in all_sp_nm){
-#   sp_nm = as.character(sp_nm) 
-#   sp_dir = paste0(sub("_", ".", sp_nm), "/")
-#   temp_sp_files_to_delete<-paste0(project_path, sp_dir, "delete_temp_sp_files/", "*")
-#   unlink(temp_sp_files_to_delete, recursive=T, force=T) #delete previous frames
-#   #Loc <- "mydir"
-#   #system(paste0("rm -r ", temp_sp_files_to_delete))
-# }

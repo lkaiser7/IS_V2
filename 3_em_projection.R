@@ -46,11 +46,6 @@ sp_parallel_run = function(sp_nm){
   # print posting of temporary file location
   cat('\n temporary files to be deleted saved here:', temp_sp_files_to_delete, '\n')
   
-  # if(apply_biomod2_fixes) {
-  #   # all model projection fixes to BIOMOD2 code created by Adam Vorsino
-  #   source(paste0(codeDir,"3a_project_mod.R")) 
-  # }
-  
   # get processor ID for R session 
   worker = paste0(Sys.Date(), "_worker", Sys.getpid())
   # create a text file name for specific ongoing processing session
@@ -193,11 +188,6 @@ sp_parallel_run = function(sp_nm){
       cat('\n', sp_nm, 'projection of individual models loaded from past run.')
     }
     
-    # run BIOMOD2 fixes if TRUE in source script
-    # if (apply_biomod2_fixes){
-    #   # load baseline projections manually from directory
-    #   myBiomodProjection<-LoadProjectionManually(myBiomodProj_baseline)        
-    # } else {
     # use previously created baseline projections
     myBiomodProjection<-myBiomodProj_baseline
     # }
@@ -217,17 +207,6 @@ sp_parallel_run = function(sp_nm){
     
     # change working directory to project path to save model outputs
     setwd(project_path)
-    # run ensemble projections for species
-    # myBiomodEF <- BIOMOD_EnsembleForecasting(
-    #   projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
-    #   total.consensus = TRUE,  #mean of all combined model projections
-    #   EM.output = myBiomodEM, #BIOMOD.EnsembleModeling.out from ensemble modeling
-    #   proj.name=sp_nm,
-    #   binary.meth = eval_stats,  #evaluation method statistics 
-    #   keep.in.memory = memory)  #if output should be saved to hard disk or not
-    
-    # setMethod('writeValues', signature(object = 'RasterBrick'),
-    #           writeRaster(...))
     myBiomodEF <- BIOMOD_EnsembleForecasting(
       projection.output = myBiomodProjection,  #BIOMOD.projection.out from projections
       total.consensus = TRUE,  #mean of all combined model projections

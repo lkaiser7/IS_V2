@@ -39,13 +39,7 @@ for (eval_stat in eval_stats){
     long = melt(evalMat)
     # rename new columns
     names(long) = c("Species", "Value")
-    # # find species place in vector of species names
-    # long = long[long[,1] %in% all_sp_nm,]
-    # # reorder species lists by name
-    # long = long[order(long[,1]),]
-    # # sort long data using species as factor levels
-    # long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
-    
+
     # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
     t_name = paste0(vi_fold, eval_stat, "_", model, "_model_skil_box_plot.tiff")
     # create blank image file
@@ -136,18 +130,10 @@ for (sp_nm in all_sp_nm){
     
     # name output image file
     t_name=paste0(vi_fold, sp_nm, "_",model, "_variable_importance_box_plot.tiff")
-    # create blank image file
-    # tiff(t_name, res = 300, units = "in", pointsize = 12,
-    #      width = 10, height = 10, compression = "lzw")
-    # store basic qplot boxplot
     a = qplot(Predictor, Value, data = long, geom = c("boxplot", "jitter"), 
             fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
-    #print(a)
-    
-    # save image file output
     ggsave(filename = t_name, plot = a, dpi = 300, units = "in", width = 10, height = 10, compression = "lzw")    
     graphics.off()
-    
     
     # sign-posting of completed box plot for bioclimatic variables    
     cat('done with', sp_nm, model, 'variable importance box plot \n')
