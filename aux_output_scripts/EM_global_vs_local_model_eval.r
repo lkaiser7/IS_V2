@@ -7,7 +7,7 @@ eval_stat = eval_stats[1]
 for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
 
   all_sp_evalDF_short=read.csv(paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
-  all_sp_evalDF_short=all_sp_evalDF_short[,-1]
+  all_sp_evalDF_short=all_sp_evalDF_short[,c(-1, -3)]
   names(all_sp_evalDF_short)=c("Species", "Global", "Regional", "Nested", "Skill_deviation")
   plot(all_sp_evalDF_short$Global, all_sp_evalDF_short$Regional)
 
@@ -30,7 +30,7 @@ for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
   #now compare match in model skill and variable importance
   all_sp_evalDF_short2=all_sp_evalDF_short[,c("Species", "Global", "Regional", "Skill_deviation")]
   species_var_imp_deviations_df=read.csv(paste0(rootDir, "combined_results/all_sp_varImpDF_short_GL.csv"))
-  species_var_imp_deviations_df=species_var_imp_deviations_df[,c("species", "SS")]
+  species_var_imp_deviations_df=species_var_imp_deviations_df[,c("current_spp_name", "SS")]
   names(species_var_imp_deviations_df)=c("Species", "varImp_deviation")
   #View(species_var_imp_deviations_df)
   skill_vs_varImp= merge(all_sp_evalDF_short2, species_var_imp_deviations_df, by="Species")
@@ -69,19 +69,20 @@ for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
   #now compare model skill and response curve deviation
   rc_fold<-paste0(rootDir, "combined_results/EM_mean_response_curves/")
   rc_dev_DF=read.csv(paste0(rc_fold,"scld_species_mean_response_deviations.csv"))
-  rc_dev_DF=rc_dev_DF[,c("species", "scld_weighted_SS_GL_diff")]
+  rc_dev_DF=rc_dev_DF[,c("current_spp_name", "scld_weighted_SS_GL_diff")]
   names(rc_dev_DF)=c("Species", "RC_dev")
   
   skill_varImp_RC_DF= merge(skill_vs_varImp, rc_dev_DF, by="Species")
   
   #now merge standard niche overlap
   niche_overlap_DF=read.csv(paste0("combined_results/combined_maps/niche_overlap_metric_DF.csv"))
-  niche_overlap_DF=niche_overlap_DF[,c("sp_nm", "GL_clipSuit_I")]
+  niche_overlap_DF=niche_overlap_DF[,c("current_spp_name", "GL_clipSuit_I")]
   names(niche_overlap_DF)=c("Species", "GL_clipSuit_I")
   skill_varImp_RC_DF= merge(skill_varImp_RC_DF, niche_overlap_DF, by="Species")
   
   #merge species introduction year
   spp_establishment_DF=read.csv(paste0(rootDir, "data/spp_establishment_year.csv"))
+  spp_establishment_DF$species=replace_spp_names(spp_establishment_DF$species)
   names(spp_establishment_DF)=c("Species", "establishment")
   
   skill_varImp_RC_DF= merge(skill_varImp_RC_DF, spp_establishment_DF, by="Species")
@@ -152,6 +153,16 @@ for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
     ylab("Response deviation between global and regional scales")+geom_smooth(method = "lm", se = TRUE)
   a
   tiff_name=paste0("combined_results/model_eval_metric/establishment_vs_RC_SSdeviation_", eval_stat, ".tiff")
+  ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
+  
+  cor(skill_varImp_RC_DF$GL_clipSuit_I, skill_varImp_RC_DF$establishment)
+  a=ggplot(skill_varImp_RC_DF, aes(x=establishment, y=GL_clipSuit_I)) + 
+    geom_point(aes(size=1.25)) +
+    geom_text(label=skill_varImp_RC_DF$Species, nudge_x = 0.0, nudge_y = 0.015,  size=geom.text.size)+ 
+    theme(legend.position="none")+xlab("Establishment year")+
+    ylab("Niche overlap (Warren's I) between global and reg. projections")+geom_smooth(method = "lm", se = TRUE)
+  a
+  tiff_name=paste0("combined_results/model_eval_metric/establishment_vs_warrensI_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
   
   write.csv(skill_varImp_RC_DF, paste0("combined_results/model_eval_metric/skill_varImp_RC_DF_", eval_stat, ".csv"), row.names = F)

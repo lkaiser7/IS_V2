@@ -30,21 +30,21 @@ for (eval_stat in eval_stats){
   # loop through all models 
   for (model in models_to_run){
     # select evaluation statistic values per model
-    evalMat = evalMat0[evalMat0[,2] == model,3:ncol(evalMat0)]
+    evalMat = evalMat0[evalMat0[,3] == model,4:ncol(evalMat0)]
     # transpose data data frame
     evalMat = as.data.frame(t(evalMat))
     # rename for species runs
-    names(evalMat) = evalMat0[evalMat0[,2] == model,1]
+    names(evalMat) = evalMat0[evalMat0[,3] == model,1]
     # create two columns of species name and statistic values
     long = melt(evalMat)
     # rename new columns
     names(long) = c("Species", "Value")
-    # find species place in vector of species names
-    long = long[long[,1] %in% all_sp_nm,]
-    # reorder species lists by name
-    long = long[order(long[,1]),]
-    # sort long data using species as factor levels
-    long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
+    # # find species place in vector of species names
+    # long = long[long[,1] %in% all_sp_nm,]
+    # # reorder species lists by name
+    # long = long[order(long[,1]),]
+    # # sort long data using species as factor levels
+    # long$Species<-factor(long$Species, levels = sort(levels(long$Species)))
     
     # name output image file (ALL GGPLOT FILES MUST BE SAVED AS '.tiff' FILES!)
     t_name = paste0(vi_fold, eval_stat, "_", model, "_model_skil_box_plot.tiff")
@@ -105,6 +105,7 @@ colnames = names(varImp0)
 # create an empty list 
 model_cols = list()
 # loop through models run and add to list
+model = models_to_run[1]
 for (model in models_to_run){ # set model = "GBM" for debugging
   # create temporary vector of number of column per model
   jnk = grep(paste0(model, "+"), colnames, perl = TRUE, value = FALSE)  
@@ -114,6 +115,7 @@ for (model in models_to_run){ # set model = "GBM" for debugging
 
 # set species counter to 1
 sp_nm = all_sp_nm[1]
+model = models_to_run[1]
 
 # start looping though all species
 for (sp_nm in all_sp_nm){
@@ -122,11 +124,11 @@ for (sp_nm in all_sp_nm){
     # number of models to loop through
     model_n = which(models_to_run==model)
     # select variable importance data from specific model
-    varImp = varImp0[varImp0[,1]==sp_nm,model_cols[[model_n]]]
+    varImp = varImp0[varImp0[,2]==sp_nm,model_cols[[model_n]]]
     # transform the data into a data frame
     varImp = as.data.frame(t(varImp))
     # rename columns from names stored above per bioclimatic variable
-    names(varImp) = varImp0[varImp0[,1]==sp_nm, "rownames.Spp_VariImp."]
+    names(varImp) = varImp0[varImp0[,2]==sp_nm, "rownames.Spp_VariImp."]
     # create two columns of bioclimatic predictors and their values
     long = melt(varImp)
     # rename new columns
@@ -135,15 +137,15 @@ for (sp_nm in all_sp_nm){
     # name output image file
     t_name=paste0(vi_fold, sp_nm, "_",model, "_variable_importance_box_plot.tiff")
     # create blank image file
-    tiff(t_name, res = 300, units = "in", pointsize = 12,
-         width = 10, height = 10, compression = "lzw")
+    # tiff(t_name, res = 300, units = "in", pointsize = 12,
+    #      width = 10, height = 10, compression = "lzw")
     # store basic qplot boxplot
     a = qplot(Predictor, Value, data = long, geom = c("boxplot", "jitter"), 
             fill = Predictor, main = "", xlab = "", ylab = "Variable importance" )
-    print(a)
+    #print(a)
     
     # save image file output
-    ggsave(filename = t_name, plot = a)    
+    ggsave(filename = t_name, plot = a, dpi = 300, units = "in", width = 10, height = 10, compression = "lzw")    
     graphics.off()
     
     

@@ -54,6 +54,8 @@ for(s in 1:length(sp_files)){  # s = 1 for debugging
   }
 }
 
+all_sp_count=cbind(current_spp_name=replace_spp_names(all_sp_count[,1]), all_sp_count)
+
 #View(all_sp_count)
 # save species count file
 write.csv(all_sp_count, paste0(dataDir, "all_sp_count.csv"))
@@ -98,13 +100,15 @@ for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging
     
     # select single species name
     sp.name<-all_sp_nm[s]
+    #current_sp_nm=replace_spp_names(sp.name)
     
     # select species variable importance data
-    sp_var_imp<-var_imp[which(var_imp[,1] == sp.name),]
+    sp_var_imp<-var_imp[which(var_imp[,2] == sp.name),]
     
     # # separate maxent and gbm runs
     # sp_var_max<-sp_var_imp[grep("MAXENT", names(sp_var_imp))]
     # sp_var_gbm<-sp_var_imp[grep("GBM", names(sp_var_imp))]
+    model_type = models_to_run[1]
     for (model_type in models_to_run){
       sp_var_mod<-sp_var_imp[grep(model_type, names(sp_var_imp))]
       sp_var_mod= rowMeans(sp_var_mod)
@@ -132,6 +136,8 @@ for(m in 1:length(all_mod_scale)){ # set m = 1 for debugging
   } # END s loop
   #View(all_bc_vars)
   # save means by model runs
+  all_bc_vars=cbind(current_spp_name=replace_spp_names(all_bc_vars[,1]), all_bc_vars)
+  
   write.csv(all_bc_vars, paste0(outDir, "all_VariImp_model_mean.csv"))
   
 } # END m loop

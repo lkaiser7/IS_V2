@@ -30,7 +30,7 @@ for (sp_nm in all_sp_nm){
   sp_nm = as.character(sp_nm)  
   # replace species naming convention of "_" with "." 
   sp_dir = paste0(str_replace_all(sp_nm, "_", "."), "/")
-  
+  current_sp_nm=replace_spp_names(sp_nm)
   cat('\n plotting response curves for', sp_nm)
   
   # set species name

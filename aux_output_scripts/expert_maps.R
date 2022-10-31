@@ -61,6 +61,7 @@ for (eval_stat in eval_stats){
     # species name
     sp_nm=all_sp_nm[s]
     print(sp_nm)
+    current_sp_nm=replace_spp_names(sp_nm)
     ### SUITABILITY PLOTS ###
     # clipped suitability to BIN range
     
@@ -105,7 +106,7 @@ for (eval_stat in eval_stats){
     plot(crop(v_clip, hi_map)/1000, main = "Model D", box = F, axes = F, legend = F,
          zlim = c(0, zlim_clip), col = rev(inferno(30))); plot(hi_map, add = T)
     # add species name as main title 
-    title(sub("_", " ", sp_nm), outer = T, cex.main = 2) #, line = 2)
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
     # # LEGEND OPTION 2: under title
     # # overlay plot area to add legend 
     # par(fig = c(0, 1, 0, 1), oma = c(0, 0, 1.5, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -247,7 +248,7 @@ for (eval_stat in eval_stats){
     plot(crop(v_bin, hi_map), main = "Model D", box = F, 
          axes = F, legend = F, col = rev(inferno(4))); plot(hi_map, add = T)
     # add species name as main title 
-    title(sub("_", " ", sp_nm), outer = T, cex.main = 2) #, line = 2)
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
     # # LEGEND OPTION 2: under title
     # # overlay plot area to add legend 
     # par(fig = c(0, 1, 0, 1), oma = c(0, 0, 1.5, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -277,7 +278,7 @@ for (eval_stat in eval_stats){
     legend("bottomleft", bty = "n", fill = c("white", rev(inferno(4))[3]), border = "black", cex = 1.25,
            legend = c("Unsuitable", "Suitable"))
     # add species name as main title 
-    title(sub("_", " ", sp_nm), outer = T, cex.main = 2) #, line = 2)
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
     # # LEGEND OPTION 2: under title
     # # overlay plot area to add legend 
     # par(fig = c(0, 1, 0, 1), oma = c(0, 0, 1.5, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -292,6 +293,9 @@ for (eval_stat in eval_stats){
     
   }
 }
+area_DF=cbind(current_spp_name=replace_spp_names(area_DF$sp_nm), area_DF)
+overlap_DF=cbind(current_spp_name=replace_spp_names(overlap_DF$sp_nm), overlap_DF)
+
 write.csv(area_DF, paste0(outDir2, "projection_area_DF.csv"), row.names = F)
 write.csv(overlap_DF, paste0(outDir2, "niche_overlap_metric_DF.csv"), row.names = F)
 

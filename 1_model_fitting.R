@@ -465,7 +465,7 @@ sp_parallel_run = function(sp_nm) {
       rng_seed=seed
     }
     # print random seed number for record
-    cat('\n biomod formating and fitting using random seed', rng_seed )
+    cat('\n biomod formating and fitting using random seed', rng_seed, "\n" )
     # set seed
     set.seed(rng_seed)
     
@@ -573,7 +573,7 @@ sp_parallel_run = function(sp_nm) {
       }else{
         algo_type="maxnet"
         library(maxnet)
-        library(ecospat)
+        #library(ecospat)
       }
       # eval3 <- ENMevaluate(occs=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==1,-3], 
       #                      bg=tmp_SP_ALL_data[tmp_SP_ALL_data$PA==0,-3], 

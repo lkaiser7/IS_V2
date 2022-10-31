@@ -3,6 +3,9 @@
 ### master code to use in sdm IS_analysis ###
 rm(list = ls()) # clear the environment, temp files, and all other variables
 
+# packageurl <- "http://cran.r-project.org/src/contrib/Archive/biomod2/biomod2_3.5.1.tar.gz"
+# install.packages(packageurl, repos=NULL, type="source") #need biomod2 v3.5.1
+
 ##########################################
 ##### SET MAIN PARAMETERS, SOURCE LOCATIONS AND PATHS #####
 ##########################################
@@ -12,7 +15,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="regional_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
+run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -22,14 +25,15 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
               'Passiflora_tarminiana', 'Pennisetum_clandestinum', 'Pennisetum_setaceum',
               'Psidium_cattleianum', 'Setaria_palmifolia','Schinus_terebinthifolius',
               'Cyathea_cooperi', 'Miconia_calvescens', 'Ulex_europaeus')
+#all_sp_nm=gsub("_", " ", all_sp_nm)
 #all_sp_nm = c('Miconia_calvescens', 'Ulex_europaeus')
 # all_sp_nm = c('Clidemia_hirta')# DEBUG
 # NOTE: Cyathea cooperi is the species synonym for Sphaeropteris cooperi
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM6/", 
-               "~/projects/invasives_SDM6/", "/home/pierc/projects/invasives_SDM/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM7/", 
+               "~/projects/invasives_SDM7/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -313,6 +317,23 @@ model_resolution = 0.5
 ###########################
 ##### RUNNING SCRIPTS #####
 ###########################
+
+replace_spp_names=function(spp_name_vector){
+  to_replace=c("Clidemia_hirta", "Falcataria_moluccana", "Hedychium_gardnerianum", 
+               "Lantana_camara", "Leucaena_leucocephala", "Melinis_minutiflora", 
+               "Morella_faya", "Panicum_maximum", "Passiflora_tarminiana", "Pennisetum_clandestinum", 
+               "Pennisetum_setaceum", "Psidium_cattleianum", "Setaria_palmifolia", 
+               "Schinus_terebinthifolius", "Cyathea_cooperi", 'Miconia_calvescens', 'Ulex_europaeus')
+  replacement=c("Miconia crenata", "Falcataria falcata", "Hedychium gardnerianum", 
+                "Lantana camara", "Leucaena leucocephala", "Melinis minutiflora", 
+                "Morella faya", "Panicum maximum", "Passiflora tarminiana", "Cenchrus clandestinus", 
+                "Cenchrus setaceus", "Psidium cattleianum", "Setaria palmifolia", 
+                "Schinus terebinthifolia", "Sphaeropteris cooperi", 'Miconia calvescens', 'Ulex europaeus')
+  library(plyr)
+  foo <- mapvalues(spp_name_vector, from=to_replace, to=replacement, warn_missing = F)
+  return(foo)
+}
+#replace_spp_names(all_sp_nm)
 
 # create log for data input for initial run
 if (baseline_or_future == 1) {

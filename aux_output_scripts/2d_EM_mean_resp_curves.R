@@ -38,6 +38,7 @@ for (model_scale in model_scales){
   cat("doing ", model_scale, "\n")
   for (sp_nm in all_sp_nm){
     cat("doing ", sp_nm, "\n")
+    current_sp_nm=replace_spp_names(sp_nm)
     
     # replace species naming convention of "_" with "." 
     sp.name_period=str_replace_all(sp_nm, "_", ".")
@@ -56,6 +57,9 @@ for (model_scale in model_scales){
   }  
   #View(all_sp_varImpDF)
 }
+
+all_sp_varImpDF=cbind(all_sp_varImpDF, current_spp_name=replace_spp_names(all_sp_varImpDF$species))
+
 dir.create(paste0(rootDir, "combined_results/"), showWarnings = F)
 write.csv(all_sp_varImpDF, paste0(rootDir, "combined_results/all_EM_var_imp.csv"))
 
@@ -71,6 +75,9 @@ all_sp_varImpDF_SS_short_GL=dcast(all_sp_varImpDF_S_short_GL, species ~ pred, va
 all_sp_varImpDF_SS_short_GL$SS=apply(all_sp_varImpDF_SS_short_GL[,-1], 1, sum)
 all_sp_varImpDF_SS_short_GL=all_sp_varImpDF_SS_short_GL[, c("species", "SS")]
 all_sp_varImpDF_short_GL=merge(all_sp_varImpDF_short_GL, all_sp_varImpDF_SS_short_GL, by="species")
+
+all_sp_varImpDF_short=cbind(current_spp_name=replace_spp_names(all_sp_varImpDF_short$species), all_sp_varImpDF_short)
+all_sp_varImpDF_short_GL=cbind(current_spp_name=replace_spp_names(all_sp_varImpDF_short_GL$species), all_sp_varImpDF_short_GL)
 
 write.csv(all_sp_varImpDF_short, paste0(rootDir, "combined_results/all_sp_varImpDF_short.csv"))
 write.csv(all_sp_varImpDF_short_GL, paste0(rootDir, "combined_results/all_sp_varImpDF_short_GL.csv"))
@@ -105,36 +112,43 @@ for (model_scale in model_scales){
     }
   }  
 }
+all_sp_evalDF=cbind(all_sp_evalDF, current_spp_name=replace_spp_names(all_sp_evalDF$species))
 #View(all_sp_evalDF)
 write.csv(all_sp_evalDF, paste0(rootDir, "combined_results/all_EM_eval.csv"))
 
 library(reshape2)
 all_sp_evalDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="eval")
 all_sp_evalDF_short$GL_diff=abs(all_sp_evalDF_short$global_notHI-all_sp_evalDF_short$regional_HI)
+all_sp_evalDF_short=cbind(current_spp_name=replace_spp_names(all_sp_evalDF_short$species), all_sp_evalDF_short)
+
 write.csv(all_sp_evalDF_short, paste0(rootDir, "combined_results/all_EM_eval_short.csv"))
 
 all_sp_sensDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="sensitivity")
 all_sp_sensDF_short$GL_diff=abs(all_sp_sensDF_short$global_notHI-all_sp_sensDF_short$regional_HI)
+all_sp_sensDF_short=cbind(current_spp_name=replace_spp_names(all_sp_sensDF_short$species), all_sp_sensDF_short)
 write.csv(all_sp_sensDF_short, paste0(rootDir, "combined_results/all_EM_sensitivity_short.csv"))
 
 all_sp_specDF_short=dcast(all_sp_evalDF[,-2], species ~ scale, value.var="specificity")
 all_sp_specDF_short$GL_diff=abs(all_sp_specDF_short$global_notHI-all_sp_specDF_short$regional_HI)
+all_sp_specDF_short=cbind(current_spp_name=replace_spp_names(all_sp_specDF_short$species), all_sp_specDF_short)
 write.csv(all_sp_specDF_short, paste0(rootDir, "combined_results/all_EM_specificity_short.csv"))
 
 #combined
-tmp1=all_sp_evalDF_short[,-5]
+tmp1=all_sp_evalDF_short[,c(-1, -6)]
 names(tmp1)[2:4]=paste0("eval_", names(tmp1)[2:4])
 
-tmp2=all_sp_sensDF_short[,-5]
+tmp2=all_sp_sensDF_short[,c(-1, -6)]
 names(tmp2)[2:4]=paste0("sens_", names(tmp2)[2:4])
 
-tmp3=all_sp_specDF_short[,-5]
+tmp3=all_sp_specDF_short[,c(-1, -6)]
 names(tmp3)[2:4]=paste0("spec_", names(tmp3)[2:4])
 
 tmp1=merge(tmp1, tmp2, by="species")
 tmp1=merge(tmp1, tmp3, by="species")
+tmp1=cbind(current_spp_name=replace_spp_names(tmp1$species), tmp1)
+
 write.csv(tmp1, paste0(rootDir, "combined_results/all_EM_eval_table.csv"), row.names = F)
-apply(tmp1[,-1], 2, mean, na.rm=T)
+apply(tmp1[,c(-1, -2)], 2, mean, na.rm=T)
 
 #####################################################
 #####################################################
@@ -152,6 +166,7 @@ s=1
 for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   # select single species name
   sp.name<-all_sp_nm[s]
+  current_sp_nm=replace_spp_names(sp.name)
   # replace species naming convention of "_" with "." 
   sp.name_period=str_replace_all(sp.name, "_", ".")
   sp_dir = paste0(sp.name_period, "/")
@@ -372,7 +387,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     labs(x = '', y = 'Scaled response', colour = 'model scale') + 
     # scale_color_brewer(type = 'qual', palette = 4) + 
     scale_color_manual(values = cb_palette) + 
-    ggtitle(paste(sub("_", " ", sp.name))) + 
+    ggtitle(current_sp_nm) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
   ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
@@ -395,7 +410,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
     # scale_color_brewer(type = 'qual', palette = 4) + 
     scale_color_manual(values = cb_palette) + 
-    ggtitle(paste(sub("_", " ", sp.name))) + 
+    ggtitle(current_sp_nm) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
   ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
@@ -416,7 +431,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
     # scale_color_brewer(type = 'qual', palette = 4) + 
     scale_color_manual(values = cb_palette) + 
-    ggtitle(paste(sub("_", " ", sp.name))) + 
+    ggtitle(current_sp_nm) + 
     theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   
   ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
@@ -438,7 +453,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   EM_vi<-ggplot(sp_varImpDF_for_graph, aes(expl.name, varImp, fill = expl.name)) + 
     geom_col() + facet_wrap(~ model_scale) + ylim(0, 1) +
     scale_fill_manual(values = cb_palette) + 
-    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp.name)) + 
+    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(current_sp_nm) + 
     theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
   ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot.tiff"), compression = "lzw")
   
@@ -449,7 +464,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   EM_vi<-ggplot(sp_varImpDF_for_graph_GL, aes(expl.name, varImp, fill = expl.name)) + 
     geom_col() + facet_wrap(~ model_scale) + ylim(0, 1) +
     scale_fill_manual(values = cb_palette) + 
-    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(paste(sp.name)) + 
+    labs(x = NULL, y = 'Mean Variable Importance') + ggtitle(current_sp_nm) + 
     theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
   ggsave(filename = paste0(emVI_fold, sp.name, "_mean_variable_importance_bar_plot_GL.tiff"), compression = "lzw")
   
@@ -460,12 +475,14 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
 
 SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_Imp
 SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_Imp
+SS_results_DF=cbind(current_spp_name=replace_spp_names(SS_results_DF$species), SS_results_DF)
 write.csv(SS_results_DF, paste0(rc_fold,"response_deviations.csv"), row.names = F)
 #View(SS_results_DF)
 
 SS_results_DF_spp=SS_results_DF[,c("species", "weighted_SS_GL_diff")]
 SS_results_DF_spp=aggregate(SS_results_DF_spp[,2], by=list(SS_results_DF_spp$species), FUN=mean)
 names(SS_results_DF_spp)=c("species", "weighted_SS_GL_diff")
+SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(SS_results_DF_spp$species), SS_results_DF_spp)
 write.csv(SS_results_DF_spp, paste0(rc_fold,"species_mean_response_deviations.csv"), row.names = F)
 #View(SS_results_DF_spp)
 
@@ -478,6 +495,7 @@ scld_SS_results_DF_spp=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff")]
 scld_SS_results_DF_spp=aggregate(scld_SS_results_DF_spp[,2], by=list(scld_SS_results_DF_spp$species), FUN=mean)
 names(scld_SS_results_DF_spp)=c("species", "scld_weighted_SS_GL_diff")
 scld_SS_results_DF_spp=merge(SS_results_DF_scld_SS_GL_diff_short, scld_SS_results_DF_spp, by= "species")
+scld_SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(scld_SS_results_DF_spp$species), scld_SS_results_DF_spp)
 write.csv(scld_SS_results_DF_spp, paste0(rc_fold,"scld_species_mean_response_deviations.csv"), row.names = F)
 #View(scld_SS_results_DF_spp)
 
