@@ -170,6 +170,94 @@ for (eval_stat in eval_stats){
     # add species name as main title 
     title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
     dev.off()
+    
+    #merged plots
+    ### MERGED BIN AND SUITABILITY PLOTS ###
+    # compare suitability of species ranges
+    
+    # global
+    g_suit
+    l_suit
+    n_suit
+    
+    g_bin2=g_bin
+    l_bin2=l_bin
+    n_bin2=n_bin
+    g_bin2[g_bin2==0]=NA
+    l_bin2[l_bin2==0]=NA
+    n_bin2[n_bin2==0]=NA
+    g_bin2=aggregate(g_bin2, 4, modal)
+    l_bin2=aggregate(l_bin2, 4, modal)
+    n_bin2=aggregate(n_bin2, 4, modal)
+    g_bin_pol=rasterToPolygons(g_bin2, dissolve=T) 
+    l_bin_pol=rasterToPolygons(l_bin2, dissolve=T)
+    n_bin_pol=rasterToPolygons(n_bin2, dissolve=T)
+    library(rgeos)
+    #sum(sapply(g_bin_pol@polygons, function(y) nrow(y@Polygons[[2]]@coords))) #total vertices
+    g_bin_pol_simple=gSimplify(g_bin_pol, 0.0005, topologyPreserve=TRUE)
+    l_bin_pol_simple=gSimplify(l_bin_pol, 0.0005, topologyPreserve=TRUE)
+    n_bin_pol_simple=gSimplify(n_bin_pol, 0.0005, topologyPreserve=TRUE)
+    #sum(sapply(g_bin_pol_simple@polygons, function(y) nrow(y@Polygons[[2]]@coords))) #total vertices
+    plot(g_bin_pol)
+    plot(g_bin_pol_simple)
+    plot(l_bin_pol_simple)
+    plot(n_bin_pol_simple)
+    
+    
+    # find max value
+    zlim_suit<-max(c(summary(g_suit)[5], summary(l_suit)[5], summary(n_suit)[5]))
+    
+    dir.create(paste0(outDir, "combo_bin_and_suitability_maps/"), showWarnings=F)
+    # create image file
+    png(paste0(outDir, "combo_bin_and_suitability_maps/", all_sp_nm[s], "_combo_baseline_", eval_stat, "_wmean.png"), 
+        width = 870*2, height = 607*2, units = "px", pointsize = 24, bg = "white", res = 82)
+    # format plot area
+    par(mfrow = c(2, 2), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
+    # suitability model results
+    plot(g_suit, main ="Global Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(g_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(l_suit, main = "Regional Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(l_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(n_suit, main = "Nested Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(n_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    # LEGEND OPTION 1: bottom left
+    legend("bottomleft", bty = "n", fill = c(clip_col(5)), border = "black", cex = 1.25,
+           legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
+    # species point data
+    plot(hi_map, main = "Regional Occurrences")
+    points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
+           pch = 21, col = "black", bg = "red")
+    # add species name as main title 
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
+    dev.off()
+    
+    
+    ######################
+    #3 panel combo plot
+    dir.create(paste0(outDir, "combo_bin_and_suitability_maps_3_panel/"), showWarnings=F)
+    # create image file
+    png(paste0(outDir, "combo_bin_and_suitability_maps_3_panel/", all_sp_nm[s], "_combo_baseline_", eval_stat, "_wmean.png"), 
+        width = 870*2, height = 500, units = "px", pointsize = 24, bg = "white", res = 82)
+    # format plot area
+    par(mfrow = c(1, 3), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
+    # suitability model results
+    plot(g_suit, main ="Global Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(g_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(l_suit, main = "Regional Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(l_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(n_suit, main = "Nested Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(n_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    # LEGEND OPTION 1: bottom left
+    legend("bottomleft", bty = "n", fill = c(clip_col(5)), border = "black", cex = 1.25,
+           legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
+    # # species point data
+    # plot(hi_map, main = "Regional Occurrences")
+    # points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
+    #        pch = 21, col = "black", bg = "red")
+    # add species name as main title 
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
+    dev.off()
+    
   }
 }
 
