@@ -33,7 +33,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 
 # set root path to source files
 project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM7/", 
-               "~/projects/invasives_SDM7/")
+               "~/projects/invasives_SDM8/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -242,7 +242,7 @@ PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
 dens_PAs_outside_CE = 1 
 # select number of repetitions for PA selections
-PA.nb.rep = 5
+PA.nb.rep = 10
 # select number of PAs to determine point density
 number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 #if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 
@@ -396,7 +396,7 @@ if (run_scripts_beyond_projection){
     source(paste0(codeDir, "aux_output_scripts/1b_mfit_graphs.R"))
   }
   if (create_response_curves) { # 2a - response curves
-    source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.r"))
+    source(paste0(codeDir, "aux_output_scripts/2a_resp_curves.R"))
   }
   
   if (run_scripts_after_3_model_scales_done){
