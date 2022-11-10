@@ -15,7 +15,7 @@ cpucores = 3 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
+run_type="global_notHI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -32,13 +32,13 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM7/", 
-               "~/projects/invasives_SDM8/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM8/", 
+               "/hdd/projects/invasives_SDM8/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
 # location of scripts and code
-codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/pierc/git_repos/IS_V2/") #in order of priority
+codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/hdd/git_repos/IS_V2/") #in order of priority
 codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 project_run<-paste0(run_type, "_models")
@@ -67,10 +67,10 @@ mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
 # location of bioclimatic variables
 if (run_type=="global_notHI"){
-  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/pierc/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+  bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/hdd/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 }else{
-  bioclims_dirs=c("/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
+  bioclims_dirs=c("/hdd/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   paste0(dataDir, "bioclim_vars/")) #in order of priority
   bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
@@ -88,7 +88,7 @@ fitting_bios_global<-paste0(bioclims_dir, "all_baseline/current_30s/")
 # updated HRCM bioclims_dir ***FOR HAWAII ONLY*** (2015)
 # current updated bioclimatic variabels @ 125 m
 fitting_bios_HIs<-c(paste0(bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/",
-                    "/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
+                    "/hdd/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
 fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 
 # current updated bioclimatic variables @ 500 m
