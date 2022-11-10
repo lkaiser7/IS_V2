@@ -1,12 +1,12 @@
 rm(list = ls()) # clear the environment, temp files, and all other variables
 # set root path to source files
 project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM5/", 
-               "~/projects/invasives_SDM5/", "/home/pierc/projects/invasives_SDM/")
+               "/hdd/projects/invasives_SDM5/", "/hdd/projects/invasives_SDM/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
 # # location of scripts and code
-# codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/home/pierc/git_repos/IS_V2/") #in order of priority
+# codeDirs=c("D:/projects/Invasives_modeling/IS_V2_repo/", paste0(rootDir, "IS_V2/"), "/hdd/git_repos/IS_V2/") #in order of priority
 # codeDir=codeDirs[min(which(dir.exists(codeDirs)))]
 
 # location of all data
@@ -16,16 +16,16 @@ dataDir<-paste0(rootDir, "data/")
 # mapDirs<-c(paste0(dataDir, "map_data/"), "D:/data/")
 # mapDir<-mapDirs[min(which(dir.exists(mapDirs)))]
 
-bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/home/pierc/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
+bioclims_dirs=c("D:/data/global_climate/wc2.1_30s_bio_simplified/", "/hdd/data/global_climate/wc2.1_30s_bio_simplified/", paste0(dataDir, "bioclim_vars/")) #in order of priority
 global_bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
-bioclims_dirs=c("/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
+bioclims_dirs=c("/hdd/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/", 
                   paste0(dataDir, "bioclim_vars/")) #in order of priority
 regional_bioclims_dir<-bioclims_dirs[min(which(dir.exists(bioclims_dirs)))]
 
 fitting_bios_global<-paste0(global_bioclims_dir, "all_baseline/current_30s/")
 fitting_bios_HIs<-c(paste0(regional_bioclims_dir, "all_HRCM/current_250m_redone/"), "D:/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/",
-                    "/home/pierc/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
+                    "/hdd/data/climate_data/20201123_HRCM_NCAR_projections2/bioclims/baseline_rasters/")
 fitting_bios_HI<-fitting_bios_HIs[min(which(dir.exists(fitting_bios_HIs)))]
 
 
