@@ -61,7 +61,7 @@ for (sp_nm in all_sp_nm){
   # loop through all models run
   for (model in models_to_run){
     # name output image file
-    tiff_name=paste0(rc_fold, sp_nm, "_response_curve_", model, "all_vars.tif")
+    tiff_name=paste0(rc_fold, sp_nm, "_response_curve_", model, "_all_vars.tif") 
     # # create blank image file
     # tiff(tiff_name, res = 300, units = "in", pointsize = 12,
     #      width = 10, height = 10, compression = "lzw")
