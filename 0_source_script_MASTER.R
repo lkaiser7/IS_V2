@@ -11,13 +11,13 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 seed=9214621 #NULL
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 3 # select number of computer cores for processing (max = 32)
+cpucores = 4 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
 run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
-run_scripts_after_3_model_scales_done=T
+run_scripts_after_3_model_scales_done=F
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
               'Lantana_camara', 'Leucaena_leucocephala', 'Melinis_minutiflora',
@@ -32,8 +32,8 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM8/", 
-               "/hdd/projects/invasives_SDM8/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM9/", 
+               "/hdd/projects/invasives_SDM9/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -102,11 +102,13 @@ current_proj_bios_HI<-fitting_bios_HI #paste0(bioclims_dir, "all_HRCM/current_25
 if (run_type=="global_notHI"){
   baseData<-nohiDir                # baseline species data (scripts 1 & 2)
   biofitRun<-fitting_bios_global     # for model fitting
-  bioclim_scaling_factors=c(1/10, 1/10, 1, 1/10) #rasters were saved as integers
+  # bioclim_scaling_factors=c(1/10, 1/10, 1, 1/10) #rasters were saved as integers
+  bioclim_scaling_factors=c(1/10, 1, 1/10) #rasters were saved as integers
 }else{
   baseData<-hiDir                # baseline species data (scripts 1 & 2)
   biofitRun<-fitting_bios_HI     # for model fitting
-  bioclim_scaling_factors=c(1, 1, 1, 1)
+  # bioclim_scaling_factors=c(1, 1, 1, 1)
+  bioclim_scaling_factors=c(1, 1, 1)
 }
 futureData<-hiDir              # future species data (scripts 3 & 5)
 biobaseRun<-current_proj_bios_HI    # for baseline projections
@@ -169,7 +171,8 @@ models_to_run = c("GAM", "GLM", "MARS", "FDA")  #"GBM", , "SRE"("GAM", "GBM", "G
 spp_ensemble_eval_stats = eval_stats #c('ROC', 'TSS', 'KAPPA')
 
 # select environmental variables for models
-env_var_files = c("bio1.tif", "bio7.tif", "bio12.tif", "bio15.tif") 
+# env_var_files = c("bio1.tif", "bio7.tif", "bio12.tif", "bio15.tif") 
+env_var_files = c("bio1.tif", "bio12.tif", "bio15.tif") 
 # create vector with bioclimatic variable names without the file extension (.tif)
 var_names<-unlist(file_path_sans_ext(env_var_files))
 

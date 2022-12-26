@@ -76,26 +76,27 @@ sp_parallel_run = function(sp_nm) {
     cat('\n loading rasters...')
     
     # establish bioclim variable as mask as predictor variable **USE FITTING BIOS***
-    predictors = raster(paste0(biofitRun, env_var_files[1])) 
-    predictors=predictors*bioclim_scaling_factors[1]
-    # crop predictor to selected extent 
-    #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
-    
-    # creates raster stack all bioclimate variables to use
-    for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
-      temp = raster(paste0(biofitRun, env_var_files[j]))
-      temp=temp*bioclim_scaling_factors[j]
-      #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
-      predictors = addLayer(predictors, temp)
-    } 
-    rm(j, temp) # remove temporary files
+    # predictors = raster(paste0(biofitRun, env_var_files[1])) 
+    # predictors=predictors*bioclim_scaling_factors[1]
+    # # crop predictor to selected extent 
+    # #predictors = crop(predictors, crop_ext, projection = coordSys) #LF disabled as this will take a long time
+    # 
+    # # creates raster stack all bioclimate variables to use
+    # for (j in 2:length(env_var_files)){ # add rest bioclim variables to "predictors"
+    #   temp = raster(paste0(biofitRun, env_var_files[j]))
+    #   temp=temp*bioclim_scaling_factors[j]
+    #   #temp = crop(temp, crop_ext, projection = coordSys) #LF disabled as this will take a long time
+    #   predictors = addLayer(predictors, temp)
+    # } 
+    # rm(j, temp) # remove temporary files
     
     predictors=rast(paste0(biofitRun, env_var_files)) #try
     predictors=predictors*bioclim_scaling_factors #try
     
     # assign names of bioclim variables to raster stack
     names(predictors)<-var_names
-    
+    cat("pred correlations \n")
+    # layerStats(predictors, 'pearson', na.rm=T)
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_env_vars_used.tif") 
     # create blank image file in working directory

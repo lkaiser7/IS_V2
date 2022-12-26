@@ -373,68 +373,148 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   #   theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
   # 
   # ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve.tiff"))
+  #View(scld_plot_data)
   
-  ggplot(scld_plot_data,
-         aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
-    geom_line(lwd = plot_data$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
-    facet_wrap(~ expl.name, scales = 'free_x') +
-    # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
-    facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
-      scale_override(1, scale_x_continuous(limits = c(0, 50))),
-      scale_override(3, scale_x_continuous(limits = c(0, 150))),
-      scale_override(4, scale_x_continuous(limits = c(0, 40)))
-    )) +
-    labs(x = '', y = 'Scaled response', colour = 'model scale') + 
-    # scale_color_brewer(type = 'qual', palette = 4) + 
-    scale_color_manual(values = cb_palette) + 
-    ggtitle(current_sp_nm) + 
-    theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # ggplot(scld_plot_data,
+  #        aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+  #   geom_line(lwd = plot_data$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
+  #   facet_wrap(~ expl.name, scales = 'free_x') +
+  #   # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
+  #   # facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
+  #   #   scale_override(1, scale_x_continuous(limits = c(0, 50))),
+  #   #   scale_override(3, scale_x_continuous(limits = c(0, 150))),
+  #   #   scale_override(4, scale_x_continuous(limits = c(0, 40)))
+  #   # )) +
+  #   labs(x = '', y = 'Scaled response', colour = 'model scale') + 
+  #   # scale_color_brewer(type = 'qual', palette = 4) + 
+  #   scale_color_manual(values = cb_palette) + 
+  #   ggtitle(current_sp_nm) + 
+  #   theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # 
+  # ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
   
-  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
+  ########
+  library(ggpubr)
+  leg_pos='none'
+  bio = var_names[1]
+  plot_list=list()
+  ggp=1
+  for (bio in var_names){
+    tmp_scld_plot_data=scld_plot_data[scld_plot_data$expl.name==bio,]
+    tmp_plot_data=plot_data[scld_plot_data$expl.name==bio,]
+    if (bio==var_names[length(var_names)]){
+      leg_pos='none' 
+    }
+    tmpplot=ggplot(tmp_scld_plot_data,
+           aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+      geom_line(lwd = tmp_plot_data$line_size) +
+      labs(x = bio, y = '', colour = 'model scale') + 
+      scale_color_manual(values = cb_palette, name=NULL) + 
+      # ggtitle(bio) + 
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+    plot_list[[ggp]]=tmpplot
+    #assign(paste0(bio, "_plot"), tmpplot)
+    ggp=ggp+1
+  }
+  a=ggarrange(plotlist=plot_list)
+  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
   
   ##############################
   #no nested:
   #View(plot_data)
+  
+  # plot_data_no_nested=plot_data[plot_data$model_scale!="nested_HI_models",]
+  # 
+  # ggplot(plot_data_no_nested,
+  #        aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+  #   geom_line(lwd = plot_data_no_nested$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
+  #   facet_wrap(~ expl.name, scales = 'free_x') +
+  #   # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
+  #   facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
+  #     scale_override(1, scale_x_continuous(limits = c(0, 50))),
+  #     scale_override(3, scale_x_continuous(limits = c(0, 150))),
+  #     scale_override(4, scale_x_continuous(limits = c(0, 40)))
+  #   )) +
+  #   labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
+  #   # scale_color_brewer(type = 'qual', palette = 4) + 
+  #   scale_color_manual(values = cb_palette) + 
+  #   ggtitle(current_sp_nm) + 
+  #   theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # 
+  # ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
+  # 
+  ###############
   plot_data_no_nested=plot_data[plot_data$model_scale!="nested_HI_models",]
-  
-  ggplot(plot_data_no_nested,
-         aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
-    geom_line(lwd = plot_data_no_nested$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
-    facet_wrap(~ expl.name, scales = 'free_x') +
-    # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
-    facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
-      scale_override(1, scale_x_continuous(limits = c(0, 50))),
-      scale_override(3, scale_x_continuous(limits = c(0, 150))),
-      scale_override(4, scale_x_continuous(limits = c(0, 40)))
-    )) +
-    labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
-    # scale_color_brewer(type = 'qual', palette = 4) + 
-    scale_color_manual(values = cb_palette) + 
-    ggtitle(current_sp_nm) + 
-    theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
-  
-  ggsave(filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
+  library(ggpubr)
+  leg_pos='none'
+  bio = var_names[1]
+  plot_list=list()
+  ggp=1
+  for (bio in var_names){
+    tmp_plot_data=plot_data_no_nested[plot_data_no_nested$expl.name==bio,]
+    if (bio==var_names[length(var_names)]){
+      leg_pos='none' 
+    }
+    tmpplot=ggplot(tmp_plot_data,
+                   aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+      geom_line(lwd = tmp_plot_data$line_size) +
+      labs(x = bio, y = '', colour = 'model scale') + 
+      scale_color_manual(values = cb_palette, name=NULL) + 
+      # ggtitle(bio) + 
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+    plot_list[[ggp]]=tmpplot
+    #assign(paste0(bio, "_plot"), tmpplot)
+    ggp=ggp+1
+  }
+  a=ggarrange(plotlist=plot_list)
+  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
   
   #######
   #scaled
-  scld_plot_data_no_nested=scld_plot_data[scld_plot_data$model_scale!="nested_HI_models",]
-  ggplot(scld_plot_data_no_nested,
-         aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
-    geom_line(lwd = plot_data_no_nested$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
-    facet_wrap(~ expl.name, scales = 'free_x') +
-    # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
-    facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
-      scale_override(1, scale_x_continuous(limits = c(0, 50))),
-      scale_override(3, scale_x_continuous(limits = c(0, 150))),
-      scale_override(4, scale_x_continuous(limits = c(0, 40)))
-    )) +
-    labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
-    # scale_color_brewer(type = 'qual', palette = 4) + 
-    scale_color_manual(values = cb_palette) + 
-    ggtitle(current_sp_nm) + 
-    theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # scld_plot_data_no_nested=scld_plot_data[scld_plot_data$model_scale!="nested_HI_models",]
+  # ggplot(scld_plot_data_no_nested,
+  #        aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+  #   geom_line(lwd = plot_data_no_nested$line_size) + #geom_line(lwd = plot_data$pred.mean) + 
+  #   facet_wrap(~ expl.name, scales = 'free_x') +
+  #   # coord_cartesian(xlim = c(0, 150)) +  # sets manual x scale limits
+  #   facet_wrap_custom(~ expl.name, scales = "free", scale_overrides = list(
+  #     scale_override(1, scale_x_continuous(limits = c(0, 50))),
+  #     scale_override(3, scale_x_continuous(limits = c(0, 150))),
+  #     scale_override(4, scale_x_continuous(limits = c(0, 40)))
+  #   )) +
+  #   labs(x = '', y = 'probability of occurrence', colour = 'model scale') + 
+  #   # scale_color_brewer(type = 'qual', palette = 4) + 
+  #   scale_color_manual(values = cb_palette) + 
+  #   ggtitle(current_sp_nm) + 
+  #   theme_minimal() + theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5))
+  # 
+  # ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
   
-  ggsave(filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
+  #########
+  scld_plot_data_no_nested=scld_plot_data[scld_plot_data$model_scale!="nested_HI_models",]
+  library(ggpubr)
+  leg_pos='none'
+  bio = var_names[1]
+  plot_list=list()
+  ggp=1
+  for (bio in var_names){
+    tmp_plot_data=scld_plot_data_no_nested[scld_plot_data_no_nested$expl.name==bio,]
+    if (bio==var_names[length(var_names)]){
+      leg_pos='none' 
+    }
+    tmpplot=ggplot(tmp_plot_data,
+                   aes(x = expl.val, y = pred.val, colour = model_scale))+#, group = expl.name) + 
+      geom_line(lwd = tmp_plot_data$line_size) +
+      labs(x = bio, y = '', colour = 'model scale') + 
+      scale_color_manual(values = cb_palette, name=NULL) + 
+      # ggtitle(bio) + 
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+    plot_list[[ggp]]=tmpplot
+    #assign(paste0(bio, "_plot"), tmpplot)
+    ggp=ggp+1
+  }
+  a=ggarrange(plotlist=plot_list)
+  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
   
   ########
   #revised var imp plots
