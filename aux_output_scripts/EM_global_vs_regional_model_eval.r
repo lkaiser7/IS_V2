@@ -154,6 +154,7 @@ for (eval_stat in eval_stats){ #global_notHI regional_HI nested_HI
   a
   tiff_name=paste0("combined_results/model_eval_metric/establishment_vs_RC_SSdeviation_", eval_stat, ".tiff")
   ggsave(filename = tiff_name, plot = a, width = 6, height = 5, units = "in", compress="lzw")
+  graphics.off()
   
   cor(skill_varImp_RC_DF$GL_clipSuit_I, skill_varImp_RC_DF$establishment)
   a=ggplot(skill_varImp_RC_DF, aes(x=establishment, y=GL_clipSuit_I)) + 

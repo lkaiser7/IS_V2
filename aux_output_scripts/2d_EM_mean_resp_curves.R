@@ -514,7 +514,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     ggp=ggp+1
   }
   a=ggarrange(plotlist=plot_list)
-  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
+  ggsave(plot = a, filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
   
   ########
   #revised var imp plots
