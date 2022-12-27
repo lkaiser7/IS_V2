@@ -11,7 +11,7 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 seed=9214621 #NULL
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 3 # select number of computer cores for processing (max = 32)
+cpucores = 6 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
@@ -32,8 +32,8 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM8/", 
-               "/hdd/projects/invasives_SDM8/")
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM9/", 
+               "/hdd/projects/invasives_SDM9/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
 
@@ -193,6 +193,8 @@ if (cpucores==1){
 EM_fitting = T
 # script 2: to run ensemble modeling (T) or not (F)
 EM_ensemble = T
+EM_cross_accuracy_check=T
+
 # script 3: to project model results (T) or not (F)
 EM_project = TRUE
 
@@ -275,6 +277,9 @@ baseline_or_future = 1
 clampingMask = FALSE
 # to keep clamping Mask = T saved to hard drive (T) or not (F)
 memory = TRUE 
+#use custom cutoff
+custom_cutoffs=c("nested_HI")
+
 # assign projected climate data set for baseline scenario
 if (baseline_or_future == 1) {
   clim_data = biobaseRun
@@ -377,6 +382,9 @@ if (EM_fitting){  # 1 - run fitting code
 }
 if (EM_ensemble){  # 2 - run ensemble code
   source(paste0(codeDir,"2_mod_ensembles.R")) 
+}
+if (EM_cross_accuracy_check){  # only run this after all scales ran until step 2!
+  source(paste0(codeDir,"aux_output_scripts/2e_calc_custom_cutoffs_and_compare_model_accuracies.r"))   
 }
 if (EM_project){  # 3 - run projection code
   source(paste0(codeDir,"3_em_projection.R"))   
