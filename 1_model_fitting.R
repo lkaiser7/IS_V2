@@ -10,7 +10,6 @@
 require(snowfall)
 require(tools)
 
-
 sp_nm=all_sp_nm[1]
 # initialize snowfall parallel computing function
 sp_parallel_run = function(sp_nm) {
