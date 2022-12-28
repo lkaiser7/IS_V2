@@ -214,11 +214,28 @@ for (eval_stat in eval_stats){
     GN_bin_D=calc.niche.overlap(stack(g_bin0, n_bin0), "D")[2,1]
     GN_bin_I=calc.niche.overlap(stack(g_bin0, n_bin0), "I")[2,1]
     
+    #unclipped suitability
+    g_suit0<-raster(paste0(wdDir, g_mod, "/output_rasters/", sp_nm, "_suitability_baseline_", eval_stat, "_wmean.tif"))
+    l_suit0<-raster(paste0(wdDir, l_mod, "/output_rasters/", sp_nm, "_suitability_baseline_", eval_stat, "_wmean.tif"))
+    n_suit0<-raster(paste0(wdDir, n_mod, "/output_rasters/", sp_nm, "_suitability_baseline_", eval_stat, "_wmean.tif"))
+    
+    GL_Suit_D=calc.niche.overlap(stack(g_suit0, l_suit0), "D")[2,1]
+    GL_Suit_I=calc.niche.overlap(stack(g_suit0, l_suit0), "I")[2,1]
+    LN_Suit_D=calc.niche.overlap(stack(l_suit0, n_suit0), "D")[2,1]
+    LN_Suit_I=calc.niche.overlap(stack(l_suit0, n_suit0), "I")[2,1]
+    GN_Suit_D=calc.niche.overlap(stack(g_suit0, n_suit0), "D")[2,1]
+    GN_Suit_I=calc.niche.overlap(stack(g_suit0, n_suit0), "I")[2,1]
+    
     overlap_DF_row=data.frame(eval_stat, sp_nm, 
+                              GL_Suit_D, LN_Suit_D, GN_Suit_D, 
+                              GL_Suit_I, LN_Suit_I, GN_Suit_I,
                               GL_clipSuit_D, LN_clipSuit_D, GN_clipSuit_D, 
                               GL_clipSuit_I, LN_clipSuit_I, GN_clipSuit_I,
                               GL_bin_D, LN_bin_D, GN_bin_D, 
                               GL_bin_I, LN_bin_I, GN_bin_I)
+    
+    
+    
     
     if (s==1 & eval_stat==eval_stats[1]){
       area_DF=area_DF_row

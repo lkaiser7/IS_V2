@@ -11,7 +11,7 @@ rm(list = ls()) # clear the environment, temp files, and all other variables
 ##########################################
 seed=9214621 #NULL
 # apply_biomod2_fixes = F # apply fixes to solve memory issues (script 3b)
-cpucores = 4 # select number of computer cores for processing (max = 32)
+cpucores = 9 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
@@ -182,7 +182,7 @@ plot_graphs = TRUE
 useRasterDef = TRUE
 interpolateDef = FALSE
 # choose whether to overwrite past results (T) or not (F)
-overwrite = F
+overwrite = T
 
 if (cpucores==1){
   parallel_run = F
@@ -196,7 +196,6 @@ if (cpucores==1){
 EM_fitting = T
 # script 2: to run ensemble modeling (T) or not (F)
 EM_ensemble = T
-EM_cross_accuracy_check=T
 
 # script 3: to project model results (T) or not (F)
 EM_project = TRUE
@@ -274,6 +273,7 @@ do.full.models = TRUE
 eval.metric.threshold = rep(0.5, length(eval_stats)) 
 
 ### EM_project (script 3)
+apply_global_regional_cutoff=T
 # select baseline (1) or future (4) projections
 baseline_or_future = 1
 # choose to save clamping mask (T) or not (F)
@@ -380,24 +380,21 @@ if (baseline_or_future == 1) {
 ptmStart<-proc.time()
 graphics.off()
 # run model fitting, ensemble models, and projections based on settings above
-if (EM_fitting){  # 1 - run fitting code
-  source(paste0(codeDir,"1_model_fitting.R")) 
-}
-if (EM_ensemble){  # 2 - run ensemble code
-  source(paste0(codeDir,"2_mod_ensembles.R")) 
-}
-if (EM_cross_accuracy_check){  # only run this after all scales ran until step 2!
-  source(paste0(codeDir,"aux_output_scripts/2e_calc_custom_cutoffs_and_compare_model_accuracies.r"))   
-}
-if (EM_project){  # 3 - run projection code
-  source(paste0(codeDir,"3_em_projection.R"))   
-  #source(paste0(codeDir,"3d_delete_all_extra_files.R")) #make sure to delete all non essential outputs   
-}
 
-if (raster_output_creation) { # 4 - create output rasters
-  source(paste0(codeDir,"4_raster_output.R"))}
+if (EM_fitting) source(paste0(codeDir,"1_model_fitting.R")) 
+if (EM_ensemble) source(paste0(codeDir,"2_mod_ensembles.R")) 
+
+if (run_type!="nested_HI"){
+  if (EM_project) source(paste0(codeDir,"3_em_projection.R"))   
+  if (raster_output_creation) source(paste0(codeDir,"4_raster_output.R"))
+}
 
 if (run_scripts_beyond_projection){
+  if (run_type=="nested_HI"){
+    if (apply_global_regional_cutoff) source(paste0(codeDir,"aux_output_scripts/2e_calc_custom_cutoffs_and_compare_model_accuracies.r"))   
+    if (EM_project) source(paste0(codeDir,"3_em_projection.R"))   
+    if (raster_output_creation) source(paste0(codeDir,"4_raster_output.R"))
+  }
   ############################################
   # auxiliary scripts based on settings above
   if (merge_var_imp_and_mod_eval) { # 1a - variable importance/evaluation statistics

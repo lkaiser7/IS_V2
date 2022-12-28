@@ -70,7 +70,7 @@ sp_parallel_run = function(sp_nm){
   for (eval_project in eval_projects){
     n_accuraccy_iters=10
     if (eval_project=="nested_HI"){
-      reg_project_path=paste0("E:/invasives_SDM8/","regional_HI","_models/")
+      reg_project_path=paste0(rootDir,"regional_HI","_models/")
       projection_name = paste0(eval_project, "_accuracy")
       predictors=read.csv(paste0(reg_project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
       #get equal amounts of presence/ absence data
@@ -80,7 +80,7 @@ sp_parallel_run = function(sp_nm){
       tmp_pas=tmp_pas[sample(nrow(tmp_pas), n_pres*n_accuraccy_iters),]
       reg_predictors=rbind(tmp_pres, tmp_pas)
       
-      reg_project_path=paste0("E:/invasives_SDM8/","global_notHI","_models/")
+      reg_project_path=paste0(rootDir,"global_notHI","_models/")
       projection_name = paste0(eval_project, "_accuracy")
       predictors=read.csv(paste0(reg_project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
       #get equal amounts of presence/ absence data
@@ -92,7 +92,7 @@ sp_parallel_run = function(sp_nm){
       
       predictors=rbind(reg_predictors, glo_predictors)
     }else{
-      reg_project_path=paste0("E:/invasives_SDM8/",eval_project,"_models/")
+      reg_project_path=paste0(rootDir,eval_project,"_models/")
       projection_name = paste0(eval_project, "_accuracy")
       predictors=read.csv(paste0(reg_project_path, sp_dir, sp_nm, "_bioclim_points.csv"))
       #get equal amounts of presence/ absence data

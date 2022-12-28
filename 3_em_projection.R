@@ -181,7 +181,6 @@ sp_parallel_run = function(sp_nm){
       
       # otherwise if projection workspace already exists
     } else {
-      
       # load existing R workspace
       load(workspace_name_out0)
       # sign-posting indicating models are loaded from past runs
@@ -235,10 +234,20 @@ sp_parallel_run = function(sp_nm){
     WMwmean_ensemble_cutoffs=c()
     for (eval_stat in eval_stats){
       cat("doing ", eval_stat, " ensemble bin rasters \n")
-      index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
-      jnk=scores_all[[index]]
-      #jnk=scores_all[index]
-      cutoff=jnk[eval_stat, "Cutoff"]
+      if (apply_global_regional_cutoff & run_type=="nested_HI"){
+        all_cutoffs=read.csv(paste0(rootDir, "combined_results/all_reg_and_global_EM_eval.csv"))
+        all_sp_cutoffs=all_cutoffs[all_cutoffs$sp_nm==sp_nm,]
+        all_sp_cutoffs=all_sp_cutoffs[all_sp_cutoffs$eval_stat==eval_stat,]
+        all_sp_cutoffs=all_sp_cutoffs[all_sp_cutoffs$model_scale==run_type,]
+        all_sp_cutoffs=all_sp_cutoffs[all_sp_cutoffs$eval_project==run_type,]
+        #View(all_sp_cutoffs)
+        cutoff=round(all_sp_cutoffs$custom_cutoff)
+      }else{
+        index=grep(pattern = paste0("EMwmeanBy", eval_stat),names(scores_all))
+        jnk=scores_all[[index]]
+        #jnk=scores_all[index]
+        cutoff=jnk[eval_stat, "Cutoff"]
+      }
       WMwmean_ensemble_cutoffs=c(WMwmean_ensemble_cutoffs, cutoff)
       
       stack_index=grep(pattern = paste0("EMwmeanBy", eval_stat), EM_stack_names)
