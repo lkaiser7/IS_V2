@@ -91,10 +91,10 @@ sp_parallel_run = function(sp_nm) {
     
     predictors=rast(paste0(biofitRun, env_var_files)) #try
     predictors=predictors*bioclim_scaling_factors #try
-    
     # assign names of bioclim variables to raster stack
     names(predictors)<-var_names
     cat("pred correlations \n")
+    layerCor(predictors, 'pearson', na.rm=T, maxcell=100000)
     # layerStats(predictors, 'pearson', na.rm=T)
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_env_vars_used.tif") 

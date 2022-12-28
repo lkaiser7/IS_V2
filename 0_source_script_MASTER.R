@@ -15,7 +15,7 @@ cpucores = 9 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="nested_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
+run_type="global_notHI" # global_notHI regional_HI nested_HI # select name for project and create directory
 run_scripts_beyond_projection=T
 run_scripts_after_3_model_scales_done=F
 
@@ -182,7 +182,7 @@ plot_graphs = TRUE
 useRasterDef = TRUE
 interpolateDef = FALSE
 # choose whether to overwrite past results (T) or not (F)
-overwrite = T
+overwrite = F
 
 if (cpucores==1){
   parallel_run = F
