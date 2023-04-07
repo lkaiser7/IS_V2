@@ -176,9 +176,9 @@ for (eval_stat in eval_stats){
     # compare suitability of species ranges
     
     # global
-    g_suit
-    l_suit
-    n_suit
+    # g_suit
+    # l_suit
+    # n_suit
     
     g_bin2=g_bin
     l_bin2=l_bin
@@ -186,12 +186,12 @@ for (eval_stat in eval_stats){
     g_bin2[g_bin2==0]=NA
     l_bin2[l_bin2==0]=NA
     n_bin2[n_bin2==0]=NA
-    g_bin2=aggregate(g_bin2, 4, modal)
-    l_bin2=aggregate(l_bin2, 4, modal)
-    n_bin2=aggregate(n_bin2, 4, modal)
-    g_bin_pol=rasterToPolygons(g_bin2, dissolve=T) 
-    l_bin_pol=rasterToPolygons(l_bin2, dissolve=T)
-    n_bin_pol=rasterToPolygons(n_bin2, dissolve=T)
+    g_bin3=aggregate(g_bin2, 4, modal)
+    l_bin3=aggregate(l_bin2, 4, modal)
+    n_bin3=aggregate(n_bin2, 4, modal)
+    g_bin_pol=rasterToPolygons(g_bin3, dissolve=T) 
+    l_bin_pol=rasterToPolygons(l_bin3, dissolve=T)
+    n_bin_pol=rasterToPolygons(n_bin3, dissolve=T)
     library(rgeos)
     #sum(sapply(g_bin_pol@polygons, function(y) nrow(y@Polygons[[2]]@coords))) #total vertices
     g_bin_pol_simple=gSimplify(g_bin_pol, 0.0005, topologyPreserve=TRUE)
@@ -203,6 +203,21 @@ for (eval_stat in eval_stats){
     plot(l_bin_pol_simple)
     plot(n_bin_pol_simple)
     
+    ##########################
+    #save for data release
+    DRdir=paste0(outDir, "combo_bin_and_suitability_maps_3_panel/", "data_release_files/")
+    dir.create(DRdir, showWarnings = F) #all_sp_nm[s]
+    writeRaster(g_suit, filename = paste0(DRdir, current_sp_nm, " global_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
+    writeRaster(g_bin2, filename = paste0(DRdir, current_sp_nm, " global_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
+    terra::writeVector(terra::vect(g_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " global_binary_range.gpkg"), overwrite=T)
+
+    writeRaster(l_suit, filename = paste0(DRdir, current_sp_nm, " regional_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
+    writeRaster(l_bin2, filename = paste0(DRdir, current_sp_nm, " regional_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
+    terra::writeVector(terra::vect(l_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " regional_binary_range.gpkg"), overwrite=T)
+    
+    writeRaster(n_suit, filename = paste0(DRdir, current_sp_nm, " nested_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
+    writeRaster(n_bin2, filename = paste0(DRdir, current_sp_nm, " nested_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
+    terra::writeVector(terra::vect(n_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " nested_binary_range.gpkg"), overwrite=T)
     
     # find max value
     zlim_suit<-max(c(summary(g_suit)[5], summary(l_suit)[5], summary(n_suit)[5]))
@@ -213,6 +228,7 @@ for (eval_stat in eval_stats){
         width = 870*2, height = 607*2, units = "px", pointsize = 24, bg = "white", res = 82)
     # format plot area
     par(mfrow = c(2, 2), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
+    library(scales)
     # suitability model results
     plot(g_suit, main ="Global Model", box = F, axes = F, legend = F, 
          zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(g_bin_pol_simple, col = alpha("black", 0.25), add = T)

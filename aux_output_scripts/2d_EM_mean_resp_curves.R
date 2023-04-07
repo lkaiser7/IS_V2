@@ -267,6 +267,10 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
   mean_var_imp_df$GN_Imp=(mean_var_imp_df$GvarImp+mean_var_imp_df$NvarImp)/2
   mean_var_imp_df$LN_Imp=(mean_var_imp_df$LvarImp+mean_var_imp_df$NvarImp)/2
   
+  mean_var_imp_df$GL_Imp_max=apply(mean_var_imp_df[,c("GvarImp", "LvarImp")],1, max, na.rm=T)
+  mean_var_imp_df$GN_Imp_max=apply(mean_var_imp_df[,c("GvarImp", "NvarImp")],1, max, na.rm=T)
+  mean_var_imp_df$LN_Imp_max=apply(mean_var_imp_df[,c("LvarImp", "NvarImp")],1, max, na.rm=T)
+  
   #first step is to standardize the expl var values as the response curves do not yield equal values!
   bio = var_names[1]
   for (bio in var_names){
@@ -304,6 +308,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     extrapolated_response_DF$scld_GN_diff=(extrapolated_response_DF$scld_global_notHI_models-extrapolated_response_DF$scld_nested_HI_models)^2
     extrapolated_response_DF$scld_LN_diff=(extrapolated_response_DF$scld_regional_HI_models-extrapolated_response_DF$scld_nested_HI_models)^2
     #View(extrapolated_response_DF)
+    
     extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "global_notHI_models", "regional_HI_models", "nested_HI_models")]
     extrapolated_response_DF_tmp=melt(extrapolated_response_DF_tmp,id.vars = "expl_vals")
     extrapolated_response_DF_tmp$pred=bio
@@ -552,7 +557,8 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
 }
 
 #View(SS_results_DF_scld_SS_GL_diff_short)
-
+#################
+#DEVIATIONS BASED ON MEAN VAR IMP
 SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_Imp
 SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_Imp
 SS_results_DF=cbind(current_spp_name=replace_spp_names(SS_results_DF$species), SS_results_DF)
@@ -566,18 +572,98 @@ SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(SS_results_DF_spp$spe
 write.csv(SS_results_DF_spp, paste0(rc_fold,"species_mean_response_deviations.csv"), row.names = F)
 #View(SS_results_DF_spp)
 
-SS_results_DF_scld_SS_GL_diff=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff", "bio")]
+#############
+#scaled and weighted table
+SS_results_DF_scld_weighted_SS_GL_diff=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff", "bio")]
 library(reshape2)
-#View(SS_results_DF_scld_SS_GL_diff)
-SS_results_DF_scld_SS_GL_diff_short=dcast(SS_results_DF_scld_SS_GL_diff, species ~ bio, value.var="scld_weighted_SS_GL_diff")
+#View(SS_results_DF_scld_weighted_SS_GL_diff)
+SS_results_DF_scld_weighted_SS_GL_diff_short=dcast(SS_results_DF_scld_weighted_SS_GL_diff, species ~ bio, value.var="scld_weighted_SS_GL_diff")
 
-scld_SS_results_DF_spp=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff")]
-scld_SS_results_DF_spp=aggregate(scld_SS_results_DF_spp[,2], by=list(scld_SS_results_DF_spp$species), FUN=mean)
-names(scld_SS_results_DF_spp)=c("species", "scld_weighted_SS_GL_diff")
-scld_SS_results_DF_spp=merge(SS_results_DF_scld_SS_GL_diff_short, scld_SS_results_DF_spp, by= "species")
-scld_SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(scld_SS_results_DF_spp$species), scld_SS_results_DF_spp)
-write.csv(scld_SS_results_DF_spp, paste0(rc_fold,"scld_species_mean_response_deviations.csv"), row.names = F)
+scld_weighted_SS_results_DF_spp=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff")]
+scld_weighted_SS_results_DF_spp=aggregate(scld_weighted_SS_results_DF_spp[,2], by=list(scld_weighted_SS_results_DF_spp$species), FUN=mean)
+names(scld_weighted_SS_results_DF_spp)=c("species", "scld_weighted_SS_GL_diff")
+scld_weighted_SS_results_DF_spp=merge(SS_results_DF_scld_weighted_SS_GL_diff_short, scld_weighted_SS_results_DF_spp, by= "species")
+scld_weighted_SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(scld_weighted_SS_results_DF_spp$species), scld_weighted_SS_results_DF_spp)
+write.csv(scld_weighted_SS_results_DF_spp, paste0(rc_fold,"scld_weighted_species_mean_response_deviations.csv"), row.names = F)
 #View(scld_SS_results_DF_spp)
 
+#############
+#scaled and NOT weighted table
+SS_results_DF_scld_SS_GL_diff=SS_results_DF[,c("species", "scld_SS_GL_diff", "bio")]
+library(reshape2)
+#View(SS_results_DF_scld_SS_GL_diff)
+SS_results_DF_scld_SS_GL_diff_short=dcast(SS_results_DF_scld_SS_GL_diff, species ~ bio, value.var="scld_SS_GL_diff")
+
+scld_SS_results_DF_spp=SS_results_DF[,c("species", "scld_SS_GL_diff")]
+scld_SS_results_DF_spp=aggregate(scld_SS_results_DF_spp[,2], by=list(scld_SS_results_DF_spp$species), FUN=mean)
+names(scld_SS_results_DF_spp)=c("species", "scld_SS_GL_diff")
+scld_SS_results_DF_spp=merge(SS_results_DF_scld_SS_GL_diff_short, scld_SS_results_DF_spp, by= "species")
+scld_SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(scld_SS_results_DF_spp$species), scld_SS_results_DF_spp)
+write.csv(scld_SS_results_DF_spp, paste0(rc_fold,"scld_NOT_weighted_species_mean_response_deviations.csv"), row.names = F)
+#View(scld_SS_results_DF_spp)
+
+#############
+#NOT scaled and NOT weighted table
+SS_results_DF_SS_GL_diff=SS_results_DF[,c("species", "SS_GL_diff", "bio")]
+library(reshape2)
+#View(SS_results_DF_SS_GL_diff)
+SS_results_DF_SS_GL_diff_short=dcast(SS_results_DF_SS_GL_diff, species ~ bio, value.var="SS_GL_diff")
+
+SS_results_DF_spp=SS_results_DF[,c("species", "SS_GL_diff")]
+SS_results_DF_spp=aggregate(SS_results_DF_spp[,2], by=list(SS_results_DF_spp$species), FUN=mean)
+names(SS_results_DF_spp)=c("species", "SS_GL_diff")
+SS_results_DF_spp=merge(SS_results_DF_SS_GL_diff_short, SS_results_DF_spp, by= "species")
+SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(SS_results_DF_spp$species), SS_results_DF_spp)
+write.csv(SS_results_DF_spp, paste0(rc_fold,"NOT_scld_NOT_weighted_species_mean_response_deviations.csv"), row.names = F)
+#View(SS_results_DF_spp)
+
+#################
+#################
+#DEVIATIONS BASED ON MAX VAR IMP
+SS_results_DF$weighted_SS_GL_diff=SS_results_DF$SS_GL_diff*SS_results_DF$GL_Imp_max
+SS_results_DF$scld_weighted_SS_GL_diff=SS_results_DF$scld_SS_GL_diff*SS_results_DF$GL_Imp_max
+SS_results_DF=cbind(current_spp_name=replace_spp_names(SS_results_DF$species), SS_results_DF)
+write.csv(SS_results_DF, paste0(rc_fold,"response_deviations_max_imp.csv"), row.names = F)
+#View(SS_results_DF)
+
+SS_results_DF_spp=SS_results_DF[,c("species", "weighted_SS_GL_diff")]
+SS_results_DF_spp=aggregate(SS_results_DF_spp[,2], by=list(SS_results_DF_spp$species), FUN=mean)
+names(SS_results_DF_spp)=c("species", "weighted_SS_GL_diff")
+SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(SS_results_DF_spp$species), SS_results_DF_spp)
+write.csv(SS_results_DF_spp, paste0(rc_fold,"species_mean_response_deviations_max_imp.csv"), row.names = F)
+#View(SS_results_DF_spp)
+
+#############
+#scaled and weighted table
+SS_results_DF_scld_weighted_SS_GL_diff=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff", "bio")]
+library(reshape2)
+#View(SS_results_DF_scld_weighted_SS_GL_diff)
+SS_results_DF_scld_weighted_SS_GL_diff_short=dcast(SS_results_DF_scld_weighted_SS_GL_diff, species ~ bio, value.var="scld_weighted_SS_GL_diff")
+
+scld_weighted_SS_results_DF_spp=SS_results_DF[,c("species", "scld_weighted_SS_GL_diff")]
+scld_weighted_SS_results_DF_spp=aggregate(scld_weighted_SS_results_DF_spp[,2], by=list(scld_weighted_SS_results_DF_spp$species), FUN=mean)
+names(scld_weighted_SS_results_DF_spp)=c("species", "scld_weighted_SS_GL_diff")
+scld_weighted_SS_results_DF_spp=merge(SS_results_DF_scld_weighted_SS_GL_diff_short, scld_weighted_SS_results_DF_spp, by= "species")
+scld_weighted_SS_results_DF_spp=cbind(current_spp_name=replace_spp_names(scld_weighted_SS_results_DF_spp$species), scld_weighted_SS_results_DF_spp)
+write.csv(scld_weighted_SS_results_DF_spp, paste0(rc_fold,"scld_weighted_species_mean_response_deviations_max_imp.csv"), row.names = F)
+#View(scld_SS_results_DF_spp)
 
 ##### END MEAN RESPONSE CURVES #####
+scld_weighted_SS_results_DF_spp=read.csv(paste0(rc_fold,"scld_weighted_species_mean_response_deviations.csv"))
+scld_NOTweighted_SS_results_DF_spp=read.csv(paste0(rc_fold,"scld_NOT_weighted_species_mean_response_deviations.csv"))
+NOTscld_NOTweighted_SS_results_DF_spp=read.csv(paste0(rc_fold,"NOT_scld_NOT_weighted_species_mean_response_deviations.csv"))
+scld_MAX_weighted_SS_results_DF_spp=read.csv(paste0(rc_fold,"scld_weighted_species_mean_response_deviations_max_imp.csv"))
+View(scld_weighted_SS_results_DF_spp)
+View(scld_NOTweighted_SS_results_DF_spp)
+View(NOTscld_NOTweighted_SS_results_DF_spp)
+View(scld_MAX_weighted_SS_results_DF_spp)
+all_response_vars=scld_weighted_SS_results_DF_spp[,c("current_spp_name", "species", "scld_weighted_SS_GL_diff")]
+all_response_vars=cbind(all_response_vars, scld_NOTweighted_SS_results_DF_spp$scld_SS_GL_diff, NOTscld_NOTweighted_SS_results_DF_spp$SS_GL_diff, scld_MAX_weighted_SS_results_DF_spp$scld_weighted_SS_GL_diff)
+names(all_response_vars)=c("current_spp_name", "species", "scld_meanWgt", "scld_noWgt", "noscld_noWgt", "scld_maxWgt")
+#View(all_response_vars)
+write.csv(all_response_vars, paste0(rc_fold,"all_response_deviations_indicators.csv"), row.names = F)
+pairs(all_response_vars[,3:6], pch = 19)
+library(plotly)
+library(GGally)
+p <- ggpairs(all_response_vars[,3:6], title="correlogram with ggpairs()") 
+ggplotly(p)

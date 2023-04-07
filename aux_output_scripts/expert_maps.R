@@ -316,3 +316,40 @@ overlap_DF=cbind(current_spp_name=replace_spp_names(overlap_DF$sp_nm), overlap_D
 write.csv(area_DF, paste0(outDir2, "projection_area_DF.csv"), row.names = F)
 write.csv(overlap_DF, paste0(outDir2, "niche_overlap_metric_DF.csv"), row.names = F)
 
+
+##########################
+#area differences
+area_DF=read.csv(paste0(outDir2, "projection_area_DF.csv"))
+dput(names(area_DF))
+area_DF_melt=area_DF[, c("g_bin_sqkm_area", 
+                         "l_bin_sqkm_area", "n_bin_sqkm_area")]
+names(area_DF_melt)=c("Global", "Regional", "Nested")
+library(tidyr)
+area_DF_melt <- gather(area_DF_melt)
+names(area_DF_melt)=c("Model_scale", "Area")
+
+library(ggplot2)
+p<-ggplot(data=area_DF_melt, aes_string(x="Model_scale", y="Area")) +
+  geom_bar(stat="identity")+xlab("Model scale")+ylab(bquote(Area (km^2))) 
+p
+
+############
+#by species
+area_DF=read.csv(paste0(outDir2, "projection_area_DF.csv"))
+dput(names(area_DF))
+area_DF_melt=area_DF[, c("sp_nm", "g_bin_sqkm_area", 
+                         "l_bin_sqkm_area", "n_bin_sqkm_area")]
+area_DF_melt$sp_nm=replace_spp_names(area_DF_melt$sp_nm)
+
+names(area_DF_melt)=c("Species", "Global", "Regional", "Nested")
+
+library(tidyr)
+area_DF_melt <- gather(area_DF_melt, key="Model_scale", value="Area", -"Species")
+
+library(ggplot2)
+p<-ggplot(data=area_DF_melt, aes_string(x="Species", y="Area", fill="Model_scale")) +
+  geom_bar(stat="identity", position=position_dodge())+xlab("")+ylab(bquote(Area (km^2))) 
+p=p + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+            legend.title=element_blank(),
+            text = element_text(size = 14))
+p
