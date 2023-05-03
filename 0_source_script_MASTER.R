@@ -15,8 +15,8 @@ cpucores = 9 # select number of computer cores for processing (max = 32)
 # select model evaluation methods (KAPPA, ROC, TSS)
 #eval_stats = c("ROC", "KAPPA", "TSS") 
 eval_stats = c("TSS") #DEBUG
-run_type="global_notHI" # global_notHI regional_HI nested_HI # select name for project and create directory
-run_scripts_beyond_projection=T
+run_type="regional_HI" # global_notHI regional_HI nested_HI # select name for project and create directory
+run_scripts_beyond_projection=F
 run_scripts_after_3_model_scales_done=F
 
 all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum',
@@ -32,7 +32,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/", 
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/", "D:/projects/invasives_SDM10/", 
                "/hdd/projects/invasives_SDM10/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
