@@ -93,8 +93,12 @@ sp_parallel_run = function(sp_nm) {
     predictors=predictors*bioclim_scaling_factors #try
     # assign names of bioclim variables to raster stack
     names(predictors)<-var_names
-    cat("pred correlations \n")
-    layerCor(predictors, 'pearson', na.rm=T, maxcell=100000)
+    
+    if (aggregate_rasters_for_local_runs) predictors=terra::aggregate(predictors, fact=4, fun="mean")
+    #plot(predictors)
+    # cat("pred correlations \n")
+    # terra::layerCor(predictors, 'pearson', na.rm=T, maxcell=100000)
+    
     # layerStats(predictors, 'pearson', na.rm=T)
     # name output image file
     tiff_name = paste0(project_path, sp_dir, sp_nm, "_env_vars_used.tif") 
@@ -398,17 +402,59 @@ sp_parallel_run = function(sp_nm) {
       myYweights = NULL 
     }
     
-    ##############################
-    #format  data for biomod
-    myBiomodData<-BIOMOD_FormatingData(
-      resp.name = sp_nm,  #species name (character)
-      resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
-      expl.var = stack(predictors), #myExpl,  #bioclim values (df)
-      resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
-      PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
-      PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
-      PA.strategy = PA.strategy,  #how to select PAs
-      PA.dist.min = PA.dist.min)  #minimum distance to presences
+    if (PA.strategy=='user.defined'){ #this blocking approach was not complete as there is no clear way to subsample PAs given they are coded as NAs.
+      ##############################
+      ##############################
+      #block CV
+      library(blockCV)
+      tmp=cbind(myRespXY, myResp)
+      names(tmp)=c("x", "y", "occ")
+      #View(tmp)
+      pa_data <- sf::st_as_sf(tmp, coords = c("x", "y"), crs = 4326)
+      #Let’s plot the species data using tmap package:
+      library(tmap)
+      tm_shape(predictors[[1]]) +
+        tm_raster(legend.show = FALSE, n = 30, palette = gray.colors(10)) +
+        tm_shape(pa_data) +
+        tm_dots(col = "occ", style = "cat", size = 0.1, colorNA="red")
+      
+      sb1 <- cv_spatial(x = pa_data,
+                        column = "occ", # the response column (binary or multi-class)
+                        k = PA.nb.rep, # number of folds
+                        size = 10000, # size of the blocks in metres
+                        selection = "random", # random blocks-to-fold
+                        iteration = 50, # find evenly dispersed folds
+                        biomod2 = TRUE) # also create folds for biomod2
+      #sb1$biomod_table
+      
+      #PA.table #as many columns as PA.nb.rep
+      #PA.strategy= 'user.defined' 
+      myBiomodData<-BIOMOD_FormatingData(
+        resp.name = sp_nm,  #species name (character)
+        resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
+        expl.var = stack(predictors), #myExpl,  #bioclim values (df)
+        resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
+        PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
+        PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
+        PA.strategy = PA.strategy,  #how to select PAs
+        PA.dist.min = PA.dist.min,
+        PA.table = sb1$biomod_table)  #minimum distance to presences
+      
+    }else{
+      ##############################
+      #format  data for biomod
+      myBiomodData<-BIOMOD_FormatingData(
+        resp.name = sp_nm,  #species name (character)
+        resp.var = myResp,  #pres/abs/pa points #myResp (1 col df)
+        expl.var = stack(predictors), #myExpl,  #bioclim values (df)
+        resp.xy = myRespXY,  #xy coordinates #as.matrix(myRespXY) (df)
+        PA.nb.rep = PA.nb.rep,  #number of PAs selections (numeric)
+        PA.nb.absences = n_PA_pts,  #number of PAs to select (numeric)
+        PA.strategy = PA.strategy,  #how to select PAs
+        PA.dist.min = PA.dist.min)  #minimum distance to presences
+    }
+    
+    
     
     file_name_out = paste0(project_path, sp_dir, sp_nm, "_BiomodData.RData")
     save("myBiomodData", file = file_name_out)   

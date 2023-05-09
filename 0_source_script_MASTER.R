@@ -32,7 +32,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/", "D:/projects/invasives_SDM10/", 
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/", "D:/projects/invasives_SDM12_blockCV/",# "D:/projects/invasives_SDM10/", 
                "/hdd/projects/invasives_SDM10/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder
@@ -241,6 +241,11 @@ if (run_type=="nested_HI"){
 }else{
   useYweights = F 
 }
+
+#aggregate pred rasters?
+aggregate_rasters_for_local_runs=T
+if (run_type!="global_notHI") aggregate_rasters_for_local_runs=F #do not aggregate global preds that are already at 1km!
+  
 # consider PAs outside of a species climate envelope (T) or not (F)
 PseudoAbs_outside_CE = FALSE
 # set PA density that is equal to point density within surveyed areas
@@ -250,10 +255,11 @@ PA.nb.rep = 10
 # select number of PAs to determine point density
 number_of_PAs = 1 #Using 1 to 1, based on recommendation from https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 #if less than 100, will use value to determine total PA as number_of_PAs * n of presences, if larger, will apply actual number 
+# strategy for selecting PAs (disk, random, sre, user.defined)
+PA.strategy = "random" #"random" #'user.defined' #using random, as recommended by https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
 # candidate points to use only if PAs_outside_CE = F, if == 0, will use number_of_PAs   
 candidatePAperPA = PA.nb.rep*5  # overridden if PseudoAbs_outside_CE = T
-# strategy for selecting PAs (disk, random, sre, user.defined)
-PA.strategy = "random" #using random, as recommended by https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.2041-210X.2011.00172.x
+if (PA.strategy=='user.defined') candidatePAperPA=PA.nb.rep #no need for extras if using user defined PA selection
 # set 100m equivalence distance from actual data points
 equiv_100m = 0.0009430131
 # set 20 km minimum distance from actual data points

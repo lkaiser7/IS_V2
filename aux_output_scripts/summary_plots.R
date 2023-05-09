@@ -206,17 +206,17 @@ for (eval_stat in eval_stats){
     ##########################
     #save for data release
     DRdir=paste0(outDir, "combo_bin_and_suitability_maps_3_panel/", "data_release_files/")
-    dir.create(DRdir, showWarnings = F) #all_sp_nm[s]
-    writeRaster(g_suit, filename = paste0(DRdir, current_sp_nm, " global_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
-    writeRaster(g_bin2, filename = paste0(DRdir, current_sp_nm, " global_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
-    terra::writeVector(terra::vect(g_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " global_binary_range.gpkg"), overwrite=T)
+    dir.create(DRdir, showWarnings = F, recursive = T) #all_sp_nm[s]
+    writeRaster(x = g_suit, filename = paste0(DRdir, current_sp_nm, " global_suitability.tif"), overwrite=T)#, gdal=c("COMPRESS=LZW"))
+    writeRaster(g_bin2, filename = paste0(DRdir, current_sp_nm, " global_binary_range.tif"), overwrite=T)#, gdal=c("compress=lzw"))
+    terra::writeVector(terra::vect(g_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " global_binary_range.gpkg"), overwrite=T)#, overwrite=T)
 
-    writeRaster(l_suit, filename = paste0(DRdir, current_sp_nm, " regional_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
-    writeRaster(l_bin2, filename = paste0(DRdir, current_sp_nm, " regional_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
+    writeRaster(l_suit, filename = paste0(DRdir, current_sp_nm, " regional_suitability.tif"), overwrite=T)#, gdal=c("compress=lzw"))
+    writeRaster(l_bin2, filename = paste0(DRdir, current_sp_nm, " regional_binary_range.tif"), overwrite=T)#, gdal=c("compress=lzw"))
     terra::writeVector(terra::vect(l_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " regional_binary_range.gpkg"), overwrite=T)
     
-    writeRaster(n_suit, filename = paste0(DRdir, current_sp_nm, " nested_suitability.tif"), overwrite=T, gdal=c("compress=lzw"))
-    writeRaster(n_bin2, filename = paste0(DRdir, current_sp_nm, " nested_binary_range.tif"), overwrite=T, gdal=c("compress=lzw"))
+    writeRaster(n_suit, filename = paste0(DRdir, current_sp_nm, " nested_suitability.tif"), overwrite=T)#, gdal=c("compress=lzw"))
+    writeRaster(n_bin2, filename = paste0(DRdir, current_sp_nm, " nested_binary_range.tif"), overwrite=T)#, gdal=c("compress=lzw"))
     terra::writeVector(terra::vect(n_bin_pol_simple), filename = paste0(DRdir, current_sp_nm, " nested_binary_range.gpkg"), overwrite=T)
     
     # find max value

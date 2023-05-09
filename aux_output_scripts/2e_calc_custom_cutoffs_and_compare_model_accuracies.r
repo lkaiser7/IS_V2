@@ -292,4 +292,5 @@ for (model_scale in model_scales){
 }
 all_sp_evalDF=cbind(all_sp_evalDF, current_spp_name=replace_spp_names(all_sp_evalDF$sp_nm))
 #View(all_sp_evalDF)
+dir.create(paste0(rootDir, "combined_results/"), showWarnings = F)
 write.csv(all_sp_evalDF, paste0(rootDir, "combined_results/all_reg_and_global_EM_eval.csv"))
