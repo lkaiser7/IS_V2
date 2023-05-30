@@ -32,7 +32,7 @@ all_sp_nm = c('Clidemia_hirta', 'Falcataria_moluccana', 'Hedychium_gardnerianum'
 # NOTE: Passiflora tarminiana is a species synonym of Passiflora mollisima
 
 # set root path to source files
-project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/", "D:/projects/invasives_SDM12_blockCV/",# "D:/projects/invasives_SDM10/", 
+project_dirs=c("C:/Users/lkaiser-regional/Desktop/Phase1_SDMs/", "E:/invasives_SDM10/",  "D:/projects/invasives_SDM10/", 
                "/hdd/projects/invasives_SDM10/")
 rootDir=project_dirs[min(which(dir.exists(project_dirs)))]
 setwd(rootDir) # set working directory to main analysis folder

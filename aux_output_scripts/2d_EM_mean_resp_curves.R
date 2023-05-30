@@ -322,7 +322,7 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
     scld_extrapolated_response_DF_tmp=melt(scld_extrapolated_response_DF_tmp,id.vars = "expl_vals")
     scld_extrapolated_response_DF_tmp$pred=bio
     scld_extrapolated_response_DF_tmp$species=sp.name
-    a=ggplot(scld_extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()+xlab(bio)+ylab("scaled suitability")
+    a=ggplot(scld_extrapolated_response_DF_tmp, aes(x = expl_vals, y = value, colour = variable))+geom_line()+xlab(bio)+ylab("Scaled suitability")
     ggsave(a, filename = paste0(rc_fold, "individual_plots/", sp.name, "_", bio, "_EM_scaled_GL_resp_curve.tiff"), compression = "lzw")
     
     # extrapolated_response_DF_tmp=extrapolated_response_DF[,c("expl_vals", "GL_diff", "GN_diff", "LN_diff")]
@@ -416,13 +416,13 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       labs(x = bio, y = '', colour = 'model scale') + 
       scale_color_manual(values = cb_palette, name=NULL) + 
       # ggtitle(bio) + 
-      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))+ylab("Scaled suitability")
     plot_list[[ggp]]=tmpplot
     #assign(paste0(bio, "_plot"), tmpplot)
     ggp=ggp+1
   }
   a=ggarrange(plotlist=plot_list)
-  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw")
+  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_scaled.tiff"), compression = "lzw", height=7, width=7, units = "in", dpi = 300)
   
   ##############################
   #no nested:
@@ -466,13 +466,13 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       labs(x = bio, y = '', colour = 'model scale') + 
       scale_color_manual(values = cb_palette, name=NULL) + 
       # ggtitle(bio) + 
-      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))+ylab("Scaled suitability")
     plot_list[[ggp]]=tmpplot
     #assign(paste0(bio, "_plot"), tmpplot)
     ggp=ggp+1
   }
   a=ggarrange(plotlist=plot_list)
-  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw")
+  ggsave(plot = a, filename = paste0(rc_fold, sp.name, "_EM_mean_resp_curve_GL.tiff"), compression = "lzw", height=7, width=7, units = "in", dpi = 300)
   
   #######
   #scaled
@@ -513,13 +513,13 @@ for(s in 1:length(all_sp_nm)){ # set s = 1 for debugging
       labs(x = bio, y = '', colour = 'model scale') + 
       scale_color_manual(values = cb_palette, name=NULL) + 
       # ggtitle(bio) + 
-      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))
+      theme_minimal() + theme(legend.position = leg_pos, plot.title = element_text(hjust = 0.5))+ylab("Scaled suitability")
     plot_list[[ggp]]=tmpplot
     #assign(paste0(bio, "_plot"), tmpplot)
     ggp=ggp+1
   }
   a=ggarrange(plotlist=plot_list)
-  ggsave(plot = a, filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw")
+  ggsave(plot = a, filename = paste0(rc_fold, "GL_scld/", sp.name, "_EM_mean_resp_curve_GL_scld.tiff"), compression = "lzw", height=7, width=7, units = "in", dpi = 300)
   
   ########
   #revised var imp plots
