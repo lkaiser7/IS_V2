@@ -247,6 +247,32 @@ for (eval_stat in eval_stats){
     title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
     dev.off()
     
+    ########################################
+    #modified 3 panel combo plot
+    dir.create(paste0(outDir, "combo_bin_and_suitability_maps_3_panel_mod/"), showWarnings=F)
+    # create image file
+    png(paste0(outDir, "combo_bin_and_suitability_maps_3_panel_mod/", all_sp_nm[s], "_combo_baseline_", eval_stat, "_wmean.png"), 
+        width = 870*1, height = 607*3, units = "px", pointsize = 24, bg = "white", res = 82)
+    # format plot area
+    par(mfrow = c(3, 1), mar = c(0.75, 0, 0.75, 0), oma = c(0, 0, 2, 0))
+    library(scales)
+    # suitability model results
+    plot(g_suit, main ="Global Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(g_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(l_suit, main = "Regional Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(l_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    plot(n_suit, main = "Nested Model", box = F, axes = F, legend = F, 
+         zlim = c(0, zlim_suit), col = suit_col(30)); plot(hi_map, lwd=2, border="grey", add = T); plot(n_bin_pol_simple, col = alpha("black", 0.25), add = T)
+    # LEGEND OPTION 1: bottom left
+    legend("bottomleft", bty = "n", fill = c(clip_col(5)), border = "black", cex = 1.25,
+           legend = c("Unsuitable", "Low Suitability", "Moderate Suitability", "Suitable", "High Suitability"))
+    # # species point data
+    # plot(hi_map, main = "Regional Occurrences")
+    # points(sp_pts$decimalLongitude, sp_pts$decimalLatitude, 
+    #        pch = 21, col = "black", bg = "red")
+    # add species name as main title 
+    title(current_sp_nm, outer = T, cex.main = 2) #, line = 2)
+    dev.off()
     
     ######################
     #3 panel combo plot
